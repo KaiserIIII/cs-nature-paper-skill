@@ -1,0 +1,6 @@
+interface:
+  display_name: "CS Nature Paper"
+  short_description: "调度7大部门完成CS论文全流程"
+  default_prompt: "使用 $cs-nature-paper 规划并执行一篇CS论文的研究、实验、写作和审稿流程。"
+policy:
+  allow_implicit_invocation: true
