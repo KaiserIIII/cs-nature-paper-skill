@@ -1,119 +1,89 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/CS-Nature%20Paper-blue?style=for-the-badge&logo=academia" alt="CS Nature Paper">
-</p>
+# CS Nature Paper v2
 
-<h1 align="center">🏢 CS Nature Paper — 究极CS论文CEO</h1>
-<p align="center"><strong>一个入口调度7大部门 · 学术skills按需招聘 · Codex/Claude Code可用</strong></p>
+面向计算机科研与投稿的证据约束型总控 skill。它把研究组织为“主张—证据—机制”，避免把实验数量、agent 数量、篇幅或模拟审稿人一致性误当成科学贡献。
 
-<p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-  <img src="https://img.shields.io/badge/departments-7-blueviolet" alt="7 Departments">
-  <img src="https://img.shields.io/badge/employees-on--demand-success" alt="On-demand Skills">
-  <img src="https://img.shields.io/badge/venues-22%2B-red" alt="22+ Venues">
-</p>
+[English](README.md) · [保留的 v1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) · [MIT License](LICENSE)
 
----
+## 第二代改了什么
 
-## 这是什么
+v2 用六道科学门替换 v1 固定、耗 token 的全流水线：
 
-**你只需从这个 skill 进入。CEO检测已安装员工，对缺失能力按需招聘，再调度7大部门流水线。**
+1. 明确利益相关者问题、构念、适用范围、机制和可证伪条件；
+2. 将每个关键主张映射到所需证据和实际证据；
+3. 冻结协议、保留历史证据，并在修改前登记 amendment；
+4. 只有在新实验能检验明确威胁或改变结论时才扩大实验；
+5. 先通过编辑 90 秒测试，再堆叠专家细节；
+6. 核验引用、数字、统计、图表、工件和当期投稿规则。
 
-```
-你做的事：git clone cs-nature-paper → 说"写一篇OSDI论文"
-CEO做的事：招人、派活、验收、打包。全自动。
-```
+七大部门仍然保留，但按任务自适应启用。局部润色、拒稿诊断或图表检查不再强制启动整条流水线。
 
-**7大部门流程：**
+## 七种模式
 
-```
-❶文献部 → ❷创新部 → ❸程序架构部 → ❺图表部 → ❹文案部 → ❻验收部 → ❼评审部 → 交付
-```
-
-| 部门 | 职责 | CEO自动招聘 |
-|:---|:---|:---|
-| ❶文献部 | 搜索文献、验证引用、出文献综述 | deep-research + scholar-forge + paper-lookup + literature-review |
-| ❷创新部 | 6引擎找创新点、50+假设、7维评分 | sisyphus-academica |
-| ❸程序架构部 | 写代码、跑实验、可复现包 | paper-writing-skill + PaperOrchestra + statistical-analysis |
-| ❺图表部 | 7类CS学术图表、数据可视化 | paper-writing-skill + scientific-visualization + Python/R |
-| ❹文案部 | 选期刊、14条原则写论文、嵌入图表 | academic-paper + scholar-forge + scientific-writing |
-| ❻验收部 | 学术诚信检查 + 全篇复检 + 41项AI检测 | academic-pipeline + sisyphus-academica + scholar-evaluation |
-| ❼评审部 | 15视角模拟同行评审 → 上报CEO | academic-paper-reviewer + sisyphus-academica + scholar-evaluation |
-
----
+| 模式 | 用途 |
+|---|---|
+| `full` | 从研究材料到分阶段投稿包 |
+| `plan` | 定位、研究问题和协议 |
+| `execute` | 实现实验并冻结可复现证据 |
+| `write` | 按证据起草或修改论文 |
+| `revision` | 处理评审或拒稿，控制范围膨胀 |
+| `review` | 编辑、领域与方法的证据化审查 |
+| `preflight` | 核验最新投稿规则和提交包 |
 
 ## 安装
 
-Codex：
+把本目录克隆或复制到所用 agent 的 skills 目录。Codex 的一种常见安装方式是：
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper-skill
+git clone --branch v2 https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
 ```
 
-Claude Code：
-
-```bash
-git clone https://github.com/YOUR_USERNAME/cs-nature-paper-skill.git ~/.claude/skills/cs-nature-paper
-```
-
-把 `YOUR_USERNAME` 替换为你的 GitHub 用户名。CEO首次激活时会检查员工状态，优先使用当前 agent 的 skill 安装器按需安装缺失员工。
-
----
+应先审查第三方 skill 并固定版本。v2 不会静默安装依赖、执行未审查 hook、公开工件或自动投稿。
 
 ## 使用
 
+直接在请求中调用：
+
+```text
+使用 $cs-nature-paper 的 revision 模式。拒稿信只保留在本地，建立问题—证据—修改矩阵，并判断哪些新增实验真的会改变论文主张。
 ```
-用NeurIPS模板写一篇transformer架构改进的论文
-帮我想创新点，方向是分布式数据库查询优化
-帮我审这篇论文，目标投OSDI
-帮我润色这篇论文，压缩到10页，去掉AI痕迹
+
+大型项目可以初始化可选的私有研究状态：
+
+```bash
+python scripts/research_state.py init /path/to/project --study-type empirical --mode full
+python scripts/research_state.py audit /path/to/project --gate argument
 ```
 
-CEO自动：盘人→招人→启动7部门管线→每阶段验收→最终交付LaTeX/PDF+代码仓+可复现包。
+它会创建 `/path/to/project/.research-state/`：
 
----
+- `research_contract.json`：构念、范围、机制、协议和 venue 来源；
+- `evidence_ledger.json`：主张状态、证据锚点、不确定性和反证；
+- `decision_log.md`：重要科研决定和 amendment。
 
-## 融合的系统
+初始化不会覆盖现有状态；这些文件默认私有，是否发布净化后的版本由作者决定。
 
-| 来源 | 吸收的能力 |
-|:---|:---|
-| ARS (4 skills, 32 agents) | 10阶段管线、系统文献检索、11种写作模式、5视角审稿、完整性检查 |
-| Sisyphus Academica | 6大创新引擎、10重对抗审稿、5道质量门、41项AI检测 |
-| SNL-UCSB paper-writing | 14条编辑原则、Introduction-Twice、7类图表原型、7项压缩 |
-| Scholar Forge | 三重完整性引擎、Venue智能感知、GB/T 7714 |
-| PaperOrchestra (Google) | 5-agent分阶段写作、引用验证、LaTeX硬化 |
-| GIA Research | Human-in-the-loop检查点、自批判循环、100+禁用词 |
-| Sibyl System | 自进化双循环架构、并行agent调度 |
+## 关键边界
 
----
+- 单一固定目标支持有限的 fixed-target 主张，不自动代表总体；
+- 依赖解析、编译等步骤可能只是执行复现的前置门槛；
+- 关联不自动等于衰减、因果、混杂控制或维护成本；
+- 重复次数、环境、baseline 和消融由研究设计决定，不设万能数量；
+- 模拟审稿角色不是独立人类审稿人，也不能保证接收；
+- 投稿时从期刊或会议官网重新核验规则，不维护容易过期的静态页数表。
 
-## CS领域覆盖
+## 版本策略
 
-ML/AI · Systems · Theory · Security · Networking · PL/Compilers · Database · HCI · Vision
+- `v1`：原版永久保留；
+- `v2`：第二代开发与候选发布分支；
+- `main`：只有作者审阅并合并后才升级。
 
-22+顶会：NeurIPS/ICML/ICLR/OSDI/SOSP/NSDI/STOC/FOCS/SODA/CCS/S&P/USENIX Security/SIGCOMM/PLDI/POPL/SIGMOD/VLDB/CHI/UIST/CVPR/ICCV/SIGGRAPH
+## 开发验证
 
----
-
-## CEO招聘的员工（自动安装）
-
-| skill | 来源 |
-|:---|:---|
-| academic-research-skills | github.com/Imbad0202/academic-research-skills |
-| scholar-forge | github.com/hyl-ailab/scholar-forge |
-| sisyphus-academica | github.com/argahv/sisyphus-academica |
-| paper-writing-skill | github.com/SNL-UCSB/paper-writing-skill |
-| PaperOrchestra | github.com/Ar9av/PaperOrchestra |
-| paper-lookup | github.com/K-Dense-AI/scientific-agent-skills |
-| literature-review | github.com/K-Dense-AI/scientific-agent-skills |
-| statistical-analysis | github.com/K-Dense-AI/scientific-agent-skills |
-| scientific-visualization | github.com/K-Dense-AI/scientific-agent-skills |
-| scientific-writing | github.com/K-Dense-AI/scientific-agent-skills |
-| scholar-evaluation | github.com/K-Dense-AI/scientific-agent-skills |
-
-K-Dense 员工从 `skills/<skill-name>` 按需安装，不需要复制整个大型 skill 库。
-
----
+```bash
+python -m unittest discover -s tests -v
+python /path/to/skill-creator/scripts/quick_validate.py .
+```
 
 ## License
 
-MIT
+[MIT](LICENSE)

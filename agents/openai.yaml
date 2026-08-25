@@ -1,6 +1,7 @@
 interface:
-  display_name: "CS Nature Paper"
-  short_description: "调度7大部门完成CS论文全流程"
-  default_prompt: "使用 $cs-nature-paper 规划并执行一篇CS论文的研究、实验、写作和审稿流程。"
+  display_name: "CS Nature Paper v2"
+  short_description: "Evidence-bound CS research and publication orchestrator"
+  brand_color: "#2457A7"
+  default_prompt: "Use $cs-nature-paper to turn my current research materials into a bounded, evidence-traceable publication plan."
 policy:
   allow_implicit_invocation: true

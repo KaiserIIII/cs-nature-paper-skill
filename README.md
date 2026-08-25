@@ -1,80 +1,121 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/CS--Nature--Paper-Research%20Orchestrator-blue?style=for-the-badge&logo=academia" alt="CS Nature Paper">
-</p>
+# CS Nature Paper v2
 
-# CS Nature Paper
+An evidence-bound research and publication orchestrator for computer science.
+It helps an agent move from a research question to a defensible manuscript
+without treating more experiments, more agents, or more prose as contributions
+by themselves.
 
-> A single-entry research orchestrator for planning, writing, validating, and reviewing computer-science papers with Codex or Claude Code.
+[中文说明](README_zh.md) · [v1 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) · [MIT License](LICENSE)
 
-[中文说明](README_zh.md) · [License](LICENSE)
+## What changed in v2
 
-## What it does
+Version 2 replaces the rigid, token-heavy pipeline in v1 with six scientific
+gates organized around **claim, evidence, and mechanism**:
 
-CS Nature Paper acts as a "research CEO": it discovers available academic skills, installs missing capabilities when permitted, delegates work across seven specialized departments, and validates each stage before delivery.
+1. Define the stakeholder problem, construct, scope, mechanism, and falsifiers.
+2. Map every load-bearing claim to required and observed evidence.
+3. Freeze protocols and record amendments without overwriting prior evidence.
+4. Add experiments only when they test a named threat or change a conclusion.
+5. Write for an editor's first 90 seconds before optimizing specialist detail.
+6. Validate citations, results, figures, artifacts, and live venue rules.
 
-```text
-Literature → Novelty → Implementation → Figures → Writing → Validation → Review → Delivery
-```
+The familiar seven departments remain available, but they are activated only
+when useful. A focused revision no longer triggers a full autonomous pipeline.
 
-Use it for a complete paper pipeline or for a focused task such as novelty discovery, experiment planning, manuscript revision, or simulated peer review.
+## Operating modes
 
-## Installation
+| Mode | Typical use |
+|---|---|
+| `full` | Turn research materials into a staged submission package |
+| `plan` | Establish positioning, research questions, and protocol |
+| `execute` | Implement experiments and freeze reproducible evidence |
+| `write` | Draft evidence-bound manuscript sections |
+| `revision` | Recover from reviews or rejection without scope inflation |
+| `review` | Run evidence-anchored editorial, domain, and method checks |
+| `preflight` | Audit current venue rules and the submission package |
 
-### Codex
+## Install
+
+Clone or copy this directory into the skills directory used by your agent. For
+Codex, a typical local installation is:
 
 ```bash
-git clone https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper-skill
+git clone --branch v2 https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
 ```
 
-### Claude Code
+Review third-party skill code and pin the version you intend to use. v2 does
+not silently install dependencies, execute unreviewed hooks, publish artifacts,
+or submit manuscripts.
 
-```bash
-git clone https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.claude/skills/cs-nature-paper
-```
+## Quick start
 
-Restart the agent if it does not discover the skill immediately.
-
-## Example requests
+Invoke the skill in plain language:
 
 ```text
-Write a NeurIPS-style paper about an improved Transformer architecture.
-Find novel directions for distributed database query optimization.
-Review this systems paper as if it were submitted to OSDI.
-Polish this manuscript, reduce it to ten pages, and remove generic AI phrasing.
+Use $cs-nature-paper in revision mode. Keep the rejection letter private,
+build a concern-to-change matrix, and identify which new experiments would
+actually change the paper's claim.
 ```
 
-## Seven-department pipeline
+For a substantial project, initialize the optional private control plane:
 
-| Department | Responsibility | Typical capabilities |
-|---|---|---|
-| Literature | Search, citation verification, related work | deep-research, paper-lookup, literature-review |
-| Novelty | Hypothesis generation and contribution scoring | sisyphus-academica |
-| Implementation | Code, experiments, reproducibility package | PaperOrchestra, statistical-analysis |
-| Figures | Scientific plots and CS diagrams | scientific-visualization, Python/R |
-| Writing | Venue-aware manuscript drafting | academic-paper, scholar-forge, scientific-writing |
-| Validation | Integrity, consistency, and quality gates | academic-pipeline, scholar-evaluation |
-| Review | Multi-perspective simulated peer review | academic-paper-reviewer |
+```bash
+python scripts/research_state.py init /path/to/project --study-type empirical --mode full
+python scripts/research_state.py audit /path/to/project --gate argument
+```
 
-## Field and venue coverage
+This creates `/path/to/project/.research-state/` containing:
 
-ML/AI · Systems · Theory · Security · Networking · PL/Compilers · Databases · HCI · Vision
+- `research_contract.json`: constructs, scope, mechanism, protocol, and venue provenance;
+- `evidence_ledger.json`: claim status, evidence anchors, uncertainty, and counterevidence;
+- `decision_log.md`: dated scientific decisions and amendments.
 
-Common targets include NeurIPS, ICML, ICLR, OSDI, SOSP, NSDI, STOC, FOCS, SODA, CCS, IEEE S&P, USENIX Security, SIGCOMM, PLDI, POPL, SIGMOD, VLDB, CHI, UIST, CVPR, ICCV, and SIGGRAPH.
+Initialization refuses to overwrite an existing state. The directory is
+private by default; the author decides whether any sanitized part is released.
 
-## How orchestration works
+## Design boundaries
 
-1. Inventory installed academic skills.
-2. Request or install missing capabilities according to the host agent's permissions.
-3. Route the task through only the departments it needs.
-4. Apply stage-specific quality checks.
-5. Deliver the manuscript, figures, code, and reproducibility materials requested by the user.
+- A fixed target supports a fixed-target claim, not silent population-wide generalization.
+- Dependency resolution or compilation may be a prerequisite for downstream execution, not proof of reproducibility.
+- Association is not automatically decay, causation, confounding control, or maintenance cost.
+- Repetitions, targets, baselines, and ablations follow the study design rather than universal counts.
+- Simulated reviewer roles are assessments, not independent human reviewers or acceptance guarantees.
+- Venue rules are verified from current primary sources at submission time; this repository does not freeze page-limit tables.
 
-## Important notes
+## Repository map
 
-- Review any third-party skill before allowing installation or execution.
-- Generated citations must be verified against primary bibliographic sources.
-- Human authors remain responsible for claims, authorship, disclosure, and venue compliance.
+```text
+SKILL.md                         Core routing and scientific gates
+references/empirical-study-playbook.md
+references/rejection-recovery.md
+references/departments.md
+references/manuscript-and-review.md
+references/skill-sourcing.md
+assets/templates/               Private research-state templates
+scripts/research_state.py       Deterministic initialization and audits
+tests/test_research_state.py    Standard-library behavior tests
+docs/examples.md                Safe invocation examples
+docs/venues.md                  Live venue-verification protocol
+agents/openai.yaml              Codex interface metadata
+```
+
+## Influences
+
+The v2 design draws on progressive-disclosure skill architecture, method-specific
+empirical standards, claim verification, reproducible research workflows, and
+outcome-based agent-skill evaluation. See
+[references/skill-sourcing.md](references/skill-sourcing.md) for the curated
+source list and adoption rules.
+
+## Development
+
+Run the tests and skill validator before publishing changes:
+
+```bash
+python -m unittest discover -s tests -v
+python /path/to/skill-creator/scripts/quick_validate.py .
+```
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+[MIT](LICENSE)
