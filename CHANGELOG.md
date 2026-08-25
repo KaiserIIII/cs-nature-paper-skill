@@ -1,5 +1,44 @@
 # Changelog
 
+## 2.1.0 — 2026-08-26
+
+### Changed
+
+- Upgraded all seven departments from brief role descriptions to capability,
+  handoff, verification, and stopping contracts.
+- Made full/high-stakes staffing cover every critical capability with
+  producer/checker separation where possible.
+- Rebuilt literature around discovery, identity verification, and claim-support
+  verification; rebuilt innovation around closest-work contrasts, mechanisms,
+  falsifiers, and adversaries.
+- Rebuilt programming around environment contracts, pilot/formal separation,
+  systematic debugging, risk-selected testing, recoverable long jobs, and fresh
+  completion evidence.
+- Rebuilt figures around a seven-gate source-data-to-manuscript workflow with
+  deterministic export, accessibility, manifests, and domain-specialist routing.
+- Rebuilt writing, validation, and review around claim traces, fail-closed
+  evidence maps, cross-artifact consistency, threat-selected roles, and bounded
+  revision loops.
+
+### Added
+
+- An employee lifecycle with `APPROVED`, `PROVISIONAL`, `SPECIALIST`,
+  `QUARANTINED`, `REJECTED`, and `UNASSESSED` states.
+- A dependency-free employee-registry auditor and department capability checker.
+- Behavior tests covering pinned refs, security warnings, quarantine,
+  provisional coverage, and producer/checker separation.
+- A harness-neutral behavior suite covering every department, cross-department
+  handoffs, evidence pressure, confidentiality, supply chain, and unauthorized
+  external actions.
+- A public-safe, dated audit of high-quality scientific, visualization,
+  programming, ML, document, and evidence-mapping skill sources.
+
+### Security
+
+- External skill popularity is explicitly non-evidentiary; activation requires
+  source/license/script review, exact pinning, declared permissions/environment,
+  behavioral trials, and rollback.
+
 ## 2.0.0 — 2026-08-26
 
 ### Changed

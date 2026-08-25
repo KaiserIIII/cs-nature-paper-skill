@@ -1,6 +1,6 @@
 interface:
-  display_name: "CS Nature Paper v2"
-  short_description: "Evidence-bound CS research and publication orchestrator"
+  display_name: "CS Nature Paper v2.1"
+  short_description: "Evidence-bound seven-department research orchestrator"
   brand_color: "#2457A7"
   default_prompt: "Use $cs-nature-paper to turn my current research materials into a bounded, evidence-traceable publication plan."
 policy:

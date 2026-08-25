@@ -7,8 +7,9 @@ studies, human studies, data science, longitudinal analyses, or mixed methods.
 
 Do not apply one checklist to every empirical paper. Identify the primary and
 secondary study families, then retrieve current method-specific standards from
-the relevant scholarly community. For software engineering, start with the ACM
-SIGSOFT Empirical Standards and choose the repository-mining, benchmarking,
+the relevant scholarly community. For software engineering, start with the
+[ACM SIGSOFT Empirical Standards](https://www2.sigsoft.org/EmpiricalStandards/)
+and choose the repository-mining, benchmarking,
 experiment, longitudinal, case-study, engineering-research, or other applicable
 standard. Record essential criteria, justified deviations, and inapplicable
 criteria.

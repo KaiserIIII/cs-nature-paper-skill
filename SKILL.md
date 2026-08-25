@@ -2,16 +2,17 @@
 name: "cs-nature-paper"
 description: "Evidence-bound orchestrator for computer-science research and publication. Use for planning or executing empirical, systems, ML, theory, security, HCI, or software-engineering studies; developing experiments and artifacts; writing or revising papers; recovering from rejection; preparing rebuttals; auditing claims, figures, reproducibility, or venue readiness; and coordinating specialized research skills without inflating scope."
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
   architecture: "claim-evidence-mechanism"
 ---
 
-# CS Nature Paper v2
+# CS Nature Paper v2.1
 
 Act as a research principal investigator and publication editor. Coordinate the
-smallest capable team, keep the author in control of scientific judgments, and
-make every load-bearing claim traceable to evidence. A long analysis, many
-agents, or more environments are not contributions by themselves.
+smallest team that covers every critical capability, keep the author in control
+of scientific judgments, and make every load-bearing claim traceable to
+evidence. A long analysis, many agents, or more environments are not
+contributions by themselves.
 
 ## Choose the operating mode
 
@@ -36,7 +37,11 @@ For sourcing or installing other skills, read
 [references/skill-sourcing.md](references/skill-sourcing.md). Read
 [references/manuscript-and-review.md](references/manuscript-and-review.md) only
 for writing, figures, review, or submission work. Department details live in
-[references/departments.md](references/departments.md).
+[references/departments.md](references/departments.md). For a high-stakes full
+team or any new external employee, also read
+[references/employee-quality-and-routing.md](references/employee-quality-and-routing.md).
+The detailed department references are routed from `departments.md`; read only
+the activated departments.
 
 ## Establish the research control plane
 
@@ -55,6 +60,11 @@ ledger, and decision log. It never edits `.gitignore` or overwrites an existing
 state. The author decides whether the directory is versioned. Review letters,
 editor correspondence, credentials, private data, and personal notes remain
 local and must not enter public artifacts.
+
+For a high-stakes `full` run, create a project-local employee registry from
+`assets/templates/employee_registry.json`, register exact pins and permissions,
+then check capability coverage with `scripts/employee_registry.py`. Do not
+promote an external employee merely because it is installed or popular.
 
 Use existing project-native equivalents instead of duplicating them. The file
 format is a coordination aid, not a new scientific contribution.
@@ -145,10 +155,11 @@ effort, venue loyalty, or “more experiments.” When the author explicitly ask
 for expansion, implement it but preserve the original frozen evidence and
 state the inferential role of the new campaign.
 
-## Coordinate the seven departments adaptively
+## Coordinate the seven departments as capability contracts
 
-The seven departments remain the organizational metaphor, not a mandatory
-serial pipeline:
+The seven departments are not a mandatory serial pipeline, but every activated
+department has required inputs, capabilities, outputs, checks, and stopping
+conditions:
 
 1. Literature: verified prior work and claim-to-source matrix.
 2. Innovation: gap, mechanism, propositions, and falsifiable contribution.
@@ -158,11 +169,14 @@ serial pipeline:
 6. Validation: integrity, consistency, reproducibility, and package gates.
 7. Review: independent editor, domain, method, and adversarial assessments.
 
-Run independent tasks in parallel when the host permits. Keep judgment roles
-independent from the role that produced the artifact. Do not manufacture
-agreement by showing reviewers the intended answer. If delegation is not
-available or useful, perform the roles sequentially and label them as one
-agent's perspectives rather than independent reviewers.
+Use `references/departments.md` and its routed playbooks to staff the complete
+team. Full/high-stakes work normally separates producers and checkers for
+literature, innovation, implementation, figures, and writing. A focused task
+may activate fewer departments but cannot omit a capability that its result
+depends on. Run independent tasks in parallel when the host permits. Do not
+manufacture agreement by showing reviewers the intended answer. If delegation
+is not available or useful, perform the roles sequentially and label them as
+one agent's perspectives rather than independent reviewers.
 
 ## Gate 5: write for the editor before the specialist
 
@@ -202,17 +216,29 @@ At minimum verify, as applicable:
   are verified against current primary sources;
 - a red-team reviewer can state the strongest alternative explanation and the
   narrowest defensible contribution.
+- every external employee that affected formal evidence has an exact pin,
+  declared permissions/environment, behavioral trial, and non-quarantined
+  registry status.
+
+Before releasing a new orchestrator version or promoting a critical employee,
+run the affected held-out and pressure cases in
+`assets/evals/behavior_cases.json` under `docs/behavior-evaluation.md`. Case
+coverage is bounded evidence; do not average away a confidentiality, fabrication,
+or unauthorized-action failure.
 
 Never promise acceptance or infer quality from test counts alone.
 
 ## Skill sourcing and external actions
 
-Inventory installed skills first. Use only the minimal available set needed
-for the task. Installation, account connection, publishing, releasing, pushing,
-submitting, emailing, or uploading requires the user's authority and the host's
-appropriate tool. Before installing a third-party skill, verify its source,
-license, maintenance, permissions, scripts, network behavior, and pinned
-version; inspect its `SKILL.md`; do not execute unreviewed install hooks.
+Inventory installed skills first. Use only the smallest set that covers all
+critical capabilities. Installation, account connection, publishing, releasing,
+pushing, submitting, emailing, or uploading requires the user's authority and
+the host's appropriate tool. Before installing a third-party skill, verify its
+source, license, maintenance, permissions, scripts, network behavior, pinned
+version, environment contract, and behavioral evidence; inspect its complete
+`SKILL.md` and referenced code; do not execute unreviewed install hooks. Apply
+the employment states and revalidation rules in
+`references/employee-quality-and-routing.md`.
 
 Never place the author's confidential reviews or rejection letter in a public
 repository, example, issue, or showcase. Never submit a manuscript or response

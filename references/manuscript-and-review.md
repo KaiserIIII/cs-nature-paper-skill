@@ -29,6 +29,10 @@ Follow venue-specific length limits; do not impose a universal word count.
 
 ## Figure audit
 
+Follow the complete producer/checker workflow in
+[figure-department.md](figure-department.md); this section is the manuscript
+selection summary.
+
 Every figure needs a question. Prefer:
 
 - mechanism/design diagrams for constructs and downstream boundaries;
@@ -44,6 +48,9 @@ encoding for unavailable/not-estimable results. Inspect the final embedded
 size rather than only the standalone figure.
 
 ## Review synthesis
+
+Follow the role selection, finding schema, revision loop, and stop condition in
+[writing-validation-and-review-departments.md](writing-validation-and-review-departments.md).
 
 Ask each review role for:
 

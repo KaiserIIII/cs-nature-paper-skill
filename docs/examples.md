@@ -76,3 +76,41 @@ anchors; do not manufacture votes or predict acceptance.
 
 Expected output: independent findings when independent agents were actually
 used, otherwise explicitly labeled perspectives from one agent.
+
+## 7. Staff a high-stakes full run
+
+```text
+Use $cs-nature-paper in full mode. Define the capability contract for all seven
+departments, inventory the reviewed installed skills, and audit any missing
+employee before suggesting installation. Separate producers from checkers for
+literature, innovation, implementation, figures, and writing. Do not let an
+unassessed or quarantined employee affect formal evidence.
+```
+
+Expected output: a bounded team manifest, employee registry, department
+coverage report, handoff contracts, and explicit `PASS`, `CONDITIONAL`, or
+`FAIL` results. Team size alone is not a quality measure.
+
+## 8. Upgrade figures without inventing evidence
+
+```text
+Use the figure department to redesign the main figures. Start from frozen source
+tables, make one figure contract per claim, choose truthful encodings, render
+deterministically, and have a separate checker recompute values and inspect the
+compiled manuscript at final size. Image generation must not create data marks.
+```
+
+Expected output: source tables, plotting code, vector/raster exports, manifest,
+captions, alt text, and a source-to-mark audit rather than decorative mock data.
+
+## 9. Promote exploratory code to formal evidence
+
+```text
+Use the implementation department. Preserve the exploratory notebook, define
+the environment contract, move the selected analysis into a tested deterministic
+entry point, retain failed cases, hash formal inputs and outputs, and verify the
+documented reproduction command from a clean environment.
+```
+
+Expected output: a frozen protocol-to-code trace, tests selected by failure risk,
+formal-output manifest, and explicit boundaries on what the checks establish.

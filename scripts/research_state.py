@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-SKILL_VERSION = "2.0.0"
+SKILL_VERSION = "2.1.0"
 STUDY_TYPES = ("empirical", "engineering", "theory", "survey", "position", "mixed")
 MODES = ("full", "plan", "execute", "write", "revision", "review", "preflight")
 GATES = ("argument", "protocol", "claims", "submission")

@@ -16,11 +16,16 @@ From the v2 directory:
 ```bash
 python -m unittest discover -s tests -v
 python scripts/research_state.py --version
+python scripts/employee_registry.py --version
 ```
 
 If the destination has Codex's `skill-creator`, also run its
 `scripts/quick_validate.py` against this directory. On Windows with a non-UTF-8
 locale, set `PYTHONUTF8=1` for that validator.
+
+For a release or model/employee change, execute the harness-neutral cases in
+`assets/evals/behavior_cases.json` using `docs/behavior-evaluation.md`; these are
+behavioral trials, not part of the dependency-free unit-test command.
 
 ## Install locally
 
@@ -36,6 +41,7 @@ with v2 references and scripts; treat each version as a complete unit.
 ## Privacy
 
 The skill code and blank templates are public-safe. Project-specific
-`.research-state/` directories, review letters, editor correspondence, private
-data, credentials, and unreleased manuscripts are separate and should be moved
-only through the author's approved secure channel.
+`.research-state/` directories, filled employee registries, local security
+notes, review letters, editor correspondence, private data, credentials, and
+unreleased manuscripts are separate and should be moved only through the
+author's approved secure channel.

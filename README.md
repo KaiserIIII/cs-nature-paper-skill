@@ -1,4 +1,4 @@
-# CS Nature Paper v2
+# CS Nature Paper v2.1
 
 An evidence-bound research and publication orchestrator for computer science.
 It helps an agent move from a research question to a defensible manuscript
@@ -21,6 +21,21 @@ gates organized around **claim, evidence, and mechanism**:
 
 The familiar seven departments remain available, but they are activated only
 when useful. A focused revision no longer triggers a full autonomous pipeline.
+
+## What v2.1 adds
+
+All seven departments now have explicit capability, handoff, verification, and
+stopping contracts. Literature separates discovery from identity and
+claim-support checks; innovation ties novelty to closest work, mechanisms, and
+falsifiers; implementation binds code to a frozen environment; figures use a
+seven-gate source-data-to-manuscript audit; writing is claim-led; validation is
+fail-closed across science/data/code/documents; and review is threat-selected
+instead of vote-based.
+
+External skills are treated as employees with `APPROVED`, `PROVISIONAL`,
+`SPECIALIST`, `QUARANTINED`, `REJECTED`, or `UNASSESSED` status. Popularity is
+only a discovery signal. A high-stakes full run staffs all critical
+capabilities and separates producers from checkers where possible.
 
 ## Operating modes
 
@@ -73,6 +88,18 @@ This creates `/path/to/project/.research-state/` containing:
 Initialization refuses to overwrite an existing state. The directory is
 private by default; the author decides whether any sanitized part is released.
 
+For a high-stakes multi-skill project, copy and fill the employee registry,
+then audit records and department coverage:
+
+```bash
+python scripts/employee_registry.py audit path/to/employee_registry.json
+python scripts/employee_registry.py team path/to/employee_registry.json
+```
+
+The template is `assets/templates/employee_registry.json`. It requires exact
+pins, permissions, environments, behavioral evidence, approved uses, risks,
+and rollback before an external employee can be trusted with formal evidence.
+
 ## Design boundaries
 
 - A fixed target supports a fixed-target claim, not silent population-wide generalization.
@@ -89,11 +116,20 @@ SKILL.md                         Core routing and scientific gates
 references/empirical-study-playbook.md
 references/rejection-recovery.md
 references/departments.md
+references/employee-quality-and-routing.md
+references/literature-and-innovation-departments.md
+references/programming-department.md
+references/figure-department.md
+references/writing-validation-and-review-departments.md
 references/manuscript-and-review.md
 references/skill-sourcing.md
 assets/templates/               Private research-state templates
+assets/evals/behavior_cases.json Harness-neutral seven-department behavior cases
 scripts/research_state.py       Deterministic initialization and audits
-tests/test_research_state.py    Standard-library behavior tests
+scripts/employee_registry.py    Employee qualification and team coverage audit
+tests/                          Standard-library behavior tests
+docs/employee-skill-audit-2026-08-26.md
+docs/behavior-evaluation.md      Held-out and pressure-test protocol
 docs/examples.md                Safe invocation examples
 docs/venues.md                  Live venue-verification protocol
 agents/openai.yaml              Codex interface metadata
@@ -115,6 +151,11 @@ Run the tests and skill validator before publishing changes:
 python -m unittest discover -s tests -v
 python /path/to/skill-creator/scripts/quick_validate.py .
 ```
+
+Before a release or employee upgrade, run the held-out cases in
+`assets/evals/behavior_cases.json` under the protocol in
+`docs/behavior-evaluation.md` and retain case-level failures rather than only an
+average score.
 
 ## License
 

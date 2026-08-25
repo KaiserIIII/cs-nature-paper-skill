@@ -1,4 +1,4 @@
-# CS Nature Paper v2
+# CS Nature Paper v2.1
 
 面向计算机科研与投稿的证据约束型总控 skill。它把研究组织为“主张—证据—机制”，避免把实验数量、agent 数量、篇幅或模拟审稿人一致性误当成科学贡献。
 
@@ -16,6 +16,12 @@ v2 用六道科学门替换 v1 固定、耗 token 的全流水线：
 6. 核验引用、数字、统计、图表、工件和当期投稿规则。
 
 七大部门仍然保留，但按任务自适应启用。局部润色、拒稿诊断或图表检查不再强制启动整条流水线。
+
+## v2.1：七部门整体升级
+
+七个部门现在都有明确的能力、交接、复核和停止条件：文献部把检索、文献身份核验和“来源是否支持具体主张”分开；创新部用最近工作、机制、可证伪条件和替代解释验证创新性；编程部绑定冻结协议与运行环境；图表部执行从源数据到论文成稿的七道检查；写作部从证据账本起草；验证部跨科学、数据、代码、图表和文档 fail closed；审稿部按真实威胁选角色，不搞投票式接收表演。
+
+外部 skill 被当成有权限边界的“员工”，状态为 `APPROVED`、`PROVISIONAL`、`SPECIALIST`、`QUARANTINED`、`REJECTED` 或 `UNASSESSED`。星数和安装量只能用于发现候选。高风险 full 模式必须覆盖全部关键能力，并尽可能把生产者和检查者分开。
 
 ## 七种模式
 
@@ -61,6 +67,18 @@ python scripts/research_state.py audit /path/to/project --gate argument
 - `decision_log.md`：重要科研决定和 amendment。
 
 初始化不会覆盖现有状态；这些文件默认私有，是否发布净化后的版本由作者决定。
+
+大型多-skill 项目可复制 `assets/templates/employee_registry.json`，填写后运行：
+
+```bash
+python scripts/employee_registry.py audit path/to/employee_registry.json
+python scripts/employee_registry.py team path/to/employee_registry.json
+```
+
+外部员工影响正式证据前，必须记录精确版本、权限、环境、行为测试、允许用途、已知风险和回滚方式。
+
+发布新版本或更换关键员工前，还应按 `assets/evals/behavior_cases.json` 和
+`docs/behavior-evaluation.md` 运行覆盖七部门的能力、工作流、跨部门及越权压力测试；安全失败不能被平均分掩盖。
 
 ## 关键边界
 

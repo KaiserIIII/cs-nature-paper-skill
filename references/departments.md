@@ -1,79 +1,117 @@
-# Adaptive department playbooks
+# Seven-department operating system
 
-The departments are roles. Invoke only those needed for the request and use
-available, reviewed skills rather than assuming every dependency exists.
+Departments are capability contracts. Activate every department needed by the
+request and staff every critical capability, while avoiding employees that add
+no decision-relevant coverage. For high-stakes `full` work, use the project
+employee registry and preserve producer/checker separation wherever possible.
 
-## 1. Literature
+Read [employee-quality-and-routing.md](employee-quality-and-routing.md) before
+staffing external skills. Detailed playbooks are:
 
-Outputs: search protocol, verified bibliography, related-work matrix,
-claim-to-source anchors, and negative/contradictory evidence.
+- [literature-and-innovation-departments.md](literature-and-innovation-departments.md)
+- [programming-department.md](programming-department.md)
+- [figure-department.md](figure-department.md)
+- [writing-validation-and-review-departments.md](writing-validation-and-review-departments.md)
 
-- search primary databases and official proceedings;
-- verify bibliographic identity independently (for example DOI/Crossref plus
-  DBLP/OpenAlex where appropriate);
-- verify that the source supports the nearby claim, not merely that it exists;
-- distinguish discovery date, publication date, and event date;
-- report corpus limits and inaccessible full text.
+## Shared handoff contract
 
-## 2. Innovation
+Every department handoff names:
 
-Outputs: gap statement, mechanism/model, falsifiable propositions, alternative
-accounts, and contribution contract.
+- input artifact, version/hash, and private/public classification;
+- question, claim, or capability it serves;
+- transformations and assumptions;
+- output path/schema and evidence anchor;
+- uncertainty, failure state, and unresolved decision;
+- next role allowed to change it;
+- pass/conditional/fail status and verification command when available.
 
-Generate enough alternatives to escape fixation, not an arbitrary quota. Rank
-ideas by novelty evidence, importance, feasibility, falsifiability, ethical
-risk, and fit to available evidence. A combination of familiar elements is not
-novelty unless the combination exposes a new mechanism or capability.
+Do not hand off a prose summary when the next department needs source data,
+code, exact source regions, or machine-readable results.
 
-## 3. Implementation and methods
+## Department contracts
 
-Outputs: frozen protocol, tested code, formal evidence, provenance, and
-reproduction entry points.
+### 1. Literature
 
-- preserve existing data and unrelated changes;
-- separate pilots from formal runs;
-- checkpoint long work and make interruption recoverable;
-- bind results to code/config/environment hashes when relevant;
-- use a study-appropriate statistical plan;
-- record operational failures rather than silently dropping them;
-- keep private evidence and public derivatives distinct.
+**Mission:** establish what is known and what evidence supports each prior-work
+claim. **Outputs:** reproducible search protocol, verified corpus, closest-work
+matrix, claim-to-source anchors, and contradictory/qualifying evidence.
 
-## 4. Figures
+Required capabilities: discovery, bibliographic identity verification, and
+claim-support verification. Search snippets and citation counts are not source
+reading.
 
-Outputs: argument-driven figures, source tables, scripts, captions, alt text,
-and export manifest.
+### 2. Innovation
 
-Choose the smallest form that makes the relationship clear. Encode uncertainty
-and missingness honestly. Use accessible colors, final-size text normally at
-least 8 pt, vector formats when possible, and captions that state what is shown
-and why it matters. Never invent results to fill a visual plan.
+**Mission:** convert the literature gap into a mechanism, propositions,
+falsifiers, and a bounded contribution. **Outputs:** closest-work contrast,
+contribution contract, alternative explanations, feasibility/ethics screen,
+and result-contingent claim language.
 
-## 5. Writing
+Required capabilities: gap/mechanism construction, falsification, prior-art
+adversary, and evidence-fit screening. Idea count is not novelty.
 
-Outputs: venue-aware manuscript, supplement, declarations, response documents,
-and cover letter.
+### 3. Implementation and methods
 
-Write from the evidence ledger. Lead with problem, gap, mechanism, and bounded
-contribution. Draft detailed results/methods before finalizing the introduction
-and abstract. Prefer concrete prose to banned-word theater; style checks must
-not alter technical meaning or conceal AI use.
+**Mission:** translate the frozen protocol into tested, recoverable, inspectable
+evidence. **Outputs:** environment contract, project-native code, tests,
+formal-output manifest, operational-failure log, and reproduction entry point.
 
-## 6. Validation
+Required capabilities: protocol-to-code, root-cause debugging, fresh
+verification, provenance, and the study-specific method/statistical expertise.
+Passing code tests does not validate the paper's construct.
 
-Outputs: integrity report, reproducibility report, compiled-artifact audit,
-and unresolved-risk list.
+### 4. Figures
 
-Recompute headline numbers, trace claims, validate references, run tests,
-compile documents, inspect PDFs, and compare prose/tables/figures. State the
-boundary of every check: internal consistency cannot authenticate raw data or
-prove that an undocumented procedure occurred.
+**Mission:** express a scientific comparison truthfully and legibly. **Outputs:**
+figure contract, frozen source table, deterministic renderer, vector/raster
+exports, manifest, caption, alt text, and independent final-size audit.
 
-## 7. Review
+Required capabilities: figure semantics, rendering, scientific-integrity
+checking, accessibility, and specialist imaging only when the modality needs it.
 
-Outputs: independent findings by role, severity, evidence anchor, and required
-fix; then a convergence/divergence synthesis.
+### 5. Writing
 
-Select roles from actual threats: editor/readability, domain/prior work,
-method/statistics, artifact/reproducibility, theory, practitioner, ethics, and
-adversarial alternatives. Do not require fake unanimity. Resolve CRITICAL and
-material MAJOR findings or narrow the claim with the author.
+**Mission:** turn verified evidence into a venue-aware argument. **Outputs:**
+manuscript, supplement, declarations, availability statements, response/cover
+documents, and a sentence-level claim trace for load-bearing prose.
+
+Required capabilities: evidence-bound drafting, claim verification, editorial
+compression, and document engineering. Style tools cannot change technical
+meaning or hide AI use.
+
+### 6. Validation
+
+**Mission:** fail closed across science, data, code, figures, prose, documents,
+venue rules, and supply chain. **Outputs:** evidence map, integrity report,
+reproduction report, cross-artifact consistency report, and unresolved-risk
+list with anchors.
+
+Required capabilities: scientific/method audit, recomputation, artifact
+verification, document inspection, and completion evidence. A clean linter is
+not an acceptance guarantee.
+
+### 7. Review
+
+**Mission:** expose the strongest reason the bounded contribution could still
+fail. **Outputs:** role-specific findings by severity and anchor, strongest
+alternative explanation, smallest sufficient fixes, and convergence/divergence
+synthesis.
+
+Required capabilities are selected from actual threats: editor, closest domain
+work, methods/theory, artifact/security, practice, ethics, adversarial account,
+or newcomer clarity. Do not simulate consensus or average recommendations into
+an acceptance probability.
+
+## Cross-department acceptance
+
+A full research package is ready for author review only when:
+
+1. all activated capability contracts are covered;
+2. no quarantined/unassessed employee affected formal evidence;
+3. producer/checker separation is documented or its absence disclosed;
+4. every main claim has an evidence path and bounded language;
+5. formal outputs rebuild from frozen inputs or state the exact boundary;
+6. no unresolved CRITICAL or claim-changing MAJOR finding remains;
+7. time-sensitive venue rules have current primary-source anchors;
+8. publishing, releasing, uploading, emailing, and submitting remain author
+   controlled.
