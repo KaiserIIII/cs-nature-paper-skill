@@ -11,7 +11,7 @@
     "security_harness": "PASS",
     "stale_benchmark_detection": "PASS"
   },
-  "hosted_ci": "PENDING",
+  "hosted_ci": "PASS",
   "model_behavior_eval": "NOT_RUN",
   "e2e_status": "PASS",
   "known_limitations": [
@@ -20,5 +20,5 @@
     "live venue pages, paywalled sources, and external skill HEADs require activation-time verification",
     "the local E2E is a public synthetic fixture and does not establish a scientific result or venue outcome"
   ],
-  "release_disposition": "V3.1.1 NOT READY until hosted CI is observed green and any unavailable model evaluation is explicitly accepted"
+  "release_disposition": "V3.1.1 RELEASE CANDIDATE READY; model behavior evaluation remains NOT_RUN and requires an authorized isolated model adapter"
 }
