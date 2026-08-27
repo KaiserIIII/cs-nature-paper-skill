@@ -9,5 +9,6 @@ node_modules/
 Thumbs.db
 .security-pressure-run/
 .ci-smoke-result.json
+.full-paper-e2e.json
 resolved_release_manifest.json
 benchmarks/smoke-run-result.json
