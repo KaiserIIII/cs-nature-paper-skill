@@ -711,6 +711,29 @@ class CompetitionContractTests(unittest.TestCase):
         self.assertIn("highest_roi_next_action", result)
         self.assertEqual(result["time_source"], "competition_runtime")
 
+    def test_dashboard_uses_one_system_clock_sample_for_snapshot_and_schedule(self):
+        self.set_ready("contest_intake", "revision")
+        original = competition_runtime._system_now_utc
+        calls = []
+        samples = iter(
+            (self.START + timedelta(hours=1), self.DEADLINE - timedelta(hours=1))
+        )
+
+        def sampled_clock():
+            calls.append(True)
+            return next(samples)
+
+        competition_runtime._system_now_utc = sampled_clock
+        try:
+            result = competition_runtime.dashboard(self.project)
+        finally:
+            competition_runtime._system_now_utc = original
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(result["current_phase"], "CONTEST_INTAKE_AND_SELECTION")
+        self.assertEqual(result["stop_rule"], "OFF")
+        self.assertEqual(result["highest_roi_next_action"], "contest_intake")
+
 
 class CompetitionReviewTests(unittest.TestCase):
     @classmethod
@@ -826,6 +849,31 @@ class CompetitionCliTests(unittest.TestCase):
         self.assertEqual(value["dashboard"]["time_source"], "competition_runtime")
         self.assertFalse(value["dashboard"]["authoritative_deadline"])
 
+    def test_runtime_mutating_cli_operations_return_a_dashboard(self):
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "competition_runtime.py"),
+                "configure-clock",
+                str(self.project),
+                "--start",
+                "2026-09-10T10:00:00Z",
+                "--deadline",
+                "2026-09-13T10:00:00Z",
+                "--official-source",
+                "fixture://official-rules",
+                "--actor",
+                "captain",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
+        value = json.loads(completed.stdout)
+        self.assertEqual(value["dashboard"]["time_source"], "competition_runtime")
+
     def test_review_cli_reports_malformed_json_as_operational_error(self):
         malformed = self.project / "malformed-review.json"
         malformed.write_text("{", encoding="utf-8")
@@ -844,6 +892,73 @@ class CompetitionCliTests(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 2, completed.stderr or completed.stdout)
         self.assertEqual(json.loads(completed.stdout)["status"], "ERROR")
+
+    def test_runtime_validation_failure_remains_bounded_when_dashboard_is_unsafe(self):
+        competition_runtime.configure_clock(
+            self.project,
+            "2026-09-10T10:00:00Z",
+            "2026-09-13T10:00:00Z",
+            "fixture://official-rules",
+            "captain",
+            now_utc=datetime(2026, 9, 10, 10, tzinfo=timezone.utc),
+        )
+        event_path = self.project / ".research-state" / ".competition-clock-events.jsonl"
+        event = json.loads(event_path.read_text(encoding="utf-8").splitlines()[0])
+        event["reason"] = "tampered"
+        event_path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "competition_runtime.py"),
+                "validate-clock",
+                str(self.project),
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 1, completed.stderr or completed.stdout)
+        self.assertEqual(json.loads(completed.stdout)["status"], "FAIL")
+
+    def test_failed_rule_audit_still_returns_a_safe_dashboard(self):
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "competition_runtime.py"),
+                "audit-rules",
+                str(self.project),
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 1, completed.stderr or completed.stdout)
+        value = json.loads(completed.stdout)
+        self.assertEqual(value["status"], "FAIL")
+        self.assertEqual(value["dashboard"]["time_source"], "competition_runtime")
+
+    def test_failed_rule_audit_stays_bounded_when_graph_is_unreadable(self):
+        (self.project / ".research-state" / "research_graph.json").unlink()
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "competition_runtime.py"),
+                "audit-rules",
+                str(self.project),
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 1, completed.stderr or completed.stdout)
+        value = json.loads(completed.stdout)
+        self.assertEqual(value["status"], "FAIL")
+        self.assertNotIn("dashboard", value)
 
 
 if __name__ == "__main__":

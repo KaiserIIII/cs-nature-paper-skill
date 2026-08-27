@@ -311,6 +311,7 @@ python "$SkillRoot\scripts\competition_runtime.py" configure-clock $Project `
 python "$SkillRoot\scripts\competition_runtime.py" verify-clock $Project `
   --official-source "https://official.example/rules" --actor "team-captain"
 
+python "$SkillRoot\scripts\competition_runtime.py" dashboard $Project
 python "$SkillRoot\scripts\competition_runtime.py" status $Project
 python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
 python "$SkillRoot\scripts\competition_method_router.py" route `

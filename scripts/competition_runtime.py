@@ -41,6 +41,15 @@ class CompetitionError(RuntimeError):
     """Raised when competition state cannot be trusted or updated."""
 
 
+RUNTIME_OPERATION_ERRORS = (
+    CompetitionError,
+    research_graph.GraphError,
+    OSError,
+    json.JSONDecodeError,
+    ValueError,
+)
+
+
 def _system_now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -929,9 +938,10 @@ def _duration_text(seconds: int) -> str:
 def dashboard(
     project: Path, now_utc: datetime | None = None
 ) -> dict[str, Any]:
-    refreshed = refresh_clock(project, now_utc=now_utc)
+    current = _normalize_now(now_utc)
+    refreshed = refresh_clock(project, now_utc=current)
     clock = refreshed["clock"]
-    scheduled = schedule(project, now_utc=now_utc)
+    scheduled = schedule(project, now_utc=current)
     _, graph = research_graph.load_graph(project)
     state_dir = _state_dir(project)
     competition_state = _read_json(state_dir / "competition_state.json")
@@ -992,7 +1002,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {SKILL_VERSION}")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    for name in ("status", "refresh-clock", "validate-clock", "audit-rules"):
+    for name in (
+        "status",
+        "dashboard",
+        "refresh-clock",
+        "validate-clock",
+        "audit-rules",
+    ):
         command = sub.add_parser(name)
         command.add_argument("project", type=Path)
 
@@ -1030,6 +1046,16 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _with_dashboard(project: Path, result: dict[str, Any]) -> dict[str, Any]:
+    """Attach a runtime projection whenever the remaining state is readable."""
+    try:
+        result["dashboard"] = dashboard(project)
+    except RUNTIME_OPERATION_ERRORS:
+        if result.get("status") in {"PASS", "CONDITIONAL"}:
+            raise
+    return result
+
+
 def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
     if args.command == "status":
         value = dashboard(args.project)
@@ -1038,46 +1064,69 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
             "status": value["status"],
             "dashboard": value,
         }
+    if args.command == "dashboard":
+        return dashboard(args.project)
     if args.command == "refresh-clock":
-        return refresh_clock(args.project)
+        return _with_dashboard(args.project, refresh_clock(args.project))
     if args.command == "validate-clock":
-        return validate_clock(args.project)
+        return _with_dashboard(args.project, validate_clock(args.project))
     if args.command == "audit-rules":
-        return audit_rules(args.project)
+        return _with_dashboard(args.project, audit_rules(args.project))
     if args.command == "configure-clock":
-        return configure_clock(
+        return _with_dashboard(
             args.project,
-            args.start,
-            args.deadline,
-            args.official_source,
-            args.actor,
+            configure_clock(
+                args.project,
+                args.start,
+                args.deadline,
+                args.official_source,
+                args.actor,
+            ),
         )
     if args.command == "verify-clock":
-        return verify_clock(args.project, args.official_source, args.actor)
-    if args.command == "adjust-clock":
-        return adjust_clock(
+        return _with_dashboard(
             args.project,
-            args.offset_seconds,
-            args.reason,
-            args.actor,
+            verify_clock(args.project, args.official_source, args.actor),
+        )
+    if args.command == "adjust-clock":
+        return _with_dashboard(
+            args.project,
+            adjust_clock(
+                args.project,
+                args.offset_seconds,
+                args.reason,
+                args.actor,
+            ),
         )
     if args.command == "pause-clock":
-        return pause_clock(args.project, args.reason, args.actor)
+        return _with_dashboard(
+            args.project,
+            pause_clock(args.project, args.reason, args.actor),
+        )
     if args.command == "resume-clock":
-        return resume_clock(args.project, args.reason, args.actor)
+        return _with_dashboard(
+            args.project,
+            resume_clock(args.project, args.reason, args.actor),
+        )
     estimates = _job_estimates(args.job_estimates)
     critical = set(args.critical_fix_node)
     if args.command == "schedule":
-        return schedule(
+        return _with_dashboard(
             args.project,
+            schedule(
+                args.project,
+                job_estimates=estimates,
+                critical_fix_nodes=critical,
+            ),
+        )
+    return _with_dashboard(
+        args.project,
+        advance(
+            args.project,
+            actor=args.actor,
             job_estimates=estimates,
             critical_fix_nodes=critical,
-        )
-    return advance(
-        args.project,
-        actor=args.actor,
-        job_estimates=estimates,
-        critical_fix_nodes=critical,
+        ),
     )
 
 
@@ -1085,13 +1134,7 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         result = _dispatch(args)
-    except (
-        CompetitionError,
-        research_graph.GraphError,
-        OSError,
-        json.JSONDecodeError,
-        ValueError,
-    ) as exc:
+    except RUNTIME_OPERATION_ERRORS as exc:
         print(json.dumps({"status": "ERROR", "error": str(exc)}, ensure_ascii=False))
         return 2
     print(json.dumps(result, indent=2, ensure_ascii=False))
