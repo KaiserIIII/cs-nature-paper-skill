@@ -1,47 +1,42 @@
-# Offline transfer and recovery
+# Offline transfer and recovery (V3)
 
-The project is designed to move between computers without a package manager.
-All runtime code uses the Python standard library.
+The project uses only the Python standard library for its runtime helpers.
+Transfer the complete `cs-nature-paper-skill` directory, including hidden files,
+and keep the adjacent V1 backup if old behavior is needed.
 
-## Copy
-
-Transfer the complete `cs-nature-paper-skill` directory, including hidden files.
-Keep the adjacent `cs-nature-paper-skill-v1` backup if v1 behavior may be needed.
-The release archive and `SHA256SUMS.txt` can be used to verify the copy.
-
-## Verify on the destination computer
-
-From the v2 directory:
+## Verify
 
 ```bash
 python -m unittest discover -s tests -v
 python scripts/research_state.py --version
 python scripts/employee_registry.py --version
+python scripts/research_graph.py --help
 ```
 
 If the destination has Codex's `skill-creator`, also run its
-`scripts/quick_validate.py` against this directory. On Windows with a non-UTF-8
-locale, set `PYTHONUTF8=1` for that validator.
+`scripts/quick_validate.py` against this directory. For a release or employee
+change, execute `assets/evals/behavior_cases.json` under
+`docs/behavior-evaluation.md`; these behavioral trials are separate from unit
+tests.
 
-For a release or model/employee change, execute the harness-neutral cases in
-`assets/evals/behavior_cases.json` using `docs/behavior-evaluation.md`; these are
-behavioral trials, not part of the dependency-free unit-test command.
+## Install and recover
 
-## Install locally
+Copy or link the V3 directory into the destination agent's skill directory and
+restart the agent if its skill catalog is cached. Use the V1 backup/branch or
+the GitHub `v2` branch to recover historical versions. Do not mix entrypoints,
+references, and scripts from different versions.
 
-Copy or link the v2 directory into the destination agent's skill directory.
-Keep only one active directory with the skill name `cs-nature-paper` to avoid
-ambiguous discovery. Restart the agent if its skill catalog is cached.
+To migrate a project-local V2 state, run:
 
-## Recover v1
+```bash
+python scripts/research_state.py migrate-v2 PROJECT
+```
 
-Use the adjacent v1 backup or the GitHub `v1` branch. Do not mix v1's `SKILL.md`
-with v2 references and scripts; treat each version as a complete unit.
+The V2 `.research-state` is left untouched; V3 is copied to
+`.research-state-v3` and can be removed recoverably by the author if needed.
 
 ## Privacy
 
-The skill code and blank templates are public-safe. Project-specific
-`.research-state/` directories, filled employee registries, local security
-notes, review letters, editor correspondence, private data, credentials, and
-unreleased manuscripts are separate and should be moved only through the
-author's approved secure channel.
+Project-specific state, filled employee registries, review letters, editor
+correspondence, private data, credentials, and unreleased manuscripts remain
+outside public artifacts and move only through the author's approved channel.

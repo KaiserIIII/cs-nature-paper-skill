@@ -1,99 +1,50 @@
-# CS Nature Paper v2.1
+# CS Nature Paper V3 - Ultimate Research OS
 
-面向计算机科研与投稿的证据约束型总控 skill。它把研究组织为“主张—证据—机制”，避免把实验数量、agent 数量、篇幅或模拟审稿人一致性误当成科学贡献。
+面向科研经验有限用户的证据约束型 CS Research OS。它把研究组织为“主张—证据—机制”，同时保留 V1 的 CEO 执行体验和 V2 的科学边界。
 
-[English](README.md) · [保留的 v1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) · [MIT License](LICENSE)
+[English](README.md) | [v3 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3) | [保留的 v2 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v2) | [保留的 v1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) | [MIT License](LICENSE)
 
-## 第二代改了什么
+## V3 增加什么
 
-v2 用六道科学门替换 v1 固定、耗 token 的全流水线：
+V3 保留 V2 的科学内核，并增加：
 
-1. 明确利益相关者问题、构念、适用范围、机制和可证伪条件；
-2. 将每个关键主张映射到所需证据和实际证据；
-3. 冻结协议、保留历史证据，并在修改前登记 amendment；
-4. 只有在新实验能检验明确威胁或改变结论时才扩大实验；
-5. 先通过编辑 90 秒测试，再堆叠专家细节；
-6. 核验引用、数字、统计、图表、工件和当期投稿规则。
+- 面向本科生的即时导师解释和 Guided/Copilot/Autopilot 模式；
+- 控制平面与执行平面，以及可并行、回滚、重开、修订的 research graph；
+- 可行性门、claim-driven experiment decision matrix 和正式 provenance anchor；
+- 13 个领域 profile、15 个 study-type profile，不设万能实验配额；
+- 保留 V2 文件的 `migrate-v2` 无损迁移。
 
-七大部门仍然保留，但按任务自适应启用。局部润色、拒稿诊断或图表检查不再强制启动整条流水线。
+## 七部门与科学边界
 
-## v2.1：七部门整体升级
+七个部门仍按能力和威胁动态启用。V3 不伪造引用、结果、统计、novelty 或 reviewer 共识，不把 pilot 冒充 formal，不静默安装或公开，不自动投稿。
 
-七个部门现在都有明确的能力、交接、复核和停止条件：文献部把检索、文献身份核验和“来源是否支持具体主张”分开；创新部用最近工作、机制、可证伪条件和替代解释验证创新性；编程部绑定冻结协议与运行环境；图表部执行从源数据到论文成稿的七道检查；写作部从证据账本起草；验证部跨科学、数据、代码、图表和文档 fail closed；审稿部按真实威胁选角色，不搞投票式接收表演。
-
-外部 skill 被当成有权限边界的“员工”，状态为 `APPROVED`、`PROVISIONAL`、`SPECIALIST`、`QUARANTINED`、`REJECTED` 或 `UNASSESSED`。星数和安装量只能用于发现候选。高风险 full 模式必须覆盖全部关键能力，并尽可能把生产者和检查者分开。
-
-## 七种模式
+## 模式
 
 | 模式 | 用途 |
 |---|---|
-| `full` | 从研究材料到分阶段投稿包 |
-| `plan` | 定位、研究问题和协议 |
-| `execute` | 实现实验并冻结可复现证据 |
-| `write` | 按证据起草或修改论文 |
-| `revision` | 处理评审或拒稿，控制范围膨胀 |
-| `review` | 编辑、领域与方法的证据化审查 |
-| `preflight` | 核验最新投稿规则和提交包 |
+| `autopilot` | 有预算边界的自动理解、检索、可行性筛选和推进 |
+| `copilot` | 默认模式，自动执行常规工作并在关键处停下 |
+| `guided` | 逐门解释并请求主要决策 |
+| `plan` / `execute` / `write` / `revision` / `review` / `preflight` | 与 V2 兼容的聚焦模式 |
 
-## 安装
-
-把本目录克隆或复制到所用 agent 的 skills 目录。Codex 的一种常见安装方式是：
+## 安装和启动
 
 ```bash
-git clone --branch v2 https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
-```
-
-应先审查第三方 skill 并固定版本。v2 不会静默安装依赖、执行未审查 hook、公开工件或自动投稿。
-
-## 使用
-
-直接在请求中调用：
-
-```text
-使用 $cs-nature-paper 的 revision 模式。拒稿信只保留在本地，建立问题—证据—修改矩阵，并判断哪些新增实验真的会改变论文主张。
-```
-
-大型项目可以初始化可选的私有研究状态：
-
-```bash
-python scripts/research_state.py init /path/to/project --study-type empirical --mode full
+git clone --branch v3 https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
+python scripts/research_state.py init /path/to/project --study-type empirical --mode copilot --domain machine-learning
 python scripts/research_state.py audit /path/to/project --gate argument
+python scripts/research_graph.py validate /path/to/project
 ```
 
-它会创建 `/path/to/project/.research-state/`：
+V3 状态包含 research contract、research graph、evidence ledger、文献/实验/工件 registry、风险、amendment、venue 和员工 registry。初始化不会覆盖已有状态，默认保持私有。
 
-- `research_contract.json`：构念、范围、机制、协议和 venue 来源；
-- `evidence_ledger.json`：主张状态、证据锚点、不确定性和反证；
-- `decision_log.md`：重要科研决定和 amendment。
-
-初始化不会覆盖现有状态；这些文件默认私有，是否发布净化后的版本由作者决定。
-
-大型多-skill 项目可复制 `assets/templates/employee_registry.json`，填写后运行：
+迁移 V2 项目：
 
 ```bash
-python scripts/employee_registry.py audit path/to/employee_registry.json
-python scripts/employee_registry.py team path/to/employee_registry.json
+python scripts/research_state.py migrate-v2 /path/to/project
 ```
 
-外部员工影响正式证据前，必须记录精确版本、权限、环境、行为测试、允许用途、已知风险和回滚方式。
-
-发布新版本或更换关键员工前，还应按 `assets/evals/behavior_cases.json` 和
-`docs/behavior-evaluation.md` 运行覆盖七部门的能力、工作流、跨部门及越权压力测试；安全失败不能被平均分掩盖。
-
-## 关键边界
-
-- 单一固定目标支持有限的 fixed-target 主张，不自动代表总体；
-- 依赖解析、编译等步骤可能只是执行复现的前置门槛；
-- 关联不自动等于衰减、因果、混杂控制或维护成本；
-- 重复次数、环境、baseline 和消融由研究设计决定，不设万能数量；
-- 模拟审稿角色不是独立人类审稿人，也不能保证接收；
-- 投稿时从期刊或会议官网重新核验规则，不维护容易过期的静态页数表。
-
-## 版本策略
-
-- `v1`：原版永久保留；
-- `v2`：第二代开发与候选发布分支；
-- `main`：只有作者审阅并合并后才升级。
+V2 保留在 `.research-state`，V3 写入 `.research-state-v3`。
 
 ## 开发验证
 
@@ -101,6 +52,8 @@ python scripts/employee_registry.py team path/to/employee_registry.json
 python -m unittest discover -s tests -v
 python /path/to/skill-creator/scripts/quick_validate.py .
 ```
+
+发布前按 `docs/behavior-evaluation.md` 运行行为、路由、安全、科学压力和学生体验用例。通过测试只代表边界内的证据，不代表投稿接收。
 
 ## License
 

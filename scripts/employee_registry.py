@@ -12,8 +12,9 @@ from typing import Any, Iterable
 from urllib.parse import urlparse
 
 
-SKILL_VERSION = "2.1.0"
-SCHEMA_VERSION = 1
+SKILL_VERSION = "3.0.0"
+SCHEMA_VERSION = 3
+SUPPORTED_SCHEMA_VERSIONS = {1, 3}
 STATUSES = {
     "APPROVED",
     "PROVISIONAL",
@@ -218,8 +219,8 @@ def _audit_employee(employee: Any, index: int) -> tuple[list[str], list[str]]:
 def audit_registry(registry: dict[str, Any]) -> dict[str, Any]:
     findings: list[str] = []
     warnings: list[str] = []
-    if registry.get("schema_version") != SCHEMA_VERSION:
-        findings.append(f"schema_version must be {SCHEMA_VERSION}")
+    if registry.get("schema_version") not in SUPPORTED_SCHEMA_VERSIONS:
+        findings.append(f"schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}")
     if not isinstance(registry.get("employees"), list):
         findings.append("employees must be a list")
     if not isinstance(registry.get("department_contracts"), list):

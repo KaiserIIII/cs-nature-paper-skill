@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "skill_version": "3.0.0",
+  "created_utc": "",
+  "status": "PLANNED",
+  "nodes": [
+    {"id": "brief", "kind": "orientation", "status": "READY", "depends_on": [], "inputs": [], "outputs": ["beginner_brief"], "required_capabilities": ["task-diagnosis"], "stop_when": ["brief records question and constraints"], "reopen_on": ["scope change"]},
+    {"id": "literature", "kind": "department", "status": "PLANNED", "depends_on": ["brief"], "inputs": ["beginner_brief"], "outputs": ["literature_registry"], "required_capabilities": ["literature-discovery", "identity-verification", "claim-support-verification"], "stop_when": ["closest work is verified"], "reopen_on": ["new prior art"]},
+    {"id": "innovation", "kind": "department", "status": "PLANNED", "depends_on": ["brief"], "inputs": ["beginner_brief"], "outputs": ["contribution_contract"], "required_capabilities": ["gap-and-mechanism", "prior-art-adversary", "feasibility-screen"], "stop_when": ["mechanism and falsifier recorded"], "reopen_on": ["failed pilot", "new closest work"]},
+    {"id": "feasibility", "kind": "gate", "status": "PLANNED", "depends_on": ["literature", "innovation"], "inputs": ["candidate_rqs", "resource_inventory"], "outputs": ["feasibility_decision"], "required_capabilities": ["feasibility-screen"], "stop_when": ["decision and lower-resource option recorded"], "reopen_on": ["resource change"]},
+    {"id": "protocol_freeze", "kind": "gate", "status": "PLANNED", "depends_on": ["feasibility"], "inputs": ["feasibility_decision"], "outputs": ["frozen_protocol"], "required_capabilities": ["protocol-to-code"], "stop_when": ["formal inputs and analysis are frozen"], "reopen_on": ["amendment"]},
+    {"id": "formal_experiment", "kind": "execution", "status": "PLANNED", "depends_on": ["protocol_freeze"], "inputs": ["frozen_protocol"], "outputs": ["formal_results"], "required_capabilities": ["fresh-verification"], "stop_when": ["decision matrix priorities have evidence"], "reopen_on": ["anomaly", "verification failure"]},
+    {"id": "figures", "kind": "department", "status": "PLANNED", "depends_on": ["formal_experiment"], "inputs": ["formal_results"], "outputs": ["figure_manifest"], "required_capabilities": ["figure-semantics", "deterministic-rendering", "independent-visual-audit"], "stop_when": ["source-to-mark audit passes"], "reopen_on": ["source change"]},
+    {"id": "writing", "kind": "department", "status": "PLANNED", "depends_on": ["formal_experiment", "figures"], "inputs": ["claims", "figure_manifest"], "outputs": ["manuscript"], "required_capabilities": ["evidence-bound-drafting", "claim-verification"], "stop_when": ["editor 90-second test passes"], "reopen_on": ["review finding"]},
+    {"id": "validation", "kind": "gate", "status": "PLANNED", "depends_on": ["writing"], "inputs": ["manuscript", "artifact_manifest"], "outputs": ["validation_report"], "required_capabilities": ["completion-evidence"], "stop_when": ["fresh checks pass or bounded conditional accepted"], "reopen_on": ["changed artifact"]},
+    {"id": "review", "kind": "department", "status": "PLANNED", "depends_on": ["validation"], "inputs": ["manuscript", "evidence_ledger"], "outputs": ["review_matrix"], "required_capabilities": ["adversarial-review"], "stop_when": ["critical threats resolved or scoped"], "reopen_on": ["new evidence"]}
+  ],
+  "edges": [
+    {"from": "brief", "to": "literature", "kind": "parallel", "condition": "success"},
+    {"from": "brief", "to": "innovation", "kind": "parallel", "condition": "success"},
+    {"from": "feasibility", "to": "innovation", "kind": "failure", "condition": "NO_GO"},
+    {"from": "formal_experiment", "to": "innovation", "kind": "rollback", "condition": "mechanism unsupported"}
+  ],
+  "events": []
+}

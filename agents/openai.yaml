@@ -1,7 +1,7 @@
 interface:
-  display_name: "CS Nature Paper v2.1"
-  short_description: "Evidence-bound seven-department research orchestrator"
+  display_name: "CS Nature Paper V3"
+  short_description: "Student-first evidence-bound AI Research OS"
   brand_color: "#2457A7"
-  default_prompt: "Use $cs-nature-paper to turn my current research materials into a bounded, evidence-traceable publication plan."
+  default_prompt: "Use $cs-nature-paper to diagnose my research idea or project, select a bounded path, and execute the next evidence-traceable step."
 policy:
   allow_implicit_invocation: true

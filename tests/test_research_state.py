@@ -57,8 +57,8 @@ class ResearchStateTests(unittest.TestCase):
         ]
         self.write_json("research_contract.json", contract)
 
-        ledger = self.read_json("evidence_ledger.json")
-        ledger["claims"] = [
+        claims = self.read_json("claims.json")
+        claims["claims"] = [
             {
                 "id": "C1",
                 "text": "Failures concentrate at the artifact layer for this target.",
@@ -71,7 +71,7 @@ class ResearchStateTests(unittest.TestCase):
                 "status": "PLANNED",
             }
         ]
-        self.write_json("evidence_ledger.json", ledger)
+        self.write_json("claims.json", claims)
 
     def fill_protocol(self):
         contract = self.read_json("research_contract.json")
@@ -95,7 +95,7 @@ class ResearchStateTests(unittest.TestCase):
     def test_init_creates_private_state_and_refuses_overwrite(self):
         self.assertTrue((self.state / "research_contract.json").exists())
         self.assertTrue(self.read_json("research_contract.json")["private"])
-        self.assertEqual(self.read_json("research_contract.json")["skill_version"], "2.1.0")
+        self.assertEqual(self.read_json("research_contract.json")["skill_version"], "3.0.0")
         self.assertFalse((self.project / ".gitignore").exists())
         with self.assertRaises(research_state.StateError):
             research_state.init_state(self.project, "empirical", "full")
@@ -113,21 +113,21 @@ class ResearchStateTests(unittest.TestCase):
     def test_claim_gate_requires_final_status_and_evidence_anchor(self):
         self.fill_argument_and_claim()
         self.assertEqual(research_state.audit_state(self.project, "claims")["status"], "FAIL")
-        ledger = self.read_json("evidence_ledger.json")
-        ledger["claims"][0]["status"] = "SUPPORTED"
-        self.write_json("evidence_ledger.json", ledger)
+        claims = self.read_json("claims.json")
+        claims["claims"][0]["status"] = "SUPPORTED"
+        self.write_json("claims.json", claims)
         self.assertEqual(research_state.audit_state(self.project, "claims")["status"], "FAIL")
-        ledger["claims"][0]["observed_evidence"] = ["artifacts/joint-patterns.csv#sha256=example"]
-        self.write_json("evidence_ledger.json", ledger)
+        claims["claims"][0]["observed_evidence"] = ["artifacts/joint-patterns.csv#sha256=example"]
+        self.write_json("claims.json", claims)
         self.assertEqual(research_state.audit_state(self.project, "claims")["status"], "PASS")
 
     def test_submission_gate_requires_live_primary_venue_sources(self):
         self.fill_argument_and_claim()
         self.fill_protocol()
-        ledger = self.read_json("evidence_ledger.json")
-        ledger["claims"][0]["status"] = "SCOPED"
-        ledger["claims"][0]["observed_evidence"] = ["results/table1.csv"]
-        self.write_json("evidence_ledger.json", ledger)
+        claims = self.read_json("claims.json")
+        claims["claims"][0]["status"] = "SCOPED"
+        claims["claims"][0]["observed_evidence"] = ["results/table1.csv"]
+        self.write_json("claims.json", claims)
         self.assertEqual(research_state.audit_state(self.project, "submission")["status"], "FAIL")
         contract = self.read_json("research_contract.json")
         contract["venue"] = {

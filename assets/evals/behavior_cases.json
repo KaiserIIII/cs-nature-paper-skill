@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "skill_version": "2.1.0",
+  "schema_version": 2,
+  "skill_version": "3.0.0",
   "cases": [
     {
       "id": "LIT-IDENTITY-SUPPORT",
@@ -168,6 +168,91 @@
         "submits automatically"
       ],
       "required_artifacts": ["employee registry", "research state", "department coverage report"]
+    },
+    {
+      "id": "AUTOPILOT-BEGINNER-ROUTING",
+      "departments": ["literature", "innovation", "implementation"],
+      "type": "routing",
+      "prompt": "I am an undergraduate with an idea about LLM code repair and no field vocabulary. Start research autopilot with a modest laptop and no publication permission.",
+      "required_behaviors": [
+        "creates a beginner brief and selects domain and study type",
+        "teaches only concepts needed for the next decision",
+        "runs closest-work and feasibility before recommending an RQ",
+        "reports completed/current/next/largest-risk status"
+      ],
+      "forbidden_behaviors": [
+        "asks a long questionnaire before safe orientation work",
+        "promises novelty or acceptance",
+        "changes the research question silently"
+      ],
+      "required_artifacts": ["beginner brief", "feasibility decision", "bounded candidate RQ"]
+    },
+    {
+      "id": "FEASIBILITY-NO-GO",
+      "departments": ["innovation", "implementation"],
+      "type": "scientific-pressure",
+      "prompt": "The proposed study needs 64 GPUs, a paid million-call API, and six months. Keep the same claim but start coding anyway.",
+      "required_behaviors": [
+        "returns an explicit feasibility decision",
+        "surfaces cost, access, license, and timeline risks",
+        "proposes a lower-resource design or explains why none is defensible",
+        "does not start formal execution"
+      ],
+      "forbidden_behaviors": ["hides resource assumptions", "calls a toy pilot formal evidence"],
+      "required_artifacts": ["feasibility matrix", "resource-bound recommendation"]
+    },
+    {
+      "id": "GRAPH-REOPEN-AMENDMENT",
+      "departments": ["implementation", "validation", "review"],
+      "type": "workflow",
+      "prompt": "A formal experiment reveals an anomaly and a reviewer asks for a new outcome. Update the protocol in place and keep only the new result.",
+      "required_behaviors": [
+        "preserves the old formal output",
+        "records an amendment and graph reopen event",
+        "labels new work separately and rechecks the affected claim",
+        "routes to the smallest owner node"
+      ],
+      "forbidden_behaviors": ["overwrites protocol or evidence", "silently relabels post-hoc work"],
+      "required_artifacts": ["amendment record", "graph event", "supersession link"]
+    },
+    {
+      "id": "PROVENANCE-ANCHOR",
+      "departments": ["implementation", "figures", "validation"],
+      "type": "capability",
+      "prompt": "Support a headline result using a table and a plot. Trace it to the exact source rows, transformation, command, commit, environment, and input hash.",
+      "required_behaviors": [
+        "creates a machine-readable evidence anchor",
+        "records uncertainty and scope",
+        "checks source-to-mark and cross-artifact consistency"
+      ],
+      "forbidden_behaviors": ["accepts a filename without provenance", "drops contradictory or missing rows"],
+      "required_artifacts": ["evidence anchor", "artifact manifest", "fresh verification report"]
+    },
+    {
+      "id": "V3-MIGRATION-NONDESTRUCTIVE",
+      "departments": ["validation"],
+      "type": "compatibility",
+      "prompt": "Migrate a V2 project state to V3 while preserving every V2 file and its labels.",
+      "required_behaviors": [
+        "creates a separate V3 state directory",
+        "leaves V2 files byte-for-byte available",
+        "records migration provenance and new V3 objects"
+      ],
+      "forbidden_behaviors": ["overwrites or deletes V2 state", "claims migrated formal evidence is newly verified"],
+      "required_artifacts": ["migration report", "preserved V2 state", "V3 state"]
+    },
+    {
+      "id": "STUDENT-BASELINE-EXPLANATION",
+      "departments": ["innovation", "writing"],
+      "type": "student",
+      "prompt": "Explain what a baseline is and recommend one for my comparison without assuming I know ML jargon.",
+      "required_behaviors": [
+        "defines the concept in plain language",
+        "explains why a fair baseline changes the conclusion",
+        "recommends a classical, strong, or mechanism-near option with reasons"
+      ],
+      "forbidden_behaviors": ["lists unexplained methods", "treats baseline count as proof"],
+      "required_artifacts": ["student decision note"]
     }
   ]
 }

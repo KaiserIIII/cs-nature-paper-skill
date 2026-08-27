@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.0.0 — 2026-08-27
+
+### Added
+
+- Student-first CEO / Research Director with `guided`, `copilot`, and bounded
+  `autopilot` modes, just-in-time mentoring, budget, permissions, and explicit
+  author checkpoints.
+- Two-layer control-plane/execution-plane architecture and an append-only
+  adaptive `research_graph` with parallel edges, rollback, reopen, and amendment
+  transitions.
+- Explicit feasibility gate, claim-driven experiment decision matrix, formal
+  provenance anchors, and separate discovery/pilot/formal/reproduction labels.
+- V3 private state objects for project, graph, claims, literature, experiments,
+  artifacts, amendments, risks, employees, and venue requirements.
+- 13 domain profiles, 15 study-type profiles, host adapters, progressive-
+  disclosure routing, and security/context-budget guidance.
+- V1/V2 design audit, external skill landscape audit, V2-preserving migration,
+  graph validator, and V3 schema/routing/student/security tests.
+
+### Changed
+
+- Replaced the V2 entrypoint with a concise V3 router while retaining the V2
+  branch and all V2 scientific boundaries.
+- External skills remain capability-qualified employees; no skill is vendored or
+  installed automatically.
+
 ## 2.1.0 — 2026-08-26
 
 ### Changed
