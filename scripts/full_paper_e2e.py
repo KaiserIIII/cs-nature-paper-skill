@@ -69,6 +69,17 @@ def _write(path: Path, value: Any) -> None:
         path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _sanitize(value: Any, private_root: Path) -> Any:
+    """Remove temporary absolute paths before a result crosses the public boundary."""
+    if isinstance(value, str):
+        return value.replace(str(private_root), "<TEMP_PROJECT>")
+    if isinstance(value, list):
+        return [_sanitize(item, private_root) for item in value]
+    if isinstance(value, dict):
+        return {key: _sanitize(item, private_root) for key, item in value.items()}
+    return value
+
+
 def _fill_contract(project: Path, anchor_id: str) -> None:
     state = project / ".research-state"
     contract_path = state / "research_contract.json"
@@ -196,7 +207,7 @@ def run(output: Path | None = None, *, root: Path | None = None) -> dict[str, An
             "execution_record": {"status": execution["status"], "exit_status": execution["exit_status"], "outputs": execution["outputs"]},
             "literature": {"identity": "IDENTITY_VERIFIED", "retrieval": retrieval["retrieval_id"], "claim_relation": relation["verification_status"]},
             "artifacts": {name: "sha256:" + hashlib.sha256((project / "artifacts" / name).read_bytes()).hexdigest() for name in ("execution.txt", "figure_table.json", "manuscript.md", "package_manifest.json")},
-            "completion": completion,
+            "completion": _sanitize(completion, project),
             "privacy": "synthetic temporary project; no private paths in result",
         }
         if output is not None:

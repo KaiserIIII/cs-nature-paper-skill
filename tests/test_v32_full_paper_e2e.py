@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -30,6 +31,7 @@ class FullPaperE2ETests(unittest.TestCase):
             self.assertGreaterEqual(result["anchor_count"], 1)
             self.assertEqual(result["completion"]["status"], "PASS")
             self.assertTrue(result["execution_record"]["outputs"][0]["produced_by_command"])
+            self.assertNotIn(".v32-e2e-", json.dumps(result))
 
     def test_full_paper_e2e_semantic_result_is_repeatable_and_stale_commit_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
