@@ -1,8 +1,8 @@
-# CS Nature Paper V3.1.1
+# CS Nature Paper V3.2.0
 
 面向计算机科学研究、以学生为中心、受证据约束的可执行科研操作系统。
 
-[English](README.md) | [v3.1.1 正式版](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
+[English](README.md) | [v3.1.1 历史正式版](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
 
 ## 这个项目是什么
 
@@ -16,8 +16,9 @@ CS Nature Paper 是一个 Agent Skill，帮助你把研究想法、代码库、�
 研究问题、协议、实验、主张、证据、图表、写作与审查始终通过明确记录
 相互连接，避免论文文字跑到真实证据前面。
 
-当前稳定版本为 `v3.1.1`，对应提交：
-`081aa693b907d8cc07104d1b8251d46301094ef7`。
+`v3.1.1` tag 仍是历史稳定版本，对应提交：
+`081aa693b907d8cc07104d1b8251d46301094ef7`。当前 `v3.2` 分支从精确基线
+`6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4` 开发最大自治 release candidate。
 
 ## 系统如何工作
 
@@ -205,6 +206,7 @@ git -C ~/.codex/skills/cs-nature-paper rev-parse HEAD
 | `copilot` | 默认模式：执行常规工作，在重要检查点停下 |
 | `guided` | 在请求决策前解释每个主要科研门 |
 | `autopilot` | 在明确的预算和权限范围内持续推进 |
+| `maximum-autonomy` | 在 standing authorization 允许的有限本地范围内持续执行，支持 session resume、自愈和 fail-closed completion contract |
 | `plan` | 定位、gap、研究问题、协议和资源规划 |
 | `execute` | 代码、数据、实验、分析与 provenance |
 | `write` | 受证据约束的论文与 LaTeX/文档工作 |
@@ -214,6 +216,14 @@ git -C ~/.codex/skills/cs-nature-paper rev-parse HEAD
 
 Autopilot 不会取消作者控制权。遇到证据矛盾、provenance 缺失、预算边界、
 伦理问题、未审核能力、协议修订或外部操作时，它必须停止。
+
+Maximum autonomy 使用 `scripts/autonomy.py` 作为统一 policy/authorize 边界：
+未知、不可逆、科学决策、协议变更、发布、投稿和外部写操作默认阻断或必须
+作者授权。授权、AUTO_HIRE 风险门和 director 决策写入独立的 hash-chained
+审计日志。`scripts/director_loop.py` 只有在 policy 与 graph 身份一致时才会
+跨 session 恢复；`scripts/completion_contract.py` 在 v3.1.1 科学门禁、
+provenance、evidence、科研图、审计和 deterministic full-paper harness 全部
+通过前拒绝 release candidate。
 
 ## 最小 CLI 工作流
 

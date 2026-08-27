@@ -3,13 +3,15 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.1.1"
+SKILL_VERSION = "3.2.0"
+LEGACY_SKILL_VERSION = "3.1.1"
 V32_TEMPLATE_NAMES = {"autonomy_policy.json", "completion_contract.json", "director_session.json"}
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -61,14 +63,14 @@ def validate_json_assets() -> list[str]:
         try: value = _read(template_path)
         except (OSError, json.JSONDecodeError) as exc: findings.append(f"{template_path}: {exc}"); continue
         if not isinstance(value, dict): findings.append(f"{template_path}: root must be an object")
-        elif value.get("skill_version") != SKILL_VERSION and not (template_path.name in V32_TEMPLATE_NAMES and value.get("skill_version") == "3.2.0"):
-            findings.append(f"{template_path}: skill_version must be {SKILL_VERSION}")
+        elif value.get("skill_version") != LEGACY_SKILL_VERSION and not (template_path.name in V32_TEMPLATE_NAMES and value.get("skill_version") == SKILL_VERSION):
+            findings.append(f"{template_path}: skill_version must be {LEGACY_SKILL_VERSION}")
     return findings
 
 
 def validate_behavior_cases() -> list[str]:
     findings: list[str] = []; value = _read(ROOT / "assets" / "evals" / "behavior_cases.json")
-    if value.get("skill_version") != SKILL_VERSION: findings.append(f"behavior cases must declare skill_version {SKILL_VERSION}")
+    if value.get("skill_version") not in {LEGACY_SKILL_VERSION, SKILL_VERSION}: findings.append(f"behavior cases must declare skill_version {SKILL_VERSION} or {LEGACY_SKILL_VERSION}")
     for index, case in enumerate(value.get("cases", [])):
         for field in ("id", "prompt", "required_behaviors", "forbidden_behaviors", "required_artifacts"):
             if not case.get(field): findings.append(f"cases[{index}].{field} is required")
@@ -79,7 +81,7 @@ def validate_release_manifest() -> list[str]:
     value = _read(ROOT / "release_manifest.json"); findings: list[str] = []
     fields = ("source_version", "source_commit", "source_commit_mode", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations")
     findings.extend(f"release_manifest.{field} is required" for field in fields if field not in value)
-    if value.get("source_version") != SKILL_VERSION: findings.append(f"release_manifest.source_version must be {SKILL_VERSION}")
+    if value.get("source_version") not in {LEGACY_SKILL_VERSION, SKILL_VERSION}: findings.append(f"release_manifest.source_version must be {SKILL_VERSION} or {LEGACY_SKILL_VERSION}")
     source_commit = str(value.get("source_commit", ""))
     if not source_commit or "pending" in source_commit.lower() or "local_equivalent" in source_commit.lower(): findings.append("release_manifest.source_commit must be explicit or release-process-injected")
     if value.get("hosted_ci") not in {"PASS", "PENDING", "NOT_RUN", "FAIL"}: findings.append("release_manifest.hosted_ci has invalid status")
@@ -99,6 +101,26 @@ def validate_runtime_results(root: Path = ROOT) -> list[str]:
     return findings
 
 
+def validate_v32_e2e(path: Path, root: Path = ROOT) -> list[str]:
+    """Validate a CI-only v3.2 harness result without treating it as source."""
+    findings: list[str] = []
+    try:
+        value = _read(path)
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"v3.2 e2e result is unreadable: {exc}"]
+    if value.get("status") != "PASS": findings.append("v3.2 e2e result status is not PASS")
+    if value.get("evaluation_class") != "HARNESS_SELF_TEST": findings.append("v3.2 e2e result must be HARNESS_SELF_TEST")
+    if value.get("model_behavior") != "NOT_RUN": findings.append("v3.2 e2e model_behavior must be NOT_RUN")
+    try:
+        commit = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = "UNKNOWN"
+    if value.get("skill_commit") != commit: findings.append("v3.2 e2e result has stale skill_commit")
+    completion = value.get("completion")
+    if not isinstance(completion, dict) or completion.get("status") != "PASS": findings.append("v3.2 e2e completion contract is not PASS")
+    return findings
+
+
 def validate_docs() -> list[str]:
     findings: list[str] = []
     for path in ROOT.rglob("*.md"):
@@ -110,8 +132,10 @@ def validate_docs() -> list[str]:
     return findings
 
 
-def validate() -> dict[str, Any]:
+def validate(v32_e2e: Path | None = None) -> dict[str, Any]:
     findings = validate_json_assets() + validate_behavior_cases() + validate_release_manifest() + validate_runtime_results() + validate_docs()
+    if v32_e2e is not None:
+        findings.extend(validate_v32_e2e(v32_e2e))
     try:
         from validate_registry import validate as registry_validate
         registry = registry_validate()
@@ -126,4 +150,7 @@ def validate() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    result = validate(); print(json.dumps(result, indent=2, ensure_ascii=False)); sys.exit(0 if result["status"] == "PASS" else 1)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--v32-e2e", type=Path)
+    args = parser.parse_args()
+    result = validate(args.v32_e2e); print(json.dumps(result, indent=2, ensure_ascii=False)); sys.exit(0 if result["status"] == "PASS" else 1)

@@ -1,9 +1,9 @@
-# CS Nature Paper V3.1.1
+# CS Nature Paper V3.2.0
 
 An executable, student-first, evidence-bound research operating system for
 computer science.
 
-[中文](README_zh.md) | [Release v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
+[中文](README_zh.md) | [Historical release v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
 
 ## What this project is
 
@@ -19,8 +19,10 @@ or automatic publisher. Its job is to keep research questions, protocols,
 experiments, claims, evidence, figures, writing, and review connected by explicit
 records instead of allowing polished prose to outrun the evidence.
 
-The stable release is `v3.1.1` at commit
-`081aa693b907d8cc07104d1b8251d46301094ef7`.
+The `v3.1.1` tag remains the historical stable release at commit
+`081aa693b907d8cc07104d1b8251d46301094ef7`. This branch adds the
+`v3.2` maximum-autonomy release candidate from baseline
+`6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4`.
 
 ## How it works
 
@@ -214,6 +216,7 @@ threats, and report the smallest defensible repairs. Do not predict acceptance.
 | `copilot` | Default: execute routine work and stop at material checkpoints |
 | `guided` | Explain each major gate before asking for a decision |
 | `autopilot` | Continue within an explicit budget and permission envelope |
+| `maximum-autonomy` | Continue bounded local work with standing authorization, resumable sessions, and fail-closed completion checks |
 | `plan` | Positioning, gap, research questions, protocol, and resources |
 | `execute` | Code, data, experiments, analysis, and provenance |
 | `write` | Evidence-bound manuscript and LaTeX/document work |
@@ -224,6 +227,16 @@ threats, and report the smallest defensible repairs. Do not predict acceptance.
 Autopilot does not remove author control. It stops at contradictory evidence,
 missing provenance, budget limits, ethics issues, unqualified capabilities,
 protocol amendments, and external actions.
+
+Maximum autonomy uses `scripts/autonomy.py` as the single policy and
+authorization boundary. Local reversible work can continue inside the declared
+envelope; unknown, irreversible, scientific-decision, protocol-change,
+publication, submission, and external-write actions remain blocked or require
+the author. Authorization and director decisions are recorded in a separate
+hash-chained audit log. `scripts/director_loop.py` resumes only when policy and
+graph identities match, and `scripts/completion_contract.py` refuses a release
+candidate until the v3.1.1 scientific gates, provenance, evidence, graph,
+audit, and deterministic full-paper harness all pass.
 
 ## Minimal CLI workflow
 

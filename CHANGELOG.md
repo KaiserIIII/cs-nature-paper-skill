@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.2.0 - 2026-08-28
+
+### Added
+
+- Added bounded `maximum-autonomy` mode with one policy/authorization API,
+  expiring and revocable standing authorizations, and an AUTO_HIRE risk gate.
+- Added a canonical hash-chained autonomy audit log, resumable director loop,
+  deterministic recovery budget, and dashboard projections.
+- Added fail-closed completion contracts and a deterministic full-paper
+  `HARNESS_SELF_TEST` that executes a public fixture through provenance,
+  evidence, graph, writing, validation, review, and package stages.
+- Preserved the v3.1.1 provenance/evidence/research-graph/scientific-gate and
+  regression contracts; no dependency or skill installation was added.
+
 ## 3.1.1 - 2026-08-27
 
 ### Fixed

@@ -1,13 +1,13 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V3.1: student-first, evidence-bound, executable AI Research OS for turning research intent into a provenance-tracked package without fabricated science, silent installs, or unauthorized release."
+description: "CS Nature Paper V3.2: student-first, evidence-bound, maximum-autonomy executable AI Research OS for turning research intent into a provenance-tracked package without fabricated science, silent installs, or unauthorized release."
 metadata:
-  version: "3.1.1"
+  version: "3.2.0"
   architecture: "research-control-plane + execution-plane + capability-runtime + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V3.1.1 - Executable Research OS
+# CS Nature Paper V3.2.0 - Maximum Autonomy Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
@@ -22,6 +22,7 @@ Infer the narrowest useful operating mode from the request:
 | Mode | Use | First deliverable |
 |---|---|---|
 | `autopilot` | vague idea or project with a budget/permission envelope | beginner brief, field map, candidate RQs, feasibility screen |
+| `maximum-autonomy` | author grants a bounded local execution envelope | policy, standing authorization, resumable director session, and completion contract |
 | `guided` | author wants teaching and checkpoints | brief plus explained gate decisions |
 | `copilot` | default for most work | executed next actions and material checkpoints |
 | `plan` | positioning, gap, RQ, protocol, or resource design | research contract and decision matrix |
@@ -180,7 +181,13 @@ Author checkpoint: ... (only when required)
 Respect a budget for tokens, time, network, compute, money, private paths, and
 external writes. Long jobs are resumable and checked at meaningful boundaries.
 No mode silently changes an RQ, promotes pilot results, publishes, uploads, or
-submits.
+submits. `maximum-autonomy` remains deny-by-default for unknown, irreversible,
+external, scientific-decision, and protocol-change actions. Its unified
+`scripts/autonomy.py` policy/authorize API records standing grants, AUTO_HIRE
+risk decisions, and a hash-chained audit log. `scripts/director_loop.py` resumes
+only when policy and graph identities match; `scripts/completion_contract.py`
+fails closed until provenance, evidence, graph, scientific gates, audit, and the
+deterministic full-paper harness all pass.
 
 ## Progressive-disclosure routing
 
@@ -217,8 +224,8 @@ exact pin and a passed relevant behavior trial before formal evidence work.
 
 Do not load every reference by default. Do not copy third-party text or code
 without a compatible license. Existing V1 and V2 branches are historical
-artifacts; this `v3.1.1-hardening` branch is a release candidate pending the documented
-audits and tests.
+artifacts; the `v3.1.1` tag remains historical and unchanged. The `v3.2`
+branch is the maximum-autonomy release-candidate line.
 
 ## Completion
 

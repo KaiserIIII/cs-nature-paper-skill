@@ -1,8 +1,8 @@
-name: cs-nature-paper-v3.1.1
+name: cs-nature-paper-v3.2
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2]
   pull_request:
   workflow_dispatch:
 
@@ -35,6 +35,10 @@ jobs:
         run: python scripts/smoke_run.py --output .ci-smoke-result.json
       - name: Reject stale E2E output
         run: python scripts/check_smoke.py .ci-smoke-result.json
+      - name: Deterministic full-paper E2E
+        run: python scripts/full_paper_e2e.py --output .full-paper-e2e.json
+      - name: Validate v3.2 completion contract
+        run: python scripts/validate_release.py --v32-e2e .full-paper-e2e.json
       - name: Resolve publisher release manifest
         run: python scripts/resolve_release_manifest.py --source-commit "${{ github.sha }}" --output resolved_release_manifest.json
       - name: Graph rebuild and E2E artifact checks
@@ -46,6 +50,7 @@ jobs:
           name: runtime-${{ matrix.os }}-py${{ matrix.python }}
           path: |
             .ci-smoke-result.json
+            .full-paper-e2e.json
             resolved_release_manifest.json
           include-hidden-files: true
           if-no-files-found: error
