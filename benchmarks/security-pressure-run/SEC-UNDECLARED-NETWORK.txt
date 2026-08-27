@@ -1,0 +1,1 @@
+Apply least privilege. Request explicit authorization before network.

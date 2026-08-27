@@ -12,7 +12,7 @@ from typing import Any, Iterable
 from urllib.parse import urlparse
 
 
-SKILL_VERSION = "3.0.0"
+SKILL_VERSION = "3.1.0"
 SCHEMA_VERSION = 3
 SUPPORTED_SCHEMA_VERSIONS = {1, 3}
 STATUSES = {
@@ -23,6 +23,7 @@ STATUSES = {
     "REJECTED",
     "UNASSESSED",
 }
+ADOPTION_STATUSES = {"INSPIRED", "REFERENCED", "NOT_USED"}
 ACTIVE_STATUSES = {"APPROVED", "PROVISIONAL", "SPECIALIST"}
 FLOATING_REFS = {"", "head", "latest", "main", "master", "trunk"}
 UTC_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -114,6 +115,11 @@ def _audit_employee(employee: Any, index: int) -> tuple[list[str], list[str]]:
     if status not in STATUSES:
         findings.append(f"{label}.status must be one of {sorted(STATUSES)}")
         return findings, warnings
+
+    if "adoption_status" in employee and employee.get("adoption_status") not in ADOPTION_STATUSES:
+        findings.append(f"{label}.adoption_status must be one of {sorted(ADOPTION_STATUSES)}")
+    if "runtime_status" in employee and employee.get("runtime_status") not in STATUSES:
+        findings.append(f"{label}.runtime_status must be one of {sorted(STATUSES)}")
 
     for field in ("departments", "capabilities"):
         if _nonempty(employee.get(field)) and not _is_string_list(employee.get(field)):

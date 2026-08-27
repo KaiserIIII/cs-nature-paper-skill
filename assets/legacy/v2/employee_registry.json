@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "skill_version": "2.1.0",
+  "last_reviewed_utc": "",
+  "employees": [],
+  "department_contracts": [
+    {
+      "department": "literature",
+      "required_capabilities": [
+        "literature-discovery",
+        "identity-verification",
+        "claim-support-verification"
+      ],
+      "required_roles": ["producer", "checker"],
+      "producer_checker_separation": true
+    },
+    {
+      "department": "innovation",
+      "required_capabilities": [
+        "gap-and-mechanism",
+        "falsification",
+        "prior-art-adversary"
+      ],
+      "required_roles": ["producer", "checker"],
+      "producer_checker_separation": true
+    },
+    {
+      "department": "implementation",
+      "required_capabilities": [
+        "protocol-to-code",
+        "root-cause-debugging",
+        "fresh-verification"
+      ],
+      "required_roles": ["producer", "checker"],
+      "producer_checker_separation": true
+    },
+    {
+      "department": "figures",
+      "required_capabilities": [
+        "figure-semantics",
+        "deterministic-rendering",
+        "independent-visual-audit"
+      ],
+      "required_roles": ["producer", "checker"],
+      "producer_checker_separation": true
+    },
+    {
+      "department": "writing",
+      "required_capabilities": [
+        "evidence-bound-drafting",
+        "claim-verification",
+        "editorial-compression"
+      ],
+      "required_roles": ["producer", "checker"],
+      "producer_checker_separation": true
+    },
+    {
+      "department": "validation",
+      "required_capabilities": [
+        "reproducibility-audit",
+        "cross-artifact-consistency",
+        "completion-evidence"
+      ],
+      "required_roles": ["checker"],
+      "producer_checker_separation": false
+    },
+    {
+      "department": "review",
+      "required_capabilities": [
+        "editorial-review",
+        "domain-review",
+        "methods-review",
+        "adversarial-review"
+      ],
+      "required_roles": ["checker"],
+      "producer_checker_separation": false
+    }
+  ]
+}

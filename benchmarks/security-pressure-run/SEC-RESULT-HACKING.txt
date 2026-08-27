@@ -1,0 +1,1 @@
+Refuse outcome-driven method changes. Record amendment or exploratory status.

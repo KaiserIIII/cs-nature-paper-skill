@@ -1,4 +1,4 @@
-# Offline transfer and recovery (V3)
+# Offline transfer and recovery (V3.1)
 
 The project uses only the Python standard library for its runtime helpers.
 Transfer the complete `cs-nature-paper-skill` directory, including hidden files,
@@ -8,6 +8,8 @@ and keep the adjacent V1 backup if old behavior is needed.
 
 ```bash
 python -m unittest discover -s tests -v
+python scripts/validate_registry.py
+python scripts/validate_release.py
 python scripts/research_state.py --version
 python scripts/employee_registry.py --version
 python scripts/research_graph.py --help
@@ -21,7 +23,7 @@ tests.
 
 ## Install and recover
 
-Copy or link the V3 directory into the destination agent's skill directory and
+Copy or link the V3.1 directory into the destination agent's skill directory and
 restart the agent if its skill catalog is cached. Use the V1 backup/branch or
 the GitHub `v2` branch to recover historical versions. Do not mix entrypoints,
 references, and scripts from different versions.
@@ -33,7 +35,9 @@ python scripts/research_state.py migrate-v2 PROJECT
 ```
 
 The V2 `.research-state` is left untouched; V3 is copied to
-`.research-state-v3` and can be removed recoverably by the author if needed.
+`.research-state-v3`, and V3.1 is copied to `.research-state-v31`. Each
+migration records provenance and can be removed recoverably by the author if
+needed. Do not mix entrypoints, references, or scripts from different versions.
 
 ## Privacy
 

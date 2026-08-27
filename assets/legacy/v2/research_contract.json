@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "skill_version": "2.1.0",
+  "created_utc": "",
+  "private": true,
+  "project": {
+    "title": "",
+    "study_type": "empirical",
+    "mode": "full",
+    "target_venue": "",
+    "target_track": ""
+  },
+  "scientific_argument": {
+    "stakeholder_problem": "",
+    "phenomenon_or_artifact": "",
+    "prior_knowledge": "",
+    "gap": "",
+    "mechanism_or_model": "",
+    "constructs": [
+      {
+        "name": "",
+        "conceptual_definition": "",
+        "operationalization": "",
+        "role": "",
+        "known_gap": ""
+      }
+    ],
+    "target_population_and_scope": "",
+    "questions_or_goals": [
+      {
+        "id": "RQ1",
+        "text": ""
+      }
+    ],
+    "contribution": "",
+    "falsifiers": [],
+    "alternative_explanations": [],
+    "downstream_boundary": ""
+  },
+  "protocol": {
+    "status": "draft",
+    "units": "",
+    "sampling_frame": "",
+    "outcomes": [],
+    "estimands": [],
+    "denominators": [],
+    "missingness_and_exclusions": "",
+    "clustering_and_dependence": "",
+    "repetition_rationale": "",
+    "multiplicity": "",
+    "stopping_and_failure_rules": "",
+    "frozen_inputs": [],
+    "amendments": []
+  },
+  "expansion_decisions": [],
+  "venue": {
+    "rules_last_verified_utc": "",
+    "primary_sources": []
+  }
+}

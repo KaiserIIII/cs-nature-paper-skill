@@ -1,13 +1,13 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V3: student-first, evidence-bound AI Research OS for turning a research idea, codebase, data, draft, or rejection into a defensible CS research package. Routes literature, novelty, feasibility, experiments, figures, writing, validation, and adversarial review without fabricated science, silent installs, or automatic submission."
+description: "CS Nature Paper V3.1: student-first, evidence-bound, executable AI Research OS for turning research intent into a provenance-tracked package without fabricated science, silent installs, or unauthorized release."
 metadata:
-  version: "3.0.0"
-  architecture: "research-control-plane + execution-plane + adaptive-graph"
+  version: "3.1.0"
+  architecture: "research-control-plane + execution-plane + capability-runtime + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V3 - Ultimate Research OS
+# CS Nature Paper V3.1 - Executable Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
@@ -61,7 +61,8 @@ python scripts/research_state.py audit PROJECT --gate argument
 
 Initialization is private and refuses overwrite. V3 adds graph, claims,
 registries, risks, manifests, and venue state. It does not edit `.gitignore`.
-Use `migrate-v2` to copy V2 state without deleting or relabeling its originals.
+Use `migrate-v2` or `migrate-v3` to copy prior state without deleting or
+relabeling its originals. `.research-state-v31` is preferred when present.
 
 ## Scientific gates
 
@@ -110,6 +111,36 @@ feasibility; feasibility failure reopens innovation; a pass freezes the
 protocol; formal evidence feeds figures, writing, validation, and review; an
 unsupported claim reopens the evidence ledger and the smallest owner node.
 Read [references/core/research-graph.md](references/core/research-graph.md).
+
+The graph is executable and append-only at the event layer:
+
+```bash
+python scripts/research_graph.py plan-next PROJECT
+python scripts/research_graph.py ready PROJECT
+python scripts/research_graph.py advance PROJECT
+python scripts/research_graph.py rebuild PROJECT
+python scripts/research_graph.py explain PROJECT
+```
+
+Use `scripts/skill_router.py` to resolve capabilities before staffing work. A
+catalog entry is a design source only unless its `runtime_status` is qualified;
+approved external employees require an exact pinned ref, least privilege, a
+behavior trial, and a rollback path.
+
+```bash
+python scripts/skill_router.py inventory
+python scripts/skill_router.py resolve PROJECT --capability statistical-modeling
+python scripts/skill_router.py team "analyze results" --capability statistical-modeling
+python scripts/skill_router.py validate-plan delegation_plan.json
+```
+
+Deep evidence verification is explicit and can return `CONDITIONAL` for
+external material:
+
+```bash
+python scripts/evidence_anchor.py validate anchor.json --deep --root PROJECT
+python scripts/eval_runner.py prepare assets/evals/behavior_cases.json .eval/prepared
+```
 
 ## Staff departments as capability contracts
 
@@ -166,11 +197,22 @@ submits.
 - Validation/review: read `departments/validation.md`, `departments/review.md`,
   and `core/security.md`.
 - External skill request: read `core/skill-marketplace.md` before activation.
+- Methods decision: run `scripts/method_router.py` and load only the selected
+  bounded module; escalate high-risk methods to a qualified checker.
+- Literature: keep discovery, identity verification, and claim-support
+  verification separate; snippets and metadata cannot support a load-bearing
+  claim. Use `scripts/literature_runtime.py` and the query log.
+- Experiment: plan from claim -> threat -> evidence -> experiment with
+  `scripts/experiment_planner.py`; preserve discovery/pilot/formal labels and
+  use `scripts/job_runtime.py` for recoverable long jobs.
+- Behavior/release: use `scripts/eval_runner.py`, `scripts/validate_release.py`,
+  and `scripts/build_manifest.py`; model-backed evaluations unavailable on the
+  current host remain `NOT_RUN`, never `PASS`.
 - Host-specific behavior: read one adapter in `references/hosts/`.
 
 Do not load every reference by default. Do not copy third-party text or code
 without a compatible license. Existing V1 and V2 branches are historical
-artifacts; this `v3` branch is a candidate release pending the documented
+artifacts; this `v3.1` branch is a release candidate pending the documented
 audits and tests.
 
 ## Completion

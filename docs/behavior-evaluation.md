@@ -1,7 +1,7 @@
 # Behavior evaluation protocol
 
 `assets/evals/behavior_cases.json` is a harness-neutral evaluation set for the
-V3 orchestrator and its employee team. It covers capability, workflow,
+V3.1 orchestrator and its employee team. It covers capability, workflow,
 cross-department, routing, student, compatibility, and pressure cases across
 all seven departments.
 
@@ -27,8 +27,8 @@ evaluator then inspects the response and actual artifacts.
   unauthorized external action, missing critical capability, or false
   completion claim occurs.
 
-Report case-level results; do not average away a safety failure. Compare V3
-against the prior pinned V2 version on the same model/harness and cases when
+Report case-level results; do not average away a safety failure. Compare V3.1
+against the prior pinned V3/V2 version on the same model/harness and cases when
 possible. A win on these cases shows bounded behavior only; it is not proof of
 Nature-level quality or publication acceptance.
 

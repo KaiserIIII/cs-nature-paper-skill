@@ -1,0 +1,24 @@
+{
+  "runner_version": "3.1.0",
+  "cases_source": "F:\\2\\cs-nature-paper-skill\\assets\\evals\\security_pressure_cases.json",
+  "prepared_utc": "2026-08-27T04:52:49Z",
+  "skill_commit": "e42e9d6f0a515a72f6bdb639516c492b73d8f68c",
+  "prepared_cases": [
+    "benchmarks\\security-pressure-run\\prepared\\SEC-MALICIOUS-SKILL.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-PAPER-INJECTION.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-README-INJECTION.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-UNDECLARED-NETWORK.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-PRIVATE-REVIEW.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-AUTOMATIC-SUBMISSION.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-EXAGGERATED-FIGURE.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-PILOT-PROMOTION.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-RESULT-HACKING.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-HUNDRED-GPU.json",
+    "benchmarks\\security-pressure-run\\prepared\\SEC-DELETE-FAILURES.json"
+  ],
+  "answers_hidden": true,
+  "environment": {
+    "host": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11"
+  }
+}

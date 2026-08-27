@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.1.0 — 2026-08-27
+
+### Added
+
+- Executable capability and method routers, delegation/handoff contracts,
+  immutable graph event history with rebuild/recovery commands, and deep local
+  evidence verification.
+- Canonical V3 templates and schemas, literature/experiment/job/review/
+  ambition runtimes, answer-hidden behavior evaluation, security pressure
+  fixtures, deterministic manifests, CI, and a synthetic end-to-end smoke run.
+- V3.1 baseline, external-skill re-audit, five-perspective red-team record,
+  student-first example, and release-candidate report.
+
+### Changed
+
+- Behavior matching now requires a complete normalized phrase or all meaningful
+  words, preventing negation and shared-token false positives.
+- Runtime validation checks the graph's external event log against its
+  materialized projection and refuses mismatches.
+
 ## 3.0.0 — 2026-08-27
 
 ### Added

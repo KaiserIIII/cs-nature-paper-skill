@@ -1,0 +1,44 @@
+name: cs-nature-paper-v3.1
+
+on:
+  push:
+    branches: [main, v1, v2, v3, v3.1]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.10', '3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit and integration tests
+        run: python -m unittest discover -s tests -p 'test*.py' -v
+      - name: Release validation
+        run: python scripts/validate_release.py
+      - name: Manifest check
+        run: python scripts/build_manifest.py --check
+      - name: Security pressure fixtures
+        run: python scripts/security_pressure_run.py --output .security-pressure-run
+      - name: Quick skill validation when available
+        shell: bash
+        run: |
+          if [ -f scripts/quick_validate.py ]; then python scripts/quick_validate.py .; else echo 'quick_validate.py not present; registry and schema validation still ran'; fi
+
+  model-eval:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run deterministic behavior harness
+        run: python scripts/eval_runner.py prepare assets/evals/behavior_cases.json .eval/prepared

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize, migrate, and audit the private V3 research control plane."""
+"""Initialize, migrate, and audit the private V3.1 research control plane."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-SKILL_VERSION = "3.0.0"
+SKILL_VERSION = "3.1.0"
 SCHEMA_VERSION = 3
 LEGACY_SCHEMA_VERSION = 2
 STUDY_TYPES = (
@@ -24,12 +24,14 @@ MODES = ("full", "guided", "copilot", "autopilot", "plan", "execute", "write", "
 GATES = ("argument", "feasibility", "protocol", "claims", "submission")
 FINAL_CLAIM_STATUSES = {"SUPPORTED", "SCOPED", "WITHDRAWN"}
 EVIDENCED_CLAIM_STATUSES = {"SUPPORTED", "SCOPED"}
-TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "assets" / "templates"
+TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "assets" / "templates" / "v3"
+LEGACY_TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "assets" / "legacy" / "v2"
 V3_TEMPLATES = (
-    "project.json", "research_contract_v3.json", "research_graph.json", "claims.json",
-    "evidence_ledger_v3.json", "literature_registry.json", "experiment_registry.json",
+    "project.json", "research_contract.json", "research_graph.json", "claims.json",
+    "evidence_ledger.json", "literature_registry.json", "experiment_registry.json",
     "artifact_manifest.json", "amendments.json", "risks.json", "venue_profile.json",
-    "employee_registry_v3.json",
+    "employee_registry.json", "delegation_plan.json", "handoff.json", "query_log.json",
+    "review_finding.json",
 )
 
 class StateError(RuntimeError):
@@ -57,6 +59,9 @@ def _require_fields(value: dict[str, Any], fields: Iterable[str], prefix: str) -
     return [f"{prefix}.{field} is required" for field in fields if not _nonempty(value.get(field))]
 
 def _state_dir(project_dir: Path) -> Path:
+    v31 = project_dir.resolve() / ".research-state-v31"
+    if v31.exists():
+        return v31
     v3 = project_dir.resolve() / ".research-state-v3"
     return v3 if v3.exists() else project_dir.resolve() / ".research-state"
 
@@ -70,15 +75,21 @@ def init_state(project_dir: Path, study_type: str, mode: str, domain: str = "") 
     for template_name in V3_TEMPLATES:
         value = _read_json(TEMPLATE_DIR / template_name)
         value["skill_version"], value["created_utc"] = SKILL_VERSION, created_utc
-        if "schema_version" in value and template_name in {"project.json", "research_contract_v3.json", "evidence_ledger_v3.json"}: value["schema_version"] = SCHEMA_VERSION
+        if "schema_version" in value: value["schema_version"] = SCHEMA_VERSION
         if template_name == "project.json":
             value.update({"project_dir": str(project_dir), "title": title, "domain": domain, "study_type": study_type, "mode": mode, "automation_mode": mode, "budget": {"tokens": None, "minutes": None, "network": False, "compute": None, "money": 0}, "permissions": {"private_paths": [str(project_dir)], "external_writes": [], "publish": False, "submit": False}})
-        elif template_name == "research_contract_v3.json": value["project"].update({"title": title, "study_type": study_type, "mode": mode, "domain": domain})
-        out_name = template_name.replace("_v3", "")
-        _write_json(state_dir / out_name, value); created.append(out_name)
-    decision_template = (TEMPLATE_DIR / "decision_log.md").read_text(encoding="utf-8")
+        elif template_name == "research_contract.json": value["project"].update({"title": title, "study_type": study_type, "mode": mode, "domain": domain})
+        _write_json(state_dir / template_name, value); created.append(template_name)
+    decision_template_path = TEMPLATE_DIR / "decision_log.md"
+    if not decision_template_path.exists():
+        decision_template_path = Path(__file__).resolve().parents[1] / "assets" / "templates" / "decision_log.md"
+    decision_template = decision_template_path.read_text(encoding="utf-8")
     decision_log = decision_template.replace("{{PROJECT_TITLE}}", title).replace("{{STUDY_TYPE}}", study_type).replace("{{MODE}}", mode).replace("{{CREATED_UTC}}", created_utc)
     (state_dir / "decision_log.md").write_text(decision_log, encoding="utf-8"); created.append("decision_log.md")
+    graph_path = state_dir / "research_graph.json"
+    if graph_path.exists():
+        shutil.copy2(graph_path, state_dir / ".research-graph-initial.json")
+        created.append(".research-graph-initial.json")
     return {"operation": "init", "status": "PASS", "state_dir": str(state_dir), "created": created, "private": True}
 
 def _claim_records(ledger: dict[str, Any], claims_doc: dict[str, Any] | None = None) -> Any:
@@ -156,19 +167,40 @@ def migrate_v2(project_dir: Path) -> dict[str, Any]:
     _write_json(target / "research_contract.json", contract)
     existing = {p.name for p in target.iterdir()}
     for template_name in V3_TEMPLATES:
-        out_name = template_name.replace("_v3", "")
-        if out_name in existing or out_name in {"research_contract.json", "evidence_ledger.json"}: continue
-        value = _read_json(TEMPLATE_DIR / template_name); value.update({"skill_version": SKILL_VERSION, "schema_version": SCHEMA_VERSION, "created_utc": now}); _write_json(target / out_name, value)
+        if template_name in existing or template_name in {"research_contract.json", "evidence_ledger.json"}: continue
+        value = _read_json(TEMPLATE_DIR / template_name); value.update({"skill_version": SKILL_VERSION, "schema_version": SCHEMA_VERSION, "created_utc": now}); _write_json(target / template_name, value)
     legacy_ledger = _read_json(source / "evidence_ledger.json")
     if isinstance(legacy_ledger.get("claims"), list):
         _write_json(target / "claims.json", {"schema_version": 1, "skill_version": SKILL_VERSION, "created_utc": now, "migrated_from": "v2", "claims": legacy_ledger["claims"]})
     return {"operation": "migrate-v2", "status": "PASS", "source": str(source), "state_dir": str(target), "preserved": True}
+
+def migrate_v3(project_dir: Path) -> dict[str, Any]:
+    """Copy V3 state to a V3.1 directory without rewriting the source."""
+    project_dir = project_dir.resolve()
+    source = project_dir / ".research-state-v3"
+    if not source.is_dir():
+        source = project_dir / ".research-state"
+    target = project_dir / ".research-state-v31"
+    if not source.is_dir():
+        raise StateError(f"V3 research state not found: {source}")
+    if target.exists():
+        raise StateError(f"refusing to overwrite existing V3.1 state: {target}")
+    shutil.copytree(source, target)
+    now = _utc_now()
+    for path in target.glob("*.json"):
+        value = _read_json(path)
+        value.update({"skill_version": SKILL_VERSION, "migrated_from": "v3", "migrated_utc": now})
+        _write_json(path, value)
+    provenance = {"source": str(source), "target": str(target), "preserved": True, "migrated_utc": now, "tool": SKILL_VERSION}
+    _write_json(target / "migration_provenance.json", provenance)
+    return {"operation": "migrate-v3", "status": "PASS", "source": str(source), "state_dir": str(target), "preserved": True, "provenance": str(target / "migration_provenance.json")}
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__); parser.add_argument("--version", action="version", version=f"%(prog)s {SKILL_VERSION}"); subs = parser.add_subparsers(dest="command", required=True)
     init = subs.add_parser("init", help="create a private V3 research-state directory"); init.add_argument("project_dir", type=Path); init.add_argument("--study-type", choices=STUDY_TYPES, required=True); init.add_argument("--mode", choices=MODES, required=True); init.add_argument("--domain", default="")
     audit = subs.add_parser("audit", help="audit one research-state gate"); audit.add_argument("project_dir", type=Path); audit.add_argument("--gate", choices=GATES, required=True)
     migrate = subs.add_parser("migrate-v2", help="copy V2 state without overwriting it"); migrate.add_argument("project_dir", type=Path)
+    migrate3 = subs.add_parser("migrate-v3", help="copy V3 state to V3.1 without overwriting it"); migrate3.add_argument("project_dir", type=Path)
     return parser
 
 def main(argv: list[str] | None = None) -> int:
@@ -176,6 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "init": result = init_state(args.project_dir, args.study_type, args.mode, args.domain)
         elif args.command == "migrate-v2": result = migrate_v2(args.project_dir)
+        elif args.command == "migrate-v3": result = migrate_v3(args.project_dir)
         else: result = audit_state(args.project_dir, args.gate)
     except StateError as exc:
         print(json.dumps({"status": "ERROR", "error": str(exc)}, ensure_ascii=False)); return 2

@@ -1,0 +1,188 @@
+{
+  "status": "PASS",
+  "project_fixture": "synthetic/private temp project",
+  "steps": [
+    "brief",
+    "literature",
+    "innovation",
+    "feasibility",
+    "pilot",
+    "protocol_freeze",
+    "implementation",
+    "formal_experiment",
+    "analysis",
+    "evidence_update",
+    "figures",
+    "writing",
+    "validation",
+    "review",
+    "revision",
+    "venue_preflight",
+    "artifact_package",
+    "author_handoff"
+  ],
+  "graph_events": 18,
+  "anchor": {
+    "status": "PASS",
+    "verification": "deep",
+    "findings": [],
+    "conditional": [],
+    "source_artifact": "smoke-result.txt#sha256=08a9d6520f9bb18154e7ec8f3615ac15e619151fad632f33274025f0c376e3d1",
+    "operation": "validate",
+    "path": "C:\\Users\\于越\\AppData\\Local\\Temp\\cs-nature-v31-smoke-_tjo1wmr\\smoke-project\\anchor.json"
+  },
+  "planner": {
+    "operation": "plan",
+    "status": "PASS",
+    "selected": [
+      {
+        "experiment_id": "E-SMOKE",
+        "claim_ids": [
+          "C1"
+        ],
+        "threat": "deterministic reproducibility",
+        "hypothesis_or_question": "does command reproduce?",
+        "design": "single fixture rerun",
+        "information_gain": 1,
+        "cost": 1,
+        "risk": 0,
+        "reversibility": 1,
+        "stage": "PILOT",
+        "formal_status": "REGISTERED",
+        "inputs": [
+          "smoke-input-v1"
+        ],
+        "expected_results": "same output",
+        "interpretation_positive": "supports fixture claim",
+        "interpretation_negative": "investigate",
+        "interpretation_null": "not applicable",
+        "stop_rule": "one rerun",
+        "dependencies": [],
+        "outputs": [
+          "smoke-result.txt"
+        ],
+        "evidence_anchors": [
+          "EA-SMOKE"
+        ],
+        "priority": 1.0
+      }
+    ],
+    "dropped": [],
+    "registry": null
+  },
+  "router": {
+    "operation": "resolve",
+    "status": "PASS",
+    "capability": "statistical-modeling",
+    "native_coverage": "AVAILABLE",
+    "candidate_employees": [
+      {
+        "skill_id": "k-dense-statistics",
+        "exact_ref": "36d8f13a1e75",
+        "runtime_status": "PROVISIONAL",
+        "permission_gaps": [],
+        "risk": [
+          "large collection; method fit needs checking"
+        ]
+      }
+    ],
+    "selected": [
+      {
+        "skill_id": "k-dense-statistics",
+        "exact_ref": "36d8f13a1e75",
+        "runtime_status": "PROVISIONAL",
+        "permission_gaps": [],
+        "risk": [
+          "large collection; method fit needs checking"
+        ]
+      }
+    ],
+    "checker": "independent-method-check",
+    "permissions_required": [],
+    "risk": "critical",
+    "specialist_triggers": [
+      "core quantitative claim"
+    ],
+    "rejected": []
+  },
+  "method_router": {
+    "operation": "route",
+    "status": "PASS",
+    "task": "Compare model metrics across seeds",
+    "method": "stochastic-ml",
+    "confidence": "explicit",
+    "required_definitions": [
+      "unit",
+      "metric",
+      "split",
+      "budget",
+      "seed policy"
+    ],
+    "estimands": [
+      "paired metric difference",
+      "distribution over seeds"
+    ],
+    "evidence_requirements": [
+      "leakage audit",
+      "baseline parity",
+      "uncertainty"
+    ],
+    "minimum_checks": [
+      "multi-seed or rationale",
+      "failure cases"
+    ],
+    "specialist_escalation": [
+      "ml-evaluation"
+    ],
+    "forbidden_claims": [
+      "generalization from one benchmark"
+    ],
+    "source": "F:\\2\\cs-nature-paper-skill\\assets\\registry\\method_router.json"
+  },
+  "literature_query": {
+    "operation": "query",
+    "status": "PASS",
+    "query": {
+      "query": "LLM code repair benchmark",
+      "database_provider": "synthetic-fixture",
+      "date_utc": "2026-08-27T04:52:49Z",
+      "filters": "none",
+      "result_count": 0,
+      "selection_rationale": "smoke only",
+      "deduplication": "none"
+    },
+    "path": "C:\\Users\\于越\\AppData\\Local\\Temp\\cs-nature-v31-smoke-_tjo1wmr\\smoke-project\\query_log.json"
+  },
+  "behavior_eval": {
+    "operation": "report",
+    "status": "PASS",
+    "case_level_verdicts": [
+      {
+        "case_id": "SMOKE-ROUTING",
+        "verdict": "PASS",
+        "critical_failures": [],
+        "major_failures": [],
+        "environment": {
+          "skill_commit": "e42e9d6f0a515a72f6bdb639516c492b73d8f68c",
+          "model": "local-deterministic",
+          "host": "local",
+          "reasoning_mode": "deterministic",
+          "tools": [],
+          "network": false,
+          "employee_registry": null,
+          "date_utc": "2026-08-27T04:52:49Z",
+          "token_cost": 0,
+          "tool_calls": 0,
+          "wall_time_seconds": 0.0,
+          "human_interventions": 0
+        }
+      }
+    ],
+    "critical_failures": [],
+    "major_or_unresolved": [],
+    "not_run": [],
+    "average_score": "NOT_USED"
+  },
+  "model_comparison": "NOT_RUN; no second model/API was available",
+  "note": "This is a deterministic workflow smoke test, not a scientific publication or venue claim."
+}

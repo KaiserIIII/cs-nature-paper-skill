@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "skill_version": "2.1.0",
+  "created_utc": "",
+  "private": true,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "",
+      "type": "descriptive",
+      "scope": "",
+      "required_evidence": "",
+      "observed_evidence": [],
+      "counterevidence": [],
+      "uncertainty": "",
+      "status": "PLANNED"
+    }
+  ],
+  "sources": [],
+  "artifacts": []
+}

@@ -1,0 +1,22 @@
+name: behavior-evaluation-manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Model identifier recorded in the run manifest
+        required: true
+        default: external-model
+
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare hidden-answer cases
+        run: python scripts/eval_runner.py prepare assets/evals/behavior_cases.json .eval/prepared
+      - name: Explain execution boundary
+        run: echo "External model execution is host-owned; this workflow only prepares cases unless an approved adapter is configured."

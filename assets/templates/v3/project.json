@@ -1,0 +1,14 @@
+{
+  "schema_version": 3,
+  "skill_version": "3.1.0",
+  "created_utc": "",
+  "private": true,
+  "project_dir": "",
+  "title": "",
+  "domain": "",
+  "study_type": "empirical",
+  "mode": "copilot",
+  "automation_mode": "copilot",
+  "budget": {"tokens": null, "minutes": null, "network": false, "compute": null, "money": 0},
+  "permissions": {"private_paths": [], "external_writes": [], "publish": false, "submit": false}
+}

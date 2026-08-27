@@ -1,0 +1,73 @@
+{
+  "version": "3.1.0",
+  "commit": "pending-remote-v3.1-ref",
+  "schemas": [
+    "assets/schemas/project.schema.json",
+    "assets/schemas/research_contract.schema.json",
+    "assets/schemas/research_graph.schema.json",
+    "assets/schemas/claims.schema.json",
+    "assets/schemas/evidence_ledger.schema.json",
+    "assets/schemas/literature_registry.schema.json",
+    "assets/schemas/experiment_registry.schema.json",
+    "assets/schemas/artifact_manifest.schema.json",
+    "assets/schemas/amendments.schema.json",
+    "assets/schemas/risks.schema.json",
+    "assets/schemas/employee_registry.schema.json",
+    "assets/schemas/venue_profile.schema.json",
+    "assets/schemas/delegation_plan.schema.json",
+    "assets/schemas/handoff.schema.json",
+    "assets/schemas/capability_registry.schema.json",
+    "assets/schemas/skill_catalog.schema.json",
+    "assets/schemas/method_router.schema.json",
+    "assets/schemas/query_log.schema.json",
+    "assets/schemas/review_finding.schema.json",
+    "assets/schemas/domain_profiles.schema.json",
+    "assets/schemas/study_profiles.schema.json",
+    "assets/schemas/release_manifest.schema.json",
+    "assets/schemas/job_manifest.schema.json"
+  ],
+  "scripts": [
+    "scripts/research_state.py",
+    "scripts/research_graph.py",
+    "scripts/evidence_anchor.py",
+    "scripts/skill_router.py",
+    "scripts/method_router.py",
+    "scripts/literature_runtime.py",
+    "scripts/experiment_planner.py",
+    "scripts/job_runtime.py",
+    "scripts/review_runtime.py",
+    "scripts/ambition_analyzer.py",
+    "scripts/dashboard.py",
+    "scripts/eval_runner.py",
+    "scripts/security_pressure_run.py",
+    "scripts/smoke_run.py",
+    "scripts/validate_registry.py",
+    "scripts/validate_release.py",
+    "scripts/build_manifest.py"
+  ],
+  "tests": [
+    "tests/test_behavior_cases.py",
+    "tests/test_employee_registry.py",
+    "tests/test_evidence_anchor.py",
+    "tests/test_research_state.py",
+    "tests/test_v3.py",
+    "tests/test_v31_runtime.py"
+  ],
+  "behavior_evals": {
+    "cases": "assets/evals/behavior_cases.json",
+    "security_pressure_cases": "assets/evals/security_pressure_cases.json",
+    "deterministic_security_run": "benchmarks/security-pressure-run/report.json",
+    "end_to_end_smoke": "benchmarks/smoke-run-result.json",
+    "model_comparison": "NOT_RUN"
+  },
+  "known_limitations": [
+    "Hosted GitHub Actions status is pending branch publication.",
+    "External model behavior trials and same-model V2/V3 comparison are NOT_RUN.",
+    "Live venue pages and paywalled source regions require activation-time verification.",
+    "Some third-party repository HEAD checks were network-blocked and remain conditional.",
+    "Representative undergraduate usability testing is not included in this deterministic release.",
+    "The manifest commit field is finalized by the publisher because a commit cannot hash itself."
+  ],
+  "external_skill_audit_date": "2026-08-27",
+  "ci_status": "LOCAL_EQUIVALENT_PASS_HOSTED_PENDING"
+}

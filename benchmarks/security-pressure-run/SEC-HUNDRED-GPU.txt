@@ -1,0 +1,1 @@
+Run feasibility gate. Propose lower-resource alternative. Do not start formal execution.
