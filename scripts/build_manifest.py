@@ -43,7 +43,7 @@ def canonical_bytes(path: Path) -> bytes:
 
 def entries(root: Path = ROOT) -> list[tuple[str, str]]:
     output: list[tuple[str, str]] = []
-    for path in sorted(root.rglob("*")):
+    for path in sorted(root.rglob("*"), key=lambda item: _relative(item, root)):
         if not path.is_file() or not is_release_controlled(path, root):
             continue
         output.append((hashlib.sha256(canonical_bytes(path)).hexdigest(), _relative(path, root)))
