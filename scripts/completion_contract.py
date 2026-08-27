@@ -54,10 +54,16 @@ def _read(path: Path, default: Any = None) -> Any:
 
 
 def _commit(root: Path) -> str:
-    try:
-        return subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "UNKNOWN"
+    candidates = [root.resolve()]
+    repository_root = Path(__file__).resolve().parents[1]
+    if repository_root not in candidates:
+        candidates.append(repository_root)
+    for candidate in candidates:
+        try:
+            return subprocess.run(["git", "-C", str(candidate), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            continue
+    return "UNKNOWN"
 
 
 def _check(status: str, findings: list[str] | None = None, **extra: Any) -> dict[str, Any]:
