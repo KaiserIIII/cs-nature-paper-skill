@@ -1,4 +1,6 @@
 import json
+import importlib.util
+import tempfile
 import subprocess
 import unittest
 from pathlib import Path
@@ -23,6 +25,17 @@ class V32ReleaseTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn("python scripts/full_paper_e2e.py --output .full-paper-e2e.json", workflow)
         self.assertIn(".full-paper-e2e.json", workflow)
+
+    def test_release_validator_checks_v32_e2e_result(self):
+        spec = importlib.util.spec_from_file_location("validate_release", ROOT / "scripts" / "validate_release.py")
+        module = importlib.util.module_from_spec(spec)
+        assert spec and spec.loader
+        spec.loader.exec_module(module)
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "e2e.json"
+            path.write_text(json.dumps({"status": "PASS", "evaluation_class": "HARNESS_SELF_TEST", "model_behavior": "NOT_RUN", "skill_commit": commit, "completion": {"status": "PASS"}}), encoding="utf-8")
+            self.assertEqual(module.validate_v32_e2e(path, ROOT), [])
 
 
 if __name__ == "__main__":
