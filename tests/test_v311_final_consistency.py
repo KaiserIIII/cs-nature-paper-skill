@@ -63,6 +63,11 @@ def new_registry(path):
 
 
 class FinalConsistencyRegressionTests(unittest.TestCase):
+    def test_ci_uploads_hidden_smoke_artifact(self):
+        """CI artifacts must retain the hidden smoke result used for provenance checks."""
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn("include-hidden-files: true", workflow)
+
     def test_repository_release_manifest_is_explicitly_unresolved(self):
         manifest = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest.get("source_commit_mode"), "publisher-injected")

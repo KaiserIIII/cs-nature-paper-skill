@@ -47,6 +47,7 @@ jobs:
           path: |
             .ci-smoke-result.json
             resolved_release_manifest.json
+          include-hidden-files: true
           if-no-files-found: error
       - name: Quick skill validation when available
         shell: bash
