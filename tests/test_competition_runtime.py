@@ -479,5 +479,80 @@ class CompetitionSchedulerTests(unittest.TestCase):
         self.assertTrue((self.state / ".research-graph-events.jsonl").exists())
 
 
+class CompetitionMethodRouterTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.router = load("competition_method_router")
+        cls.registry_validator = load("validate_registry")
+
+    def test_router_covers_required_problem_families(self):
+        expected = {
+            "evaluation",
+            "prediction",
+            "optimization",
+            "classification-clustering",
+            "graph-network",
+            "time-series",
+            "differential-equations",
+            "simulation",
+            "spatial-routing",
+            "data-preparation",
+        }
+
+        self.assertEqual(
+            {item["id"] for item in self.router._read()["categories"]},
+            expected,
+        )
+        validation = self.registry_validator.validate()
+        self.assertEqual(validation["status"], "PASS")
+        self.assertEqual(validation["competition_method_category_count"], 10)
+
+    def test_small_data_prediction_starts_with_simple_baseline(self):
+        result = self.router.route(
+            "predict a short annual time series with 18 observations"
+        )
+
+        self.assertIn(result["status"], {"PASS", "CONDITIONAL"})
+        self.assertIn(
+            result["recommended_baseline"],
+            {"linear regression", "naive forecast", "exponential smoothing"},
+        )
+        self.assertNotEqual(result["recommended_primary_model"], "LSTM")
+        self.assertTrue(result["complexity_upgrade_condition"])
+
+    def test_evaluation_route_has_complete_decision_contract(self):
+        result = self.router.route(
+            "rank suppliers using weighted indicators and test weight sensitivity"
+        )
+
+        self.assertEqual(result["problem_type"], "evaluation and ranking")
+        for field in (
+            "candidate_models",
+            "recommended_baseline",
+            "recommended_primary_model",
+            "optional_improvement",
+            "why",
+            "main_assumptions",
+            "failure_risks",
+            "validation_plan",
+        ):
+            self.assertTrue(result[field], field)
+
+    def test_ambiguous_signal_is_conditional_and_names_conflicts(self):
+        result = self.router.route("forecast network traffic as a time series")
+
+        self.assertEqual(result["status"], "CONDITIONAL")
+        self.assertTrue(result["conflicts"])
+
+    def test_zero_match_is_unresolved_without_model_guess(self):
+        result = self.router.route("an underspecified contest question")
+
+        self.assertEqual(result["status"], "UNRESOLVED")
+        self.assertEqual(result["candidate_models"], [])
+        self.assertIsNone(result["recommended_baseline"])
+        self.assertIsNone(result["recommended_primary_model"])
+        self.assertIn("guess", result["failure_risks"][0])
+
+
 if __name__ == "__main__":
     unittest.main()
