@@ -71,6 +71,15 @@ def main(argv: list[str] | None = None) -> int:
     current = args.output.read_text(encoding="utf-8") if args.output.exists() else ""
     ok = current == expected
     result = {"status": "PASS" if ok else "FAIL", "files": len(entries(ROOT)), "manifest": str(args.output), "commit": current_commit()}
+    if not ok:
+        expected_lines = expected.splitlines()
+        current_lines = current.splitlines()
+        result["mismatches"] = [
+            {"line": index + 1, "expected": expected_lines[index] if index < len(expected_lines) else None,
+             "actual": current_lines[index] if index < len(current_lines) else None}
+            for index in range(max(len(expected_lines), len(current_lines)))
+            if (expected_lines[index] if index < len(expected_lines) else None) != (current_lines[index] if index < len(current_lines) else None)
+        ][:10]
     if not args.check:
         args.output.write_text(expected, encoding="utf-8", newline="\n")
         result["status"] = "PASS"
