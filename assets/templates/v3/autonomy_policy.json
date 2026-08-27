@@ -10,19 +10,19 @@
     "minutes": null,
     "money": 0,
     "compute": "local",
-    "network": false
+    "network": true
   },
   "permissions": {
     "local_read": true,
     "local_write": true,
     "execute": true,
-    "network": false,
+    "network": true,
     "external_write": false,
     "publish": false,
     "submit": false,
-    "auto_hire": false,
-    "protocol_change": false,
-    "scientific_decision": false,
+    "auto_hire": true,
+    "protocol_change": true,
+    "scientific_decision": true,
     "delete": false
   },
   "standing_authorizations": []

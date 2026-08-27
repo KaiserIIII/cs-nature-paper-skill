@@ -49,6 +49,17 @@ class CompletionContractTests(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertTrue(any("e2e" in item.lower() for item in result["critical_failures"]))
 
+    def test_project_completion_uses_submission_semantics(self):
+        result = completion_contract.evaluate(self.project)
+        self.assertEqual(result["project_disposition"], "BLOCKED")
+        self.assertNotIn("RELEASE", result["project_disposition"])
+
+    def test_manuscript_figure_and_review_are_fail_closed(self):
+        result = completion_contract.evaluate(self.project)
+        for name in ("manuscript_complete", "figure_traceability", "review_resolution"):
+            self.assertIn(name, result["checks"])
+            self.assertEqual(result["checks"][name]["status"], "FAIL")
+
 
 if __name__ == "__main__":
     unittest.main()

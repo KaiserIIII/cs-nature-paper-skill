@@ -1,16 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["source_version", "source_commit", "source_commit_mode", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations"],
+  "required": ["source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations", "release_disposition"],
   "properties": {
-    "source_version": {"type": "string"},
+    "source_version": {"enum": ["3.2.0"]},
     "source_commit": {"type": "string", "minLength": 1},
     "source_commit_mode": {"enum": ["publisher-injected", "resolved"]},
-    "generated_at": {"type": "string"},
+    "source_branch": {"enum": ["v3.2", "main"]},
+    "generated_at": {"type": "string", "minLength": 20},
+    "tag": {"type": ["string", "null"]},
+    "e2e_commit": {"type": ["string", "null"]},
     "deterministic_tests": {"type": "object"},
-    "hosted_ci": {"enum": ["PASS", "PENDING", "NOT_RUN", "FAIL"]},
+    "hosted_ci": {
+      "type": "object",
+      "required": ["run_id", "workflow", "branch", "head_sha", "conclusion", "matrix"],
+      "properties": {
+        "run_id": {"type": ["integer", "null"]},
+        "workflow": {"type": ["string", "null"]},
+        "branch": {"type": ["string", "null"]},
+        "head_sha": {"type": ["string", "null"]},
+        "conclusion": {"type": ["string", "null"]},
+        "matrix": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
     "model_behavior_eval": {"enum": ["PASS", "PENDING", "NOT_RUN", "FAIL"]},
     "e2e_status": {"enum": ["PASS", "CONDITIONAL", "NOT_RUN", "FAIL"]},
-    "known_limitations": {"type": "array"}
+    "known_limitations": {"type": "array"},
+    "release_disposition": {"type": "string"}
   }
 }

@@ -46,6 +46,38 @@ PERMISSION_FOR_ACTION = {
     "DELETE": "delete",
 }
 IMMUTABLE_REF = re.compile(r"^[0-9a-f]{40}$")
+AUTO_SCIENTIFIC_DECISIONS = {
+    "ordinary",
+    "choose_baseline",
+    "choose_statistical_test",
+    "choose_implementation_method",
+    "change_optimizer",
+    "add_ablation",
+    "add_sensitivity_analysis",
+    "change_hyperparameters",
+    "replace_failed_model",
+    "remove_unsupported_claim",
+    "narrow_claim_scope",
+    "repair_implementation",
+    "choose_visualization",
+}
+AUDITED_SCIENTIFIC_DECISIONS = {
+    "bounded_protocol_amendment",
+    "switch_primary_model",
+    "remove_secondary_rq",
+    "reduce_experiment_scope",
+}
+AUTHOR_SCIENTIFIC_DECISIONS = {
+    "replace_core_research_question",
+    "fundamental_target_population_change",
+    "change_scientific_phenomenon",
+    "introduce_human_subjects",
+    "material_budget_expansion",
+    "change_confidential_data_policy",
+    "fundamental_redesign_after_formal_results",
+}
+AUDITED_ACTIONS = {"NETWORK_READ"}
+AUTHOR_ACTIONS = {"EXTERNAL_WRITE", "PUBLISH", "SUBMIT", "DELETE"}
 
 
 class AutonomyError(RuntimeError):
@@ -159,6 +191,7 @@ def authorize(
     reversible: bool = True,
     actor: str = "director",
     now: str | None = None,
+    decision_kind: str | None = None,
 ) -> dict[str, Any]:
     """Return a structured authorization decision without performing the action."""
     decision_time = now or _now()
@@ -172,27 +205,46 @@ def authorize(
         "actor": actor,
         "utc": decision_time,
         "requires_author": False,
+        "decision_kind": decision_kind,
     }
     findings = _policy_findings(policy)
     if findings:
-        return base | {"status": "BLOCKED", "reason": "malformed policy", "findings": findings, "requires_author": True}
+        return base | {"status": "BLOCKED", "decision": "DENY", "reason": "malformed policy", "findings": findings, "requires_author": True}
     if action not in KNOWN_ACTIONS:
-        return base | {"status": "BLOCKED", "reason": "unknown action", "requires_author": True}
+        return base | {"status": "BLOCKED", "decision": "DENY", "reason": "unknown action", "requires_author": True}
     if risk not in RISK_ORDER:
-        return base | {"status": "BLOCKED", "reason": "unknown risk", "requires_author": True}
+        return base | {"status": "BLOCKED", "decision": "DENY", "reason": "unknown risk", "requires_author": True}
     permission = PERMISSION_FOR_ACTION[action]
     permissions = policy.get("permissions", {})
     grant = _active_grant(policy, action, scope, risk, decision_time)
-    if not reversible or action in {"EXTERNAL_WRITE", "PUBLISH", "SUBMIT", "PROTOCOL_CHANGE", "SCIENTIFIC_DECISION", "DELETE"}:
-        return base | {"status": "BLOCKED", "reason": "irreversible or author-only action", "requires_author": True}
+    if action in AUTHOR_ACTIONS:
+        return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "author-only external or irreversible action", "requires_author": True}
+    if action in {"SCIENTIFIC_DECISION", "PROTOCOL_CHANGE"}:
+        kind = decision_kind or ("ordinary" if action == "SCIENTIFIC_DECISION" else "unspecified_protocol_change")
+        if kind in AUTHOR_SCIENTIFIC_DECISIONS or (action == "PROTOCOL_CHANGE" and kind == "fundamental"):
+            return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "fundamental scientific scope decision", "requires_author": True}
+        if action == "PROTOCOL_CHANGE" and kind not in {"bounded_protocol_amendment", "minor", "corrective", "outcome_bearing_correction"}:
+            return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "protocol change is not bounded", "requires_author": True}
+        if action == "SCIENTIFIC_DECISION" and kind not in AUTO_SCIENTIFIC_DECISIONS | AUDITED_SCIENTIFIC_DECISIONS:
+            return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "scientific decision class is not authorized", "requires_author": True}
+    if not reversible and action not in {"PROTOCOL_CHANGE", "SCIENTIFIC_DECISION"}:
+        return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "irreversible action", "requires_author": True}
     if permissions.get(permission) is not True and grant is None:
-        return base | {"status": "BLOCKED", "reason": f"permission {permission} is not granted", "requires_author": True}
+        return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": f"permission {permission} is not granted", "requires_author": True}
     if action == "NETWORK_READ" and permissions.get("network") is not True and grant is None:
-        return base | {"status": "BLOCKED", "reason": "network access is not granted", "requires_author": True}
+        return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "network access is not granted", "requires_author": True}
     cap = policy.get("risk_cap")
     if grant is None and RISK_ORDER[risk] > RISK_ORDER[cap]:
-        return base | {"status": "BLOCKED", "reason": f"risk {risk} exceeds policy cap {cap}", "requires_author": True}
-    result = base | {"status": "AUTHORIZED", "reason": "within declared maximum-autonomy envelope"}
+        return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": f"risk {risk} exceeds policy cap {cap}", "requires_author": True}
+    if action == "AUTO_HIRE" and risk in {"HIGH", "CRITICAL"} and grant is None:
+        return base | {"status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "high-risk capability hire requires author authorization", "requires_author": True}
+    if action == "AUTO_HIRE" and risk == "MEDIUM":
+        decision = "AUTO_WITH_AUDIT"
+    elif action in AUDITED_ACTIONS or action == "PROTOCOL_CHANGE" or decision_kind in AUDITED_SCIENTIFIC_DECISIONS:
+        decision = "AUTO_WITH_AUDIT"
+    else:
+        decision = "AUTO"
+    result = base | {"status": "AUTHORIZED", "decision": decision, "reason": "within declared maximum-autonomy envelope"}
     if grant is not None:
         result.update({"authorization_id": grant.get("authorization_id"), "standing_authorization": True})
     else:
@@ -249,15 +301,19 @@ def auto_hire_gate(policy: dict[str, Any], candidate: dict[str, Any], *, actor: 
     if missing:
         return {"operation": "auto-hire", "status": "BLOCKED", "reason": "candidate evidence incomplete", "findings": [f"missing {field}" for field in missing], "requires_author": True}
     findings: list[str] = []
+    risk = candidate.get("risk")
     if not IMMUTABLE_REF.fullmatch(str(candidate.get("exact_ref", ""))): findings.append("exact_ref must be a 40-character commit SHA")
     if candidate.get("source_audit") != "PASS": findings.append("source audit is not PASS")
     if candidate.get("behavior_trial") != "PASS": findings.append("behavior trial is not PASS")
     if candidate.get("security_audit") != "PASS": findings.append("security audit is not PASS")
+    if candidate.get("license_compatible") is False: findings.append("license is incompatible")
+    for field in ("credentials", "paid", "admin", "system_wide_write", "private_data_export", "dangerous_hooks"):
+        if candidate.get(field) is True: findings.append(f"{field} requires author review")
+    if risk in {"LOW", "MEDIUM"} and candidate.get("isolated") is False: findings.append("bounded hire must be isolated")
     if not isinstance(candidate.get("permission_scope"), list) or not candidate["permission_scope"]: findings.append("permission_scope must be a non-empty list")
-    risk = candidate.get("risk")
     if risk not in RISK_ORDER: findings.append("candidate risk is invalid")
     if findings:
-        return {"operation": "auto-hire", "status": "BLOCKED", "reason": "candidate qualification failed", "findings": findings, "requires_author": True}
+        return {"operation": "auto-hire", "status": "BLOCKED", "decision": "ASK_AUTHOR", "reason": "candidate qualification failed", "findings": findings, "requires_author": True}
     scope = str(candidate["permission_scope"][0])
     decision = authorize(policy, "AUTO_HIRE", scope=scope, risk=risk, reversible=True, actor=actor, now=now)
     if decision["status"] != "AUTHORIZED":

@@ -2,7 +2,10 @@
   "source_version": "3.2.0",
   "source_commit": "release-process-injected",
   "source_commit_mode": "publisher-injected",
+  "source_branch": "v3.2",
   "generated_at": "2026-08-28T00:00:00Z",
+  "tag": null,
+  "e2e_commit": null,
   "deterministic_tests": {
     "unit": "PASS",
     "integration": "PASS",
@@ -10,28 +13,29 @@
     "manifest": "PASS",
     "privacy": "PASS",
     "security_harness": "PASS",
-    "stale_benchmark_detection": "PASS",
+    "v311_regression": "PASS",
     "v32_autonomy": "PASS",
-    "full_paper_e2e": "PASS",
-    "completion_contract": "PASS"
+    "auto_hire": "PASS",
+    "director_orchestration_e2e": "PASS",
+    "full_paper_harness": "PASS",
+    "completion_contract": "PASS",
+    "competition_e2e": "PASS"
   },
-  "hosted_ci": "PASS",
-  "hosted_ci_run_id": 33106678347,
-  "hosted_ci_matrix": {
-    "ubuntu-latest / Python 3.10": "PASS",
-    "ubuntu-latest / Python 3.11": "PASS",
-    "ubuntu-latest / Python 3.12": "PASS",
-    "windows-latest / Python 3.10": "PASS",
-    "windows-latest / Python 3.11": "PASS",
-    "windows-latest / Python 3.12": "PASS"
+  "hosted_ci": {
+    "run_id": null,
+    "workflow": null,
+    "branch": null,
+    "head_sha": null,
+    "conclusion": null,
+    "matrix": {}
   },
   "model_behavior_eval": "NOT_RUN",
   "e2e_status": "PASS",
   "known_limitations": [
-    "source_commit is injected by the publisher or CI because a commit cannot hash a file that contains its own final hash",
-    "model-backed behavior evaluation is NOT_RUN when the host cannot provide an isolated model invocation",
-    "live venue pages, paywalled sources, and external skill HEADs require activation-time verification",
-    "the local E2E is a public synthetic fixture and does not establish a scientific result or venue outcome"
+    "The repository manifest is intentionally unresolved and release-blocked; Hosted CI creates the exact-SHA resolved manifest only after all six matrix jobs pass.",
+    "Model-backed end-to-end autonomous research behavior has not been independently validated.",
+    "Live venue pages, paywalled sources, and external skill HEADs require activation-time verification.",
+    "The deterministic E2E uses a public synthetic fixture and does not establish a scientific result or venue outcome."
   ],
-  "release_disposition": "V3.2.0 RELEASE CANDIDATE READY; model behavior evaluation remains NOT_RUN and requires an authorized isolated model adapter"
+  "release_disposition": "V3.2.0 RELEASE BLOCKED; exact-SHA Hosted CI evidence has not yet been injected"
 }

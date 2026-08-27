@@ -16,6 +16,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -37,10 +40,10 @@ jobs:
         run: python scripts/check_smoke.py .ci-smoke-result.json
       - name: Deterministic full-paper E2E
         run: python scripts/full_paper_e2e.py --output .full-paper-e2e.json
+      - name: Director orchestration E2E
+        run: python scripts/director_orchestration_e2e.py --output .director-orchestration-e2e.json
       - name: Validate v3.2 completion contract
         run: python scripts/validate_release.py --v32-e2e .full-paper-e2e.json
-      - name: Resolve publisher release manifest
-        run: python scripts/resolve_release_manifest.py --source-commit "${{ github.sha }}" --output resolved_release_manifest.json
       - name: Graph rebuild and E2E artifact checks
         run: python scripts/validate_release.py
       - name: Upload runtime release artifacts
@@ -51,7 +54,7 @@ jobs:
           path: |
             .ci-smoke-result.json
             .full-paper-e2e.json
-            resolved_release_manifest.json
+            .director-orchestration-e2e.json
           include-hidden-files: true
           if-no-files-found: error
       - name: Quick skill validation when available
@@ -59,11 +62,51 @@ jobs:
         run: |
           if [ -f scripts/quick_validate.py ]; then python scripts/quick_validate.py .; else echo 'quick_validate.py not present; registry and schema validation still ran'; fi
 
+  release-integrity:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact-SHA Hosted CI manifest after matrix success
+        run: >-
+          python scripts/resolve_release_manifest.py
+          --source-commit "${{ github.sha }}"
+          --run-id "${{ github.run_id }}"
+          --workflow "cs-nature-paper-v3.2"
+          --branch "${{ github.ref_name }}"
+          --conclusion success
+          --matrix-status PASS
+          --output resolved_release_manifest.json
+      - name: Validate release identity and Hosted CI binding
+        run: >-
+          python scripts/validate_release.py
+          --manifest resolved_release_manifest.json
+          --expected-commit "${{ github.sha }}"
+          --expected-branch "${{ github.ref_name }}"
+          --expected-workflow "cs-nature-paper-v3.2"
+          --require-hosted-ci
+      - name: Upload exact-SHA release-integrity record
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-integrity-${{ github.sha }}
+          path: resolved_release_manifest.json
+          if-no-files-found: error
+
   model-eval:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
