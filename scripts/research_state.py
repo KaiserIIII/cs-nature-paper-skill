@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-SKILL_VERSION = "3.1.0"
+SKILL_VERSION = "3.1.1"
 SCHEMA_VERSION = 3
 LEGACY_SCHEMA_VERSION = 2
 STUDY_TYPES = (

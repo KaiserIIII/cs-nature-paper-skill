@@ -9,6 +9,7 @@ import sys
 from typing import Any
 
 LEVELS = {"A": "Coursework", "B": "Workshop", "C": "Standard peer-reviewed venue", "D": "Top field venue", "E": "Broad high-impact / Nature-family ambition"}
+SKILL_VERSION = "3.1.1"
 DIMENSIONS = ("importance", "novelty_depth", "mechanistic_insight", "technical_depth", "generality", "evidence_diversity", "robustness", "reproducibility", "external_relevance", "audience_breadth")
 
 
@@ -19,11 +20,16 @@ def assess(level: str, evidence: dict[str, Any]) -> dict[str, Any]:
         item = evidence.get(dimension, {})
         if isinstance(item, str): item = {"status": item, "reason": "author-provided status"}
         status = item.get("status", "MISSING") if isinstance(item, dict) else "MISSING"
-        dimensions[dimension] = {"status": status, "reason": item.get("reason", "") if isinstance(item, dict) else ""}
+        support = item.get("evidence_anchor") or item.get("evidence_anchors") or item.get("justification") if isinstance(item, dict) else ""
+        if status == "READY" and not support:
+            status = "NOT_YET_DEFENSIBLE"
+        dimensions[dimension] = {"status": status, "reason": item.get("reason", "") if isinstance(item, dict) else "", "evidence_anchor": support}
     if any(item["status"] in {"MISSING", "FAIL", "NOT_YET_DEFENSIBLE"} for item in dimensions.values()): readiness = "NOT_YET_DEFENSIBLE"
     elif any(item["status"] in {"GAP", "CONDITIONAL", "PLAUSIBLE_WITH_GAPS"} for item in dimensions.values()): readiness = "PLAUSIBLE_WITH_GAPS"
     else: readiness = "READY"
-    return {"operation": "assess", "status": "PASS", "ambition_level": level, "ambition_label": LEVELS[level], "readiness": readiness, "dimensions": dimensions, "decision": "ambition is a diagnosis of missing scientific contribution, not an acceptance probability"}
+    if level == "E" and any(dimensions[name]["status"] != "READY" for name in ("importance", "novelty_depth", "mechanistic_insight", "generality", "evidence_diversity", "robustness", "external_relevance", "audience_breadth")):
+        readiness = "NOT_YET_DEFENSIBLE"
+    return {"operation": "assess", "status": "PASS", "skill_version": SKILL_VERSION, "ambition_level": level, "ambition_label": LEVELS[level], "readiness": readiness, "dimensions": dimensions, "decision": "ambition is a diagnosis of missing scientific contribution, not an acceptance probability"}
 
 
 def _parser() -> argparse.ArgumentParser:

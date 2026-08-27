@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.1.1 - 2026-08-27
+
+### Fixed
+
+- Hardened hosted CI manifest checks with LF-normalized source hashing and
+  exclusion of generated benchmark runs.
+- Replaced the forced-PASS smoke workflow with a real local fixture execution,
+  node-specific evidence anchors, graph rebuild verification, and stale-commit
+  detection.
+- Added privacy sanitization/linting, validated runtime handoffs, execution
+  records, DECLARED/OBSERVED/VERIFIED provenance, contextual skill qualification,
+  unresolved/ambiguous method routing, and qualitative experiment decisions.
+
 ## 3.1.0 — 2026-08-27
 
 ### Added

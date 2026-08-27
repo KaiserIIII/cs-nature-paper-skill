@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "3.1.0",
+  "skill_version": "3.1.1",
   "profiles": [
     {"study_type":"algorithmic","required_decisions":["problem definition","complexity","baseline"],"mandatory_expertise":["formal-theory"],"required_evidence":["algorithm specification","correctness or bound"],"escalation_triggers":["proof gap"],"forbidden_claims":["empirical superiority from complexity alone"]},
     {"study_type":"benchmark-dataset","required_decisions":["sampling frame","split","metric"],"mandatory_expertise":["ml-evaluation"],"required_evidence":["data provenance","leakage audit"],"escalation_triggers":["contamination"],"forbidden_claims":["generalization from one split"]},

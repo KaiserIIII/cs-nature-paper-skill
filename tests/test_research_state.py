@@ -95,7 +95,7 @@ class ResearchStateTests(unittest.TestCase):
     def test_init_creates_private_state_and_refuses_overwrite(self):
         self.assertTrue((self.state / "research_contract.json").exists())
         self.assertTrue(self.read_json("research_contract.json")["private"])
-        self.assertEqual(self.read_json("research_contract.json")["skill_version"], "3.1.0")
+        self.assertEqual(self.read_json("research_contract.json")["skill_version"], "3.1.1")
         self.assertFalse((self.project / ".gitignore").exists())
         with self.assertRaises(research_state.StateError):
             research_state.init_state(self.project, "empirical", "full")

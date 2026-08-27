@@ -1,8 +1,8 @@
-name: cs-nature-paper-v3.1
+name: cs-nature-paper-v3.1.1
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening]
   pull_request:
   workflow_dispatch:
 
@@ -23,10 +23,20 @@ jobs:
         run: python -m unittest discover -s tests -p 'test*.py' -v
       - name: Release validation
         run: python scripts/validate_release.py
+      - name: Registry consistency
+        run: python scripts/validate_registry.py
       - name: Manifest check
         run: python scripts/build_manifest.py --check
+      - name: Privacy lint
+        run: python scripts/privacy_lint.py
       - name: Security pressure fixtures
         run: python scripts/security_pressure_run.py --output .security-pressure-run
+      - name: True local E2E smoke
+        run: python scripts/smoke_run.py --output .ci-smoke-result.json
+      - name: Reject stale E2E output
+        run: python scripts/check_smoke.py .ci-smoke-result.json
+      - name: Graph rebuild and E2E artifact checks
+        run: python scripts/validate_release.py
       - name: Quick skill validation when available
         shell: bash
         run: |

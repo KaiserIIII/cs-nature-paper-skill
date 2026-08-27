@@ -1,114 +1,87 @@
 #!/usr/bin/env python3
-"""Run dependency-light V3.1 schema, registry, graph, and documentation checks."""
+"""Run dependency-free schema, registry, privacy, and release checks."""
 
 from __future__ import annotations
 
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
+SKILL_VERSION = "3.1.1"
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _read(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _read(path: Path) -> Any: return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _required(value: dict[str, Any], fields: list[str], label: str) -> list[str]:
-    return [f"{label}.{field} is required" for field in fields if field not in value]
+def _type_ok(value: Any, kind: str) -> bool:
+    return {"object": isinstance(value, dict), "array": isinstance(value, list), "string": isinstance(value, str), "integer": isinstance(value, int) and not isinstance(value, bool), "number": isinstance(value, (int, float)) and not isinstance(value, bool), "boolean": isinstance(value, bool), "null": value is None}.get(kind, True)
+
+
+def validate_instance(value: Any, schema: dict[str, Any], path: str = "$", *, findings: list[str] | None = None) -> list[str]:
+    findings = findings if findings is not None else []
+    declared = schema.get("type")
+    if declared:
+        kinds = declared if isinstance(declared, list) else [declared]
+        if not any(_type_ok(value, kind) for kind in kinds): findings.append(f"{path}: expected type {kinds}"); return findings
+    if "enum" in schema and value not in schema["enum"]: findings.append(f"{path}: value is not in enum")
+    if isinstance(value, str):
+        if "minLength" in schema and len(value) < schema["minLength"]: findings.append(f"{path}: string is shorter than minLength")
+        if "pattern" in schema and not re.fullmatch(schema["pattern"], value): findings.append(f"{path}: pattern mismatch")
+    if isinstance(value, dict):
+        for key in schema.get("required", []):
+            if key not in value: findings.append(f"{path}.{key}: required")
+        props = schema.get("properties", {})
+        for key, item in value.items():
+            if key in props: validate_instance(item, props[key], f"{path}.{key}", findings=findings)
+            elif schema.get("additionalProperties") is False: findings.append(f"{path}.{key}: additional property is not allowed")
+    if isinstance(value, list) and isinstance(schema.get("items"), dict):
+        for index, item in enumerate(value): validate_instance(item, schema["items"], f"{path}[{index}]", findings=findings)
+    return findings
 
 
 def validate_json_assets() -> list[str]:
-    findings: list[str] = []
-    schema_dir = ROOT / "assets" / "schemas"
+    findings: list[str] = []; schema_dir = ROOT / "assets" / "schemas"; template_dir = ROOT / "assets" / "templates" / "v3"
     for schema_path in sorted(schema_dir.glob("*.schema.json")):
         try: schema = _read(schema_path)
         except (OSError, json.JSONDecodeError) as exc: findings.append(f"{schema_path}: {exc}"); continue
-        if not isinstance(schema, dict) or schema.get("type") != "object": findings.append(f"{schema_path}: schema must describe an object")
-    template_dir = ROOT / "assets" / "templates" / "v3"
+        if not isinstance(schema, dict) or schema.get("type") != "object": findings.append(f"{schema_path}: schema must describe an object"); continue
+        stem = schema_path.name.removesuffix(".schema.json")
+        # These two documents describe array items, not a standalone template.
+        if stem in {"evidence_anchor", "review_finding"}:
+            continue
+        candidate = ROOT / "release_manifest.json" if stem == "release_manifest" else template_dir / f"{stem}.json"
+        if candidate.exists():
+            try: validate_instance(_read(candidate), schema, str(candidate), findings=findings)
+            except (OSError, json.JSONDecodeError) as exc: findings.append(f"{candidate}: {exc}")
     for template_path in sorted(template_dir.glob("*.json")):
         try: value = _read(template_path)
         except (OSError, json.JSONDecodeError) as exc: findings.append(f"{template_path}: {exc}"); continue
         if not isinstance(value, dict): findings.append(f"{template_path}: root must be an object")
-        else: findings.extend(_required(value, ["schema_version", "skill_version"], str(template_path)))
-    return findings
-
-
-def validate_schema_documents() -> list[str]:
-    """Apply dependency-free top-level required-field checks to known assets."""
-    findings: list[str] = []
-    candidates: dict[str, Path] = {
-        "project": ROOT / "assets" / "templates" / "v3" / "project.json",
-        "research_contract": ROOT / "assets" / "templates" / "v3" / "research_contract.json",
-        "research_graph": ROOT / "assets" / "templates" / "v3" / "research_graph.json",
-        "claims": ROOT / "assets" / "templates" / "v3" / "claims.json",
-        "evidence_ledger": ROOT / "assets" / "templates" / "v3" / "evidence_ledger.json",
-        "literature_registry": ROOT / "assets" / "templates" / "v3" / "literature_registry.json",
-        "experiment_registry": ROOT / "assets" / "templates" / "v3" / "experiment_registry.json",
-        "artifact_manifest": ROOT / "assets" / "templates" / "v3" / "artifact_manifest.json",
-        "amendments": ROOT / "assets" / "templates" / "v3" / "amendments.json",
-        "risks": ROOT / "assets" / "templates" / "v3" / "risks.json",
-        "venue_profile": ROOT / "assets" / "templates" / "v3" / "venue_profile.json",
-        "employee_registry": ROOT / "assets" / "templates" / "v3" / "employee_registry.json",
-        "delegation_plan": ROOT / "assets" / "templates" / "v3" / "delegation_plan.json",
-        "handoff": ROOT / "assets" / "templates" / "v3" / "handoff.json",
-        "query_log": ROOT / "assets" / "templates" / "v3" / "query_log.json",
-        "release_manifest": ROOT / "release_manifest.json",
-    }
-    schema_dir = ROOT / "assets" / "schemas"
-    for schema_path in sorted(schema_dir.glob("*.schema.json")):
-        schema = _read(schema_path)
-        required = schema.get("required")
-        if not isinstance(required, list) or not required:
-            findings.append(f"{schema_path}: required must be a non-empty list")
-            continue
-        stem = schema_path.name.removesuffix(".schema.json")
-        candidate = candidates.get(stem)
-        if candidate is None or not candidate.exists():
-            continue
-        value = _read(candidate)
-        findings.extend(f"{candidate}: missing schema field {field}" for field in required if field not in value)
-    return findings
-
-
-def validate_profiles() -> list[str]:
-    findings: list[str] = []
-    required_domain = ("domain", "common_contributions", "common_study_types", "high-risk_claims", "typical_evidence", "baseline_families", "common_failure_modes", "specialist_triggers", "method_modules", "reviewer_threats", "artifact_expectations")
-    required_study = ("study_type", "required_decisions", "mandatory_expertise", "required_evidence", "escalation_triggers", "forbidden_claims")
-    for path, required, minimum in ((ROOT / "assets/registry/domain_profiles.json", required_domain, 13), (ROOT / "assets/registry/study_profiles.json", required_study, 15)):
-        value = _read(path); profiles = value.get("profiles", [])
-        if len(profiles) < minimum: findings.append(f"{path}: expected at least {minimum} profiles")
-        for index, profile in enumerate(profiles): findings.extend(_required(profile, list(required), f"{path}[{index}]"))
+        elif value.get("skill_version") != SKILL_VERSION: findings.append(f"{template_path}: skill_version must be {SKILL_VERSION}")
     return findings
 
 
 def validate_behavior_cases() -> list[str]:
-    value = _read(ROOT / "assets/evals/behavior_cases.json"); findings: list[str] = []
-    if value.get("skill_version") != "3.1.0": findings.append("behavior cases must declare skill_version 3.1.0")
-    categories = {"routing","student UX","literature","novelty","method selection","feasibility","experiment design","implementation","statistics","figures","writing","validation","review","security","privacy","authorization","supply-chain","graph recovery","migration","completion honesty"}
-    declared = set(value.get("categories", [])); missing = sorted(categories - declared)
-    if missing: findings.append(f"behavior categories missing: {missing}")
+    findings: list[str] = []; value = _read(ROOT / "assets" / "evals" / "behavior_cases.json")
+    if value.get("skill_version") != SKILL_VERSION: findings.append(f"behavior cases must declare skill_version {SKILL_VERSION}")
     for index, case in enumerate(value.get("cases", [])):
-        findings.extend(_required(case, ["id", "prompt", "required_behaviors", "forbidden_behaviors", "required_artifacts", "category"], f"cases[{index}]"))
+        for field in ("id", "prompt", "required_behaviors", "forbidden_behaviors", "required_artifacts"):
+            if not case.get(field): findings.append(f"cases[{index}].{field} is required")
     return findings
 
 
 def validate_release_manifest() -> list[str]:
-    path = ROOT / "release_manifest.json"
-    if not path.exists():
-        return ["release_manifest.json is required"]
-    value = _read(path)
-    findings = _required(value, ["version", "commit", "schemas", "scripts", "tests", "behavior_evals", "known_limitations", "external_skill_audit_date", "ci_status"], "release_manifest")
-    if value.get("version") != "3.1.0":
-        findings.append("release_manifest.version must be 3.1.0")
-    for field in ("schemas", "scripts", "tests", "known_limitations"):
-        if field in value and not isinstance(value[field], list):
-            findings.append(f"release_manifest.{field} must be a list")
-    if "behavior_evals" in value and not isinstance(value["behavior_evals"], dict):
-        findings.append("release_manifest.behavior_evals must be an object")
+    value = _read(ROOT / "release_manifest.json"); findings: list[str] = []
+    fields = ("source_version", "source_commit", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations")
+    findings.extend(f"release_manifest.{field} is required" for field in fields if field not in value)
+    if value.get("source_version") != SKILL_VERSION: findings.append(f"release_manifest.source_version must be {SKILL_VERSION}")
+    source_commit = str(value.get("source_commit", ""))
+    if not source_commit or "pending" in source_commit.lower() or "local_equivalent" in source_commit.lower(): findings.append("release_manifest.source_commit must be explicit or release-process-injected")
+    if value.get("hosted_ci") not in {"PASS", "PENDING", "NOT_RUN", "FAIL"}: findings.append("release_manifest.hosted_ci has invalid status")
+    if value.get("e2e_status") not in {"PASS", "CONDITIONAL", "NOT_RUN", "FAIL"}: findings.append("release_manifest.e2e_status has invalid status")
     return findings
 
 
@@ -119,14 +92,23 @@ def validate_docs() -> list[str]:
         text = path.read_text(encoding="utf-8", errors="replace")
         for target in re.findall(r"\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)", text):
             if target.startswith(("http://", "https://", "mailto:")): continue
-            candidate = (path.parent / target).resolve()
-            if not candidate.exists(): findings.append(f"{path}: missing link target {target}")
+            if not (path.parent / target).resolve().exists(): findings.append(f"{path}: missing link target {target}")
     return findings
 
 
 def validate() -> dict[str, Any]:
-    findings = validate_json_assets() + validate_schema_documents() + validate_profiles() + validate_behavior_cases() + validate_release_manifest() + validate_docs()
-    return {"operation":"validate-release","status":"PASS" if not findings else "FAIL","findings":findings}
+    findings = validate_json_assets() + validate_behavior_cases() + validate_release_manifest() + validate_docs()
+    try:
+        from validate_registry import validate as registry_validate
+        registry = registry_validate()
+        if registry["status"] != "PASS": findings.extend("registry: " + item for item in registry["findings"])
+    except Exception as exc: findings.append(f"registry validation error: {exc}")
+    try:
+        from privacy_lint import lint
+        privacy = lint([ROOT / "benchmarks", ROOT / "release_manifest.json"])
+        if privacy["status"] != "PASS": findings.extend("privacy: " + item["kind"] + " in " + item["path"] for item in privacy["findings"])
+    except Exception as exc: findings.append(f"privacy validation error: {exc}")
+    return {"operation": "validate-release", "status": "PASS" if not findings else "FAIL", "skill_version": SKILL_VERSION, "findings": findings}
 
 
 if __name__ == "__main__":

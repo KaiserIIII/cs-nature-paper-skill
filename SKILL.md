@@ -2,12 +2,12 @@
 name: "cs-nature-paper"
 description: "CS Nature Paper V3.1: student-first, evidence-bound, executable AI Research OS for turning research intent into a provenance-tracked package without fabricated science, silent installs, or unauthorized release."
 metadata:
-  version: "3.1.0"
+  version: "3.1.1"
   architecture: "research-control-plane + execution-plane + capability-runtime + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V3.1 - Executable Research OS
+# CS Nature Paper V3.1.1 - Executable Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
@@ -210,9 +210,14 @@ submits.
   current host remain `NOT_RUN`, never `PASS`.
 - Host-specific behavior: read one adapter in `references/hosts/`.
 
+Resolution is not execution: a selected employee remains `RESOLVED` until the
+host runs it and a schema-valid handoff reaches `HANDOFF_RECEIVED`/`CHECKED`.
+`PROVISIONAL` providers are advisory-only; `SPECIALIST` providers need an
+exact pin and a passed relevant behavior trial before formal evidence work.
+
 Do not load every reference by default. Do not copy third-party text or code
 without a compatible license. Existing V1 and V2 branches are historical
-artifacts; this `v3.1` branch is a release candidate pending the documented
+artifacts; this `v3.1.1-hardening` branch is a release candidate pending the documented
 audits and tests.
 
 ## Completion

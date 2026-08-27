@@ -1,8 +1,8 @@
-# CS Nature Paper V3.1 - 可执行科研操作系统
+# CS Nature Paper V3.1.1 - 可执行科研操作系统
 
 面向科研经验有限用户的证据约束型 CS Research OS。它把研究组织为“主张—证据—机制”，同时保留 V1 的 CEO 执行体验和 V2 的科学边界。
 
-[English](README.md) | [v3.1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3.1) | [v3 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3) | [保留的 v2 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v2) | [保留的 v1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) | [MIT License](LICENSE)
+[English](README.md) | [v3.1.1 hardening 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3.1.1-hardening) | [v3.1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3.1) | [v3 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3) | [保留的 v2 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v2) | [保留的 v1 分支](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) | [MIT License](LICENSE)
 
 ## 这是什么
 
@@ -38,7 +38,7 @@ V3.1 保留 V2/V3 的科学边界，并把运行时真正落地：
 ## 安装和启动
 
 ```bash
-git clone --branch v3.1 https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
+git clone --branch v3.1.1-hardening https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
 python scripts/research_state.py init /path/to/project --study-type empirical --mode copilot --domain machine-learning
 python scripts/research_state.py audit /path/to/project --gate argument
 python scripts/research_graph.py validate /path/to/project

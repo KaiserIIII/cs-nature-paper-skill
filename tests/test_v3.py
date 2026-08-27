@@ -41,7 +41,7 @@ class V3StateTests(unittest.TestCase):
         expected = {"project.json", "research_contract.json", "research_graph.json", "claims.json", "evidence_ledger.json", "literature_registry.json", "experiment_registry.json", "artifact_manifest.json", "amendments.json", "risks.json", "venue_profile.json", "employee_registry.json", "decision_log.md"}
         self.assertTrue(expected <= {p.name for p in state.iterdir()})
         project = self.read(state, "project.json")
-        self.assertEqual(project["skill_version"], "3.1.0")
+        self.assertEqual(project["skill_version"], "3.1.1")
         self.assertEqual(project["domain"], "machine-learning")
 
     def test_v2_migration_preserves_source(self):
@@ -92,7 +92,7 @@ class V3RoutingTests(unittest.TestCase):
 
     def test_behavior_cases_have_v3_routing_and_safety_fields(self):
         value = json.loads((ROOT / "assets/evals/behavior_cases.json").read_text(encoding="utf-8"))
-        self.assertEqual(value["skill_version"], "3.1.0")
+        self.assertEqual(value["skill_version"], "3.1.1")
         ids = [case["id"] for case in value["cases"]]
         self.assertEqual(len(ids), len(set(ids)))
         self.assertTrue({"AUTOPILOT-BEGINNER-ROUTING", "FEASIBILITY-NO-GO", "GRAPH-REOPEN-AMENDMENT", "V3-MIGRATION-NONDESTRUCTIVE"} <= set(ids))

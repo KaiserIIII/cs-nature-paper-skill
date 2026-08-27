@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "3.1.0",
+  "skill_version": "3.1.1",
   "capabilities": [
     {"id":"literature-discovery","name":"Literature discovery","department":"literature","description":"Find candidate scholarly sources with reproducible queries.","input_types":["research_brief","query"],"output_types":["literature_candidates","query_log"],"scientific_risk":"medium","required_permissions":["network"],"checker_requirement":"identity-verification","possible_native_tools":["paper-lookup","web-search"],"specialist_triggers":["systematic-review","large literature map"]},
     {"id":"bibliographic-verification","name":"Bibliographic identity verification","department":"literature","description":"Verify title, authors, year, venue, and stable identifiers.","input_types":["literature_candidates"],"output_types":["literature_registry"],"scientific_risk":"high","required_permissions":[],"checker_requirement":"independent-source-check","possible_native_tools":["paper-lookup"],"specialist_triggers":["ambiguous identity","duplicate records"]},

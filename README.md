@@ -1,10 +1,10 @@
-# CS Nature Paper V3.1 - Executable Research OS
+# CS Nature Paper V3.1.1 - Executable Research OS
 
 The student-first, evidence-bound research operating system for computer
 science. It turns an idea, codebase, dataset, draft, or rejection into the
 strongest research package that the available evidence and resources can defend.
 
-[Chinese](README_zh.md) | [v3.1 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3.1) | [v3 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3) | [v2 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v2) | [v1 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) | [MIT License](LICENSE)
+[Chinese](README_zh.md) | [v3.1.1 hardening branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3.1.1-hardening) | [v3.1 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3.1) | [v3 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v3) | [v2 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v2) | [v1 branch](https://github.com/KaiserIIII/cs-nature-paper-skill/tree/v1) | [MIT License](LICENSE)
 
 ## What V3.1 adds
 
@@ -44,7 +44,7 @@ submits without explicit author authorization.
 ## Install
 
 ```bash
-git clone --branch v3 https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
+git clone --branch v3.1.1-hardening https://github.com/KaiserIIII/cs-nature-paper-skill.git ~/.codex/skills/cs-nature-paper
 ```
 
 Review third-party skill code and pin the version you intend to use. V3.1 does

@@ -12,7 +12,7 @@ from typing import Any, Iterable
 from urllib.parse import urlparse
 
 
-SKILL_VERSION = "3.1.0"
+SKILL_VERSION = "3.1.1"
 SCHEMA_VERSION = 3
 SUPPORTED_SCHEMA_VERSIONS = {1, 3}
 STATUSES = {
@@ -198,6 +198,14 @@ def _audit_employee(employee: Any, index: int) -> tuple[list[str], list[str]]:
 
     if status in {"PROVISIONAL", "SPECIALIST"} and not _is_string_list(employee.get("known_risks")):
         findings.append(f"{label}.known_risks is required for {status}")
+
+    qualification = employee.get("qualification_state")
+    if status == "PROVISIONAL" and qualification in {"BEHAVIOR_QUALIFIED", "FORMAL_QUALIFIED"}:
+        findings.append(f"{label} PROVISIONAL cannot be formal-qualified")
+    if status == "SPECIALIST" and qualification == "FORMAL_QUALIFIED":
+        trials = employee.get("behavior_trials", [])
+        if not isinstance(trials, list) or not any(str(item).upper() in {"PASS", "PASSED", "BEHAVIOR_QUALIFIED", "FORMAL_QUALIFIED"} for item in trials):
+            findings.append(f"{label} SPECIALIST formal qualification requires a passed behavior trial")
 
     if isinstance(evidence, dict):
         reviewed = all(evidence.get(key) is True for key in ("source_reviewed", "license_reviewed", "scripts_reviewed"))

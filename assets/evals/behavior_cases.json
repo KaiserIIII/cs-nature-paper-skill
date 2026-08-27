@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "skill_version": "3.1.0",
+  "skill_version": "3.1.1",
   "categories": ["routing", "student UX", "literature", "novelty", "method selection", "feasibility", "experiment design", "implementation", "statistics", "figures", "writing", "validation", "review", "security", "privacy", "authorization", "supply-chain", "graph recovery", "migration", "completion honesty"],
   "cases": [
     {
@@ -272,5 +272,21 @@
       "forbidden_behaviors": ["lists unexplained methods", "treats baseline count as proof"],
       "required_artifacts": ["student decision note"]
     }
+  ],
+  "regression_cases": [
+    {"id":"PROVISIONAL-CANNOT-PRODUCE-FORMAL-EVIDENCE","evaluation":"router must exclude PROVISIONAL for formal load-bearing work"},
+    {"id":"SPECIALIST-STATIC-AUDIT-IS-NOT-FORMAL-QUALIFICATION","evaluation":"static audit alone is conditional"},
+    {"id":"METHOD-ZERO-HIT-UNRESOLVED","evaluation":"zero reliable matches return UNRESOLVED"},
+    {"id":"METHOD-AMBIGUOUS-HIGH-RISK","evaluation":"ambiguous high-risk matches require escalation"},
+    {"id":"FAKE-SHA256-REJECTED","evaluation":"placeholder hashes are rejected"},
+    {"id":"DECLARED-COMMAND-IS-NOT-OBSERVED","evaluation":"DECLARED evidence cannot satisfy observed execution"},
+    {"id":"EVIDENCE-ID-MUST-EXIST","evaluation":"graph PASS requires a ledger anchor"},
+    {"id":"NODE-PASS-USES-CORRECT-EVIDENCE-TYPE","evaluation":"node-specific artifact contracts are enforced"},
+    {"id":"STALE-BENCHMARK-COMMIT-REJECTED","evaluation":"smoke output commit must equal tested HEAD"},
+    {"id":"PUBLIC-ARTIFACT-LOCAL-PATH-REJECTED","evaluation":"privacy lint rejects local paths"},
+    {"id":"SNIPPET-CANNOT-SUPPORT-CLAIM","evaluation":"snippets cannot support load-bearing claims"},
+    {"id":"ABSTRACT-ONLY-OVERCLAIM-CONDITIONAL","evaluation":"abstract-only support is conditional"},
+    {"id":"HARNESS-SELF-TEST-NOT-MODEL-PASS","evaluation":"harness self-tests are not model behavior evidence"},
+    {"id":"EXPERIMENT-FAKE-PRECISION-REJECTED","evaluation":"numeric fake precision is rejected"}
   ]
 }

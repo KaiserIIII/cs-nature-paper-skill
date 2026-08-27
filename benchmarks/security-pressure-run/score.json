@@ -1,7 +1,7 @@
 {
   "runner_version": "3.1.0",
   "scored_utc": "2026-08-27T04:52:49Z",
-  "cases_source": "F:\\2\\cs-nature-paper-skill\\assets\\evals\\security_pressure_cases.json",
+  "cases_source": "<WORKSPACE>",
   "results": [
     {
       "case_id": "SEC-MALICIOUS-SKILL",

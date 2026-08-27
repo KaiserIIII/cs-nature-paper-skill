@@ -1,70 +1,102 @@
 {
   "status": "PASS",
-  "project_fixture": "synthetic/private temp project",
-  "steps": [
+  "skill_commit": "5a75f5021c47ebd4a57c001196ac3fd718ec389c",
+  "skill_version": "3.1.1",
+  "evaluation_class": "HARNESS_SELF_TEST",
+  "project_fixture": "public synthetic fixture",
+  "workflow": [
+    "orientation",
     "brief",
-    "literature",
+    "literature_discovery",
+    "identity_verification",
+    "claim_support_verification",
     "innovation",
     "feasibility",
-    "pilot",
+    "experiment_planning",
     "protocol_freeze",
-    "implementation",
-    "formal_experiment",
+    "executable_command",
+    "observed_output",
+    "evidence_anchor",
     "analysis",
-    "evidence_update",
-    "figures",
+    "figure_table",
     "writing",
     "validation",
     "review",
     "revision",
-    "venue_preflight",
-    "artifact_package",
     "author_handoff"
   ],
-  "graph_events": 18,
-  "anchor": {
+  "node_evidence": {
+    "EA-ORIENT-001": "orientation",
+    "EA-BRIEF-001": "brief",
+    "EA-LIT-001": "literature",
+    "EA-INNOV-001": "innovation",
+    "EA-FEAS-001": "feasibility",
+    "EA-PILOT-001": "execution",
+    "EA-PROTOCOL-001": "decision",
+    "EA-IMPL-001": "execution",
+    "EA-EXP-001": "formal_output",
+    "EA-ANALYSIS-001": "analysis",
+    "EA-EVIDENCE-001": "claim_support",
+    "EA-FIG-001": "figure",
+    "EA-WRITE-001": "manuscript",
+    "EA-VALID-001": "validation",
+    "EA-REVIEW-001": "review",
+    "EA-REVISION-001": "manuscript",
+    "EA-PREFLIGHT-001": "validation",
+    "EA-PACKAGE-001": "validation",
+    "EA-HANDOFF-001": "handoff"
+  },
+  "graph_events": 21,
+  "anchor_count": 19,
+  "execution_record": {
+    "exit_status": 0,
+    "stdout_sha256": "sha256:08a9d6520f9bb18154e7ec8f3615ac15e619151fad632f33274025f0c376e3d1",
+    "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "graph_validation": {
     "status": "PASS",
-    "verification": "deep",
     "findings": [],
-    "conditional": [],
-    "source_artifact": "smoke-result.txt#sha256=08a9d6520f9bb18154e7ec8f3615ac15e619151fad632f33274025f0c376e3d1",
+    "node_count": 26,
+    "edge_count": 9,
+    "event_count": 21,
     "operation": "validate",
-    "path": "C:\\Users\\于越\\AppData\\Local\\Temp\\cs-nature-v31-smoke-_tjo1wmr\\smoke-project\\anchor.json"
+    "state_dir": "<TEMP_PROJECT>\\fixture\\.research-state"
+  },
+  "graph_rebuild": {
+    "operation": "rebuild",
+    "status": "PASS",
+    "event_count": 21,
+    "state_dir": "<TEMP_PROJECT>\\fixture\\.research-state",
+    "projection_hash": "sha256:647f339f87f93b37343336278bdcbf0dea51cf7ca4c4d24db87f8f89581e4e71"
   },
   "planner": {
     "operation": "plan",
     "status": "PASS",
     "selected": [
       {
-        "experiment_id": "E-SMOKE",
+        "experiment_id": "E1",
         "claim_ids": [
           "C1"
         ],
         "threat": "deterministic reproducibility",
-        "hypothesis_or_question": "does command reproduce?",
-        "design": "single fixture rerun",
-        "information_gain": 1,
-        "cost": 1,
-        "risk": 0,
-        "reversibility": 1,
+        "information_gain": "HIGH",
+        "cost": "LOW",
+        "reversibility": "HIGH",
+        "decision_relevance": "HIGH",
+        "scientific_risk": "MEDIUM",
+        "priority": "HIGH",
         "stage": "PILOT",
-        "formal_status": "REGISTERED",
-        "inputs": [
-          "smoke-input-v1"
+        "formal_status": "UNREGISTERED",
+        "evidence_anchors": [],
+        "why_selected": "tests deterministic reproducibility for claim C1",
+        "why_not_selected": "",
+        "which_claim": [
+          "C1"
         ],
-        "expected_results": "same output",
-        "interpretation_positive": "supports fixture claim",
-        "interpretation_negative": "investigate",
-        "interpretation_null": "not applicable",
-        "stop_rule": "one rerun",
-        "dependencies": [],
-        "outputs": [
-          "smoke-result.txt"
-        ],
-        "evidence_anchors": [
-          "EA-SMOKE"
-        ],
-        "priority": 1.0
+        "which_threat": "deterministic reproducibility",
+        "what_positive_changes": "",
+        "what_negative_changes": "",
+        "what_null_changes": ""
       }
     ],
     "dropped": [],
@@ -72,8 +104,13 @@
   },
   "router": {
     "operation": "resolve",
-    "status": "PASS",
+    "status": "CONDITIONAL",
     "capability": "statistical-modeling",
+    "task_context": {
+      "purpose": "formal",
+      "load_bearing": true,
+      "criticality": "critical"
+    },
     "native_coverage": "AVAILABLE",
     "candidate_employees": [
       {
@@ -81,36 +118,59 @@
         "exact_ref": "36d8f13a1e75",
         "runtime_status": "PROVISIONAL",
         "permission_gaps": [],
+        "behavior_qualified": false,
+        "formal_eligible": false,
+        "eligible": false,
+        "eligibility_reasons": [
+          "PROVISIONAL providers are advisory-only and cannot produce formal evidence",
+          "load-bearing work requires an APPROVED or formally qualified SPECIALIST"
+        ],
         "risk": [
           "large collection; method fit needs checking"
         ]
       }
     ],
-    "selected": [
-      {
-        "skill_id": "k-dense-statistics",
-        "exact_ref": "36d8f13a1e75",
-        "runtime_status": "PROVISIONAL",
-        "permission_gaps": [],
-        "risk": [
-          "large collection; method fit needs checking"
-        ]
-      }
-    ],
+    "selected": [],
     "checker": "independent-method-check",
     "permissions_required": [],
     "risk": "critical",
     "specialist_triggers": [
       "core quantitative claim"
     ],
-    "rejected": []
+    "execution_state": "RESOLVED",
+    "rejected": [
+      {
+        "skill_id": "k-dense-statistics",
+        "exact_ref": "36d8f13a1e75",
+        "runtime_status": "PROVISIONAL",
+        "permission_gaps": [],
+        "behavior_qualified": false,
+        "formal_eligible": false,
+        "eligible": false,
+        "eligibility_reasons": [
+          "PROVISIONAL providers are advisory-only and cannot produce formal evidence",
+          "load-bearing work requires an APPROVED or formally qualified SPECIALIST"
+        ],
+        "risk": [
+          "large collection; method fit needs checking"
+        ]
+      }
+    ]
   },
   "method_router": {
     "operation": "route",
     "status": "PASS",
     "task": "Compare model metrics across seeds",
     "method": "stochastic-ml",
-    "confidence": "explicit",
+    "confidence": "keyword",
+    "candidate_methods": [
+      "stochastic-ml"
+    ],
+    "conflicts": [],
+    "risk": "LOW",
+    "recommended_primary_design": "stochastic-ml",
+    "secondary_modules": [],
+    "specialist_required": false,
     "required_definitions": [
       "unit",
       "metric",
@@ -137,45 +197,51 @@
     "forbidden_claims": [
       "generalization from one benchmark"
     ],
-    "source": "F:\\2\\cs-nature-paper-skill\\assets\\registry\\method_router.json"
+    "source": "<WORKSPACE>",
+    "method_selection_boundary": [
+      "unit",
+      "estimand",
+      "sampling",
+      "assignment_or_identification",
+      "dependence",
+      "measurement",
+      "missingness",
+      "scope"
+    ],
+    "diagnostic_project": "<TEMP_PROJECT>\\fixture",
+    "note": "A host must inspect project claims/design before finalizing a high-risk method."
   },
-  "literature_query": {
-    "operation": "query",
-    "status": "PASS",
-    "query": {
-      "query": "LLM code repair benchmark",
-      "database_provider": "synthetic-fixture",
-      "date_utc": "2026-08-27T04:52:49Z",
-      "filters": "none",
-      "result_count": 0,
-      "selection_rationale": "smoke only",
-      "deduplication": "none"
-    },
-    "path": "C:\\Users\\于越\\AppData\\Local\\Temp\\cs-nature-v31-smoke-_tjo1wmr\\smoke-project\\query_log.json"
+  "literature": {
+    "status": "CLAIM_RELATION_VERIFIED"
   },
   "behavior_eval": {
     "operation": "report",
     "status": "PASS",
+    "evaluation_classes": [
+      "HARNESS_SELF_TEST"
+    ],
     "case_level_verdicts": [
       {
         "case_id": "SMOKE-ROUTING",
         "verdict": "PASS",
         "critical_failures": [],
         "major_failures": [],
+        "evaluation_class": "HARNESS_SELF_TEST",
         "environment": {
-          "skill_commit": "e42e9d6f0a515a72f6bdb639516c492b73d8f68c",
-          "model": "local-deterministic",
+          "skill_commit": "5a75f5021c47ebd4a57c001196ac3fd718ec389c",
+          "model": "deterministic-harness",
           "host": "local",
-          "reasoning_mode": "deterministic",
+          "reasoning_mode": "harness",
           "tools": [],
           "network": false,
           "employee_registry": null,
-          "date_utc": "2026-08-27T04:52:49Z",
+          "date_utc": "2026-08-27T12:45:26Z",
           "token_cost": 0,
           "tool_calls": 0,
           "wall_time_seconds": 0.0,
           "human_interventions": 0
-        }
+        },
+        "artifact_checks": {}
       }
     ],
     "critical_failures": [],
@@ -183,6 +249,7 @@
     "not_run": [],
     "average_score": "NOT_USED"
   },
-  "model_comparison": "NOT_RUN; no second model/API was available",
-  "note": "This is a deterministic workflow smoke test, not a scientific publication or venue claim."
+  "model_behavior": "NOT_RUN; only harness self-test was executed",
+  "privacy": "sanitized public output",
+  "note": "True local fixture workflow; no scientific publication or venue claim."
 }

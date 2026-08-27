@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "3.1.0",
+  "skill_version": "3.1.1",
   "profiles": [
     {"domain":"computer-vision","common_contributions":["model","dataset","measurement"],"common_study_types":["ml-benchmark","measurement"],"high-risk_claims":["generalization","visual quality"],"typical_evidence":["held-out data","source images"],"baseline_families":["classical","strong tuned","mechanism-near"],"common_failure_modes":["data leakage","cherry-picked examples"],"specialist_triggers":["imaging","microscopy"],"method_modules":["stochastic-ml","deterministic-rendering"],"reviewer_threats":["leakage","measurement"],"artifact_expectations":["data license","rendering code"]},
     {"domain":"databases","common_contributions":["query","storage","index"],"common_study_types":["benchmarking","engineering-system"],"high-risk_claims":["scalability","throughput"],"typical_evidence":["workload trace","latency distribution"],"baseline_families":["baseline engine","optimized engine"],"common_failure_modes":["unmatched workload","cold start"],"specialist_triggers":["query optimizer"],"method_modules":["systems-performance","benchmarking"],"reviewer_threats":["hardware confounding","reproducibility"],"artifact_expectations":["workload","environment lock"]},
