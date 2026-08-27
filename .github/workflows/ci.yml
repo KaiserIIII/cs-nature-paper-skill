@@ -35,8 +35,19 @@ jobs:
         run: python scripts/smoke_run.py --output .ci-smoke-result.json
       - name: Reject stale E2E output
         run: python scripts/check_smoke.py .ci-smoke-result.json
+      - name: Resolve publisher release manifest
+        run: python scripts/resolve_release_manifest.py --source-commit "${{ github.sha }}" --output resolved_release_manifest.json
       - name: Graph rebuild and E2E artifact checks
         run: python scripts/validate_release.py
+      - name: Upload runtime release artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            .ci-smoke-result.json
+            resolved_release_manifest.json
+          if-no-files-found: error
       - name: Quick skill validation when available
         shell: bash
         run: |

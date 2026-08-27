@@ -1,6 +1,7 @@
 {
   "source_version": "3.1.1",
   "source_commit": "release-process-injected",
+  "source_commit_mode": "publisher-injected",
   "generated_at": "2026-08-27T00:00:00Z",
   "deterministic_tests": {
     "unit": "PASS",
@@ -11,7 +12,7 @@
     "security_harness": "PASS",
     "stale_benchmark_detection": "PASS"
   },
-  "hosted_ci": "PASS",
+  "hosted_ci": "PENDING",
   "model_behavior_eval": "NOT_RUN",
   "e2e_status": "PASS",
   "known_limitations": [
@@ -20,5 +21,5 @@
     "live venue pages, paywalled sources, and external skill HEADs require activation-time verification",
     "the local E2E is a public synthetic fixture and does not establish a scientific result or venue outcome"
   ],
-  "release_disposition": "V3.1.1 RELEASE CANDIDATE READY; model behavior evaluation remains NOT_RUN and requires an authorized isolated model adapter"
+  "release_disposition": "V3.1.1 NOT READY until hosted CI observes this commit green; model behavior evaluation remains NOT_RUN"
 }

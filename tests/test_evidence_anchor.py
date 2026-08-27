@@ -28,7 +28,7 @@ class EvidenceAnchorTests(unittest.TestCase):
         self.assertEqual(evidence_anchor.validate_anchor(anchor())["status"], "PASS")
 
     def test_verified_nonzero_and_missing_hash_fail(self):
-        result = evidence_anchor.validate_anchor(anchor(exit_status=1, input_hash=""))
+        result = evidence_anchor.validate_anchor(anchor(provenance_level="VERIFIED", exit_status=1, input_hash=""))
         self.assertEqual(result["status"], "FAIL")
         self.assertTrue(any("exit_status 0" in x for x in result["findings"]))
 

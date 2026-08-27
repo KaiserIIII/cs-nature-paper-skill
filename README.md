@@ -115,7 +115,8 @@ study.
 python -m unittest discover -s tests -v
 python scripts/validate_registry.py
 python scripts/validate_release.py
-python scripts/smoke_run.py --output benchmarks/smoke-run-result.json
+python scripts/smoke_run.py --output .ci-smoke-result.json
+python scripts/check_smoke.py .ci-smoke-result.json
 ```
 
 Before release, run the held-out behavior, routing, security, scientific

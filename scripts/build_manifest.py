@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_DIRS = {".git", ".research-state", ".research-state-v3", ".research-state-v31", "__pycache__", ".eval", ".security-pressure-run", "runs", "prepared"}
-EXCLUDED_FILES = {"SHA256SUMS.txt", "release_manifest.json", "benchmarks/smoke-run-result.json", ".ci-smoke-result.json"}
+EXCLUDED_FILES = {"SHA256SUMS.txt", "release_manifest.json", ".ci-smoke-result.json", "resolved_release_manifest.json"}
 GENERATED_PREFIXES = ("benchmarks/security-pressure-run/", "benchmarks/smoke-run/")
 
 

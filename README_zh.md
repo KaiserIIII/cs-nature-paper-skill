@@ -79,7 +79,8 @@ V2 保留在 `.research-state`，V3 写入 `.research-state-v3`，V3.1 写入 `.
 python -m unittest discover -s tests -v
 python scripts/validate_registry.py
 python scripts/validate_release.py
-python scripts/smoke_run.py --output benchmarks/smoke-run-result.json
+python scripts/smoke_run.py --output .ci-smoke-result.json
+python scripts/check_smoke.py .ci-smoke-result.json
 ```
 
 发布前按 `docs/behavior-evaluation.md` 运行行为、路由、安全、科学压力和学生体验用例。通过测试只代表边界内的证据，不代表投稿接收。

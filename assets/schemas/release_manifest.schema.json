@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["source_version", "source_commit", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations"],
+  "required": ["source_version", "source_commit", "source_commit_mode", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations"],
   "properties": {
     "source_version": {"type": "string"},
     "source_commit": {"type": "string", "minLength": 1},
+    "source_commit_mode": {"enum": ["publisher-injected", "resolved"]},
     "generated_at": {"type": "string"},
     "deterministic_tests": {"type": "object"},
     "hosted_ci": {"enum": ["PASS", "PENDING", "NOT_RUN", "FAIL"]},

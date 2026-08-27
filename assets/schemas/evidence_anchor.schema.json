@@ -13,6 +13,8 @@
     "provenance_level": {"enum": ["DECLARED", "OBSERVED", "VERIFIED"]},
     "execution_record_id": {"type": "string"},
     "execution_record": {"type": "string"},
+    "artifact_acquisition_record_id": {"type": "string"},
+    "artifact_acquisition_record": {"type": "string"},
     "command": {"type": "string"},
     "argv": {"type": "array"},
     "cwd": {"type": "string"},
@@ -32,6 +34,8 @@
     "status": {"enum": ["DECLARED", "OBSERVED", "VERIFIED", "UNVERIFIED", "CONTRADICTS", "QUALIFIES"]},
     "verified_utc": {"type": "string"},
     "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "legacy_status": {"type": "string"},
+    "migration_state": {"type": "string"},
     "output_artifacts": {"type": "array"},
     "checker": {"type": "string"},
     "checker_required": {"type": "boolean"}

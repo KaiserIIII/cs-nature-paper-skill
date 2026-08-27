@@ -75,13 +75,25 @@ def validate_behavior_cases() -> list[str]:
 
 def validate_release_manifest() -> list[str]:
     value = _read(ROOT / "release_manifest.json"); findings: list[str] = []
-    fields = ("source_version", "source_commit", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations")
+    fields = ("source_version", "source_commit", "source_commit_mode", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations")
     findings.extend(f"release_manifest.{field} is required" for field in fields if field not in value)
     if value.get("source_version") != SKILL_VERSION: findings.append(f"release_manifest.source_version must be {SKILL_VERSION}")
     source_commit = str(value.get("source_commit", ""))
     if not source_commit or "pending" in source_commit.lower() or "local_equivalent" in source_commit.lower(): findings.append("release_manifest.source_commit must be explicit or release-process-injected")
     if value.get("hosted_ci") not in {"PASS", "PENDING", "NOT_RUN", "FAIL"}: findings.append("release_manifest.hosted_ci has invalid status")
     if value.get("e2e_status") not in {"PASS", "CONDITIONAL", "NOT_RUN", "FAIL"}: findings.append("release_manifest.e2e_status has invalid status")
+    if value.get("source_commit_mode") not in {"publisher-injected", "resolved"}: findings.append("release_manifest.source_commit_mode has invalid status")
+    if value.get("source_commit_mode") == "publisher-injected" and source_commit != "release-process-injected": findings.append("publisher-injected manifest must use release-process-injected source_commit")
+    if value.get("source_commit_mode") == "resolved" and not re.fullmatch(r"[0-9a-f]{40}", source_commit): findings.append("resolved release manifest must contain a commit SHA")
+    return findings
+
+
+def validate_runtime_results(root: Path = ROOT) -> list[str]:
+    """Reject generated runtime results if they are present in source."""
+    findings: list[str] = []
+    for relative in ("benchmarks/smoke-run-result.json",):
+        if (root / relative).exists():
+            findings.append(f"{relative} is a generated runtime artifact and must not be committed")
     return findings
 
 
@@ -97,7 +109,7 @@ def validate_docs() -> list[str]:
 
 
 def validate() -> dict[str, Any]:
-    findings = validate_json_assets() + validate_behavior_cases() + validate_release_manifest() + validate_docs()
+    findings = validate_json_assets() + validate_behavior_cases() + validate_release_manifest() + validate_runtime_results() + validate_docs()
     try:
         from validate_registry import validate as registry_validate
         registry = registry_validate()

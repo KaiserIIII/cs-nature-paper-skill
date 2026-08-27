@@ -11,5 +11,6 @@ review letters, credentials, or unpublished data.
 - `rejected-paper-revision.json`: rejection recovery with preserved evidence.
 
 The deterministic smoke runner uses the first fixture with synthetic artifacts.
-Model-backed comparisons remain `NOT_RUN` until an approved host adapter is
-available.
+Its execution result is generated in CI as `.ci-smoke-result.json` and is not
+committed, so a source checkout cannot carry a stale runtime commit. Model-
+backed comparisons remain `NOT_RUN` until an approved host adapter is available.

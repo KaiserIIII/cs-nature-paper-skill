@@ -4,6 +4,12 @@
 
 ### Fixed
 
+- Removed the committed smoke execution result and made CI-generated smoke and
+  resolved release manifests runtime artifacts. Execution records now reject
+  pre-existing outputs and bind evidence anchors to command-produced hashes.
+- Migrated legacy `status=VERIFIED` anchors without provenance to `DECLARED`,
+  and required materialized retrieval records, validated regions, and an
+  independent checker for verified literature relations.
 - Hardened hosted CI manifest checks with LF-normalized source hashing and
   exclusion of generated benchmark runs.
 - Replaced the forced-PASS smoke workflow with a real local fixture execution,

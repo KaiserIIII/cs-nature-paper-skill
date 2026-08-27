@@ -249,7 +249,10 @@ def _pass_evidence_findings(project: Path, node: dict[str, Any], evidence: str |
     findings: list[str] = []
     for anchor_id in ids:
         anchor = anchors[anchor_id]
-        if anchor.get("status") in {"UNVERIFIED", "DECLARED"} and node.get("id") in {"formal_experiment", "analysis", "validation", "review"}:
+        provenance = anchor.get("provenance_level")
+        if provenance not in {"DECLARED", "OBSERVED", "VERIFIED"}:
+            provenance = "DECLARED"
+        if provenance == "DECLARED" and node.get("id") in {"formal_experiment", "analysis", "validation", "review"}:
             findings.append(f"{anchor_id} is not strong enough for {node.get('id')}")
         artifact_type = anchor.get("artifact_type") or anchor.get("evidence_type")
         if artifact_type and artifact_type not in contract["artifact_types"]:
