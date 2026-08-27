@@ -123,7 +123,11 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    result = route(args.task, args.explicit)
+    try:
+        result = route(args.task, args.explicit)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        print(json.dumps({"status": "ERROR", "error": str(exc)}, ensure_ascii=False))
+        return 2
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0 if result["status"] in {"PASS", "CONDITIONAL"} else 1
 

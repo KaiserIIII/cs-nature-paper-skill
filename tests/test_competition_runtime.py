@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -789,6 +791,59 @@ class CompetitionReviewTests(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertTrue(any("severity" in item for item in result["findings"]))
         self.assertTrue(any("evidence_anchors" in item for item in result["findings"]))
+
+
+class CompetitionCliTests(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.project = Path(self.tempdir.name) / "project"
+        self.project.mkdir()
+        research_state.init_state(
+            self.project,
+            "algorithmic",
+            "competition-autopilot",
+            "mathematical-modeling",
+        )
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def test_runtime_status_cli_returns_runtime_computed_dashboard(self):
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "competition_runtime.py"),
+                "status",
+                str(self.project),
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
+        value = json.loads(completed.stdout)
+        self.assertEqual(value["dashboard"]["time_source"], "competition_runtime")
+        self.assertFalse(value["dashboard"]["authoritative_deadline"])
+
+    def test_review_cli_reports_malformed_json_as_operational_error(self):
+        malformed = self.project / "malformed-review.json"
+        malformed.write_text("{", encoding="utf-8")
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "competition_review.py"),
+                "audit",
+                str(malformed),
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 2, completed.stderr or completed.stdout)
+        self.assertEqual(json.loads(completed.stdout)["status"], "ERROR")
 
 
 if __name__ == "__main__":

@@ -162,7 +162,11 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    result = audit(args.path) if args.command == "audit" else summary(args.path)
+    try:
+        result = audit(args.path) if args.command == "audit" else summary(args.path)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        print(json.dumps({"status": "ERROR", "error": str(exc)}, ensure_ascii=False))
+        return 2
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0 if result["status"] == "PASS" else 1
 

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import math
@@ -970,3 +971,132 @@ def dashboard(
         "time_source": "competition_runtime",
         "authoritative_deadline": clock.get("authoritative_deadline", False),
     }
+
+
+def _job_estimates(path: Path | None) -> dict[str, int]:
+    if path is None:
+        return {}
+    value = _read_json(path)
+    estimates: dict[str, int] = {}
+    for node_id, estimate in value.items():
+        if isinstance(estimate, bool) or not isinstance(estimate, int):
+            raise CompetitionError(
+                f"job estimate for {node_id} must be an integer number of seconds"
+            )
+        estimates[str(node_id)] = estimate
+    return estimates
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", action="version", version=f"%(prog)s {SKILL_VERSION}")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    for name in ("status", "refresh-clock", "validate-clock", "audit-rules"):
+        command = sub.add_parser(name)
+        command.add_argument("project", type=Path)
+
+    configure = sub.add_parser("configure-clock")
+    configure.add_argument("project", type=Path)
+    configure.add_argument("--start", required=True)
+    configure.add_argument("--deadline", required=True)
+    configure.add_argument("--official-source", default="")
+    configure.add_argument("--actor", required=True)
+
+    verify = sub.add_parser("verify-clock")
+    verify.add_argument("project", type=Path)
+    verify.add_argument("--official-source", required=True)
+    verify.add_argument("--actor", required=True)
+
+    adjust = sub.add_parser("adjust-clock")
+    adjust.add_argument("project", type=Path)
+    adjust.add_argument("--offset-seconds", required=True, type=int)
+    adjust.add_argument("--reason", required=True)
+    adjust.add_argument("--actor", required=True)
+
+    for name in ("pause-clock", "resume-clock"):
+        command = sub.add_parser(name)
+        command.add_argument("project", type=Path)
+        command.add_argument("--reason", required=True)
+        command.add_argument("--actor", required=True)
+
+    for name in ("schedule", "advance"):
+        command = sub.add_parser(name)
+        command.add_argument("project", type=Path)
+        command.add_argument("--job-estimates", type=Path)
+        command.add_argument("--critical-fix-node", action="append", default=[])
+        if name == "advance":
+            command.add_argument("--actor", default="competition-scheduler")
+    return parser
+
+
+def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
+    if args.command == "status":
+        value = dashboard(args.project)
+        return {
+            "operation": "competition-status",
+            "status": value["status"],
+            "dashboard": value,
+        }
+    if args.command == "refresh-clock":
+        return refresh_clock(args.project)
+    if args.command == "validate-clock":
+        return validate_clock(args.project)
+    if args.command == "audit-rules":
+        return audit_rules(args.project)
+    if args.command == "configure-clock":
+        return configure_clock(
+            args.project,
+            args.start,
+            args.deadline,
+            args.official_source,
+            args.actor,
+        )
+    if args.command == "verify-clock":
+        return verify_clock(args.project, args.official_source, args.actor)
+    if args.command == "adjust-clock":
+        return adjust_clock(
+            args.project,
+            args.offset_seconds,
+            args.reason,
+            args.actor,
+        )
+    if args.command == "pause-clock":
+        return pause_clock(args.project, args.reason, args.actor)
+    if args.command == "resume-clock":
+        return resume_clock(args.project, args.reason, args.actor)
+    estimates = _job_estimates(args.job_estimates)
+    critical = set(args.critical_fix_node)
+    if args.command == "schedule":
+        return schedule(
+            args.project,
+            job_estimates=estimates,
+            critical_fix_nodes=critical,
+        )
+    return advance(
+        args.project,
+        actor=args.actor,
+        job_estimates=estimates,
+        critical_fix_nodes=critical,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        result = _dispatch(args)
+    except (
+        CompetitionError,
+        research_graph.GraphError,
+        OSError,
+        json.JSONDecodeError,
+        ValueError,
+    ) as exc:
+        print(json.dumps({"status": "ERROR", "error": str(exc)}, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0 if result.get("status") in {"PASS", "CONDITIONAL"} else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

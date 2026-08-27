@@ -211,9 +211,52 @@ git -C ~/.codex/skills/cs-nature-paper rev-parse HEAD
 | `revision` | 审稿问题、有界修订与转投 |
 | `review` | 对抗性、威胁驱动的独立审查 |
 | `preflight` | 当前 venue 规则与投稿包就绪检查 |
+| `competition` | 正在进行的 CUMCM 工作；重大方向仍由作者决定 |
+| `competition-autopilot` | 比较已提供赛题并启动可辩护的基线 |
+| `competition-review` | 对竞赛论文和提交包做红队审查 |
 
 Autopilot 不会取消作者控制权。遇到证据矛盾、provenance 缺失、预算边界、
 伦理问题、未审核能力、协议修订或外部操作时，它必须停止。
+
+## CUMCM 比赛覆盖层
+
+比赛模式是通用 Research Graph 上的 policy overlay，继续使用原有的 evidence
+ledger、claims、experiments、artifacts、provenance 和 handoffs，不建立第二套
+科研状态系统。Runtime 只能根据时钟、风险、决策相关性和预计运行时间对
+通用图节点进行排序、限制、冻结或放行。
+
+唯一权威的时间边界是带时区的 ISO-8601 `contest_start_utc` 和
+`submission_deadline_utc`。Runtime 统一转换为 UTC，并根据系统时钟计算实际
+比赛时长、已用时间、剩余时间、阶段、STOP RULE 和 HARD FREEZE。仅配置时间
+后，状态仍是 `UNVERIFIED`；必须由人工明确记录当届官方来源后才能核验。
+未核验期间，Runtime 不得用截止时间授权新 job，也不得声称官方规则已确认。
+人工偏移、暂停和恢复都必须填写 actor 与 reason，并追加到 SHA-256 哈希链
+event log；`competition_clock.json` 只是当前派生快照。
+
+三种典型调用方式：
+
+```text
+Use $cs-nature-paper in competition mode.
+初始化这份 CUMCM 赛题和比赛时钟。重大科学方向变化由作者决定；每次输出
+Runtime 计算的 dashboard 后，执行 Research Graph 中最高 ROI 的可用节点。
+```
+
+```text
+Use $cs-nature-paper in competition-autopilot mode.
+读取已提供的赛题和当前 competition state，核验时钟来源，比较题目并启动
+最小且可辩护的 baseline。按图状态、风险、决策相关性、ETA 和剩余时间调度。
+```
+
+```text
+Use $cs-nature-paper in competition-review mode.
+审查这份竞赛论文和提交包，输出按严重性排序且有 evidence anchor 的问题，
+以及十轴评分雷达。不要预测奖项，也不要编造当届官方规则。
+```
+
+默认 CUMCM profile 使用既定 72 小时阶段边界；其他时长按比例映射，除非
+profile 给出显式边界。`SUBMISSION_FREEZE` 是正常计划阶段；绝对剩余 6 小时
+触发的 `FINALIZATION_MODE` 和剩余 2 小时触发的 `HARD_FREEZE` 会覆盖普通
+调度。任何新执行 job 都必须先通过 ETA 加当前阶段 safety margin 的门禁。
 
 ## 最小 CLI 工作流
 
@@ -234,6 +277,33 @@ python "$SkillRoot\scripts\research_graph.py" ready $Project
 python "$SkillRoot\scripts\research_graph.py" advance $Project
 python "$SkillRoot\scripts\evidence_anchor.py" ledger $Project --deep
 ```
+
+初始化并操作比赛覆盖层：
+
+```powershell
+python "$SkillRoot\scripts\research_state.py" init $Project `
+  --study-type algorithmic --mode competition-autopilot `
+  --domain mathematical-modeling
+
+python "$SkillRoot\scripts\competition_runtime.py" configure-clock $Project `
+  --start "2026-09-10T10:00:00Z" `
+  --deadline "2026-09-13T10:00:00Z" `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" verify-clock $Project `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" status $Project
+python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
+python "$SkillRoot\scripts\competition_method_router.py" route `
+  "Minimize facility cost subject to capacity constraints"
+python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+```
+
+`configure-clock` 只记录候选边界，不会自动证明其权威性。执行
+`verify-clock` 前必须重新检查真实比赛的当届官方来源。需要有记录的时钟
+校正时，使用 `adjust-clock --offset-seconds ... --reason ... --actor ...`；
+不要手工编辑快照或 event log。
 
 解析能力或方法手册时，要把“选中了什么”与“实际执行了什么”区分开：
 
@@ -274,7 +344,12 @@ python scripts/validate_registry.py
 python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
+python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 ```
+
+Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只验证 runtime
+集成。它的分类是 `HARNESS_SELF_TEST`，model-backed behavior evaluation 仍为
+`NOT_RUN`。
 
 ## 这个项目不声称什么
 

@@ -220,10 +220,61 @@ threats, and report the smallest defensible repairs. Do not predict acceptance.
 | `revision` | Reviewer concerns, bounded amendments, and resubmission |
 | `review` | Adversarial, threat-selected assessment |
 | `preflight` | Current venue rules and package-readiness audit |
+| `competition` | Active CUMCM work with author-owned major direction changes |
+| `competition-autopilot` | Compare supplied problems and start a defensible baseline |
+| `competition-review` | Red-team a contest paper and submission package |
 
 Autopilot does not remove author control. It stops at contradictory evidence,
 missing provenance, budget limits, ethics issues, unqualified capabilities,
 protocol amendments, and external actions.
+
+## CUMCM competition overlay
+
+Competition mode is a policy overlay on the same Research Graph, evidence
+ledger, claims, experiments, artifacts, provenance, and handoffs used by the
+general Research OS. It does not create a second scientific state system.
+The runtime may rank, block, freeze, or release generic graph nodes according
+to the clock, risk, decision relevance, and estimated runtime.
+
+The only authoritative time boundaries are timezone-aware ISO-8601
+`contest_start_utc` and `submission_deadline_utc`. The runtime converts them
+to UTC and computes the actual duration, elapsed time, remaining time, phase,
+STOP RULE, and HARD FREEZE from the system clock. A configured clock remains
+`UNVERIFIED` until a person explicitly records the current official source.
+While it is unverified, the runtime does not authorize deadline-based jobs or
+claim that official rules are confirmed. Manual offset, pause, and resume
+operations require an actor and reason and are appended to a SHA-256 chained
+event log; `competition_clock.json` is only the latest derived snapshot.
+
+Typical requests are:
+
+```text
+Use $cs-nature-paper in competition mode.
+Initialize this supplied CUMCM problem and clock. Keep major scientific
+direction changes under author control, and execute the highest-ROI eligible
+Research Graph node after each runtime-derived dashboard update.
+```
+
+```text
+Use $cs-nature-paper in competition-autopilot mode.
+Read the supplied contest problems and current competition state. Verify the
+clock source, compare the problems, start the smallest defensible baseline,
+and schedule by graph state, risk, decision relevance, ETA, and remaining time.
+```
+
+```text
+Use $cs-nature-paper in competition-review mode.
+Audit this contest paper and submission package. Return severity-ordered,
+evidence-anchored findings and the ten-axis score radar. Do not predict an
+award or invent current official rules.
+```
+
+The default CUMCM profile uses the approved 72-hour phase boundaries. Other
+durations are mapped proportionally unless the profile supplies explicit
+boundaries. `SUBMISSION_FREEZE` is a planned phase; the absolute six-hour
+`FINALIZATION_MODE` and two-hour `HARD_FREEZE` override normal scheduling.
+Every new executable job must satisfy the runtime ETA plus the stage-specific
+safety margin before it can start.
 
 ## Minimal CLI workflow
 
@@ -244,6 +295,33 @@ python "$SkillRoot\scripts\research_graph.py" ready $Project
 python "$SkillRoot\scripts\research_graph.py" advance $Project
 python "$SkillRoot\scripts\evidence_anchor.py" ledger $Project --deep
 ```
+
+Initialize and operate the competition overlay:
+
+```powershell
+python "$SkillRoot\scripts\research_state.py" init $Project `
+  --study-type algorithmic --mode competition-autopilot `
+  --domain mathematical-modeling
+
+python "$SkillRoot\scripts\competition_runtime.py" configure-clock $Project `
+  --start "2026-09-10T10:00:00Z" `
+  --deadline "2026-09-13T10:00:00Z" `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" verify-clock $Project `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" status $Project
+python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
+python "$SkillRoot\scripts\competition_method_router.py" route `
+  "Minimize facility cost subject to capacity constraints"
+python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+```
+
+`configure-clock` records candidate boundaries but does not verify their
+authority. Re-check the real event's official source before `verify-clock`.
+For a documented clock correction, use `adjust-clock --offset-seconds ...
+--reason ... --actor ...`; never edit the snapshot or event log by hand.
 
 Resolve a capability or methods playbook without confusing selection with
 execution:
@@ -288,7 +366,12 @@ python scripts/validate_registry.py
 python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
+python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 ```
+
+The competition smoke uses a finite synthetic facility-selection fixture and
+standard-library enumeration. It tests runtime integration only. Its class is
+`HARNESS_SELF_TEST`, and model-backed behavior evaluation remains `NOT_RUN`.
 
 ## What this project does not claim
 
