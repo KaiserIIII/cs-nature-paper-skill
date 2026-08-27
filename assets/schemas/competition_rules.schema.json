@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "competition", "rules"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "skill_version": {"type": "string"},
+    "competition": {"type": "string"},
+    "rules": {"type": "object"}
+  }
+}

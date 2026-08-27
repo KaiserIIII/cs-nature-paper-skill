@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "skill_version": "3.1.1",
+  "created_utc": "",
+  "competition": "CUMCM",
+  "rules": {
+    "contest_time": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
+    "ai_policy": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
+    "file_format": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
+    "page_limit": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
+    "submission_method": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
+    "problem_count": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
+    "discipline": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""}
+  }
+}

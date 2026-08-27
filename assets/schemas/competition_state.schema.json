@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "competition", "profile_id", "mode", "question_decomposition", "assumptions", "candidate_models", "completed_node_ids", "running_node_ids", "blocked_node_ids", "canonical_references"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "skill_version": {"type": "string"},
+    "competition": {"type": "string"},
+    "profile_id": {"type": "string"},
+    "mode": {"type": "string"},
+    "question_decomposition": {"type": "array"},
+    "assumptions": {"type": "array"},
+    "candidate_models": {"type": "array"},
+    "completed_node_ids": {"type": "array"},
+    "running_node_ids": {"type": "array"},
+    "blocked_node_ids": {"type": "array"},
+    "canonical_references": {"type": "object"}
+  }
+}

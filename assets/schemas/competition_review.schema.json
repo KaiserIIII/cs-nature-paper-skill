@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "competition", "findings", "score_radar", "current_strongest_point", "current_weakest_point", "largest_award_level_blocker", "highest_roi_remaining_improvement"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "skill_version": {"type": "string"},
+    "competition": {"type": "string"},
+    "findings": {"type": "array"},
+    "score_radar": {"type": "object"},
+    "current_strongest_point": {"type": "string"},
+    "current_weakest_point": {"type": "string"},
+    "largest_award_level_blocker": {"type": "string"},
+    "highest_roi_remaining_improvement": {"type": "string"}
+  }
+}
