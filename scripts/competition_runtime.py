@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -13,7 +15,12 @@ from typing import Any
 SKILL_VERSION = "3.1.1"
 ROOT = Path(__file__).resolve().parents[1]
 CLOCK_TEMPLATE = ROOT / "assets" / "templates" / "competition" / "competition_clock.json"
+CUMCM_PROFILE = ROOT / "assets" / "competition" / "cumcm_profile.json"
 CLOCK_EVENT_LOG = ".competition-clock-events.jsonl"
+SCRIPT_DIR = str(ROOT / "scripts")
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+import research_graph  # noqa: E402
 
 
 class CompetitionError(RuntimeError):
@@ -160,6 +167,10 @@ def _base_clock(state_dir: Path) -> dict[str, Any]:
     return value
 
 
+def _load_profile() -> dict[str, Any]:
+    return _read_json(CUMCM_PROFILE)
+
+
 def _replay_clock(state_dir: Path, events: list[dict[str, Any]]) -> dict[str, Any]:
     clock = _base_clock(state_dir)
     for event in events:
@@ -281,6 +292,20 @@ def refresh_clock(
             "authoritative_deadline": authoritative,
         }
     )
+    if authoritative:
+        profile = _load_profile()
+        clock["current_phase"] = phase_for(clock, profile)
+        clock["control_mode"] = control_mode_for(clock, profile)
+        clock["stop_rule_active"] = clock["control_mode"] in {
+            "FINALIZATION_MODE",
+            "HARD_FREEZE",
+        }
+        clock["hard_freeze_active"] = clock["control_mode"] == "HARD_FREEZE"
+    else:
+        clock["current_phase"] = "UNVERIFIED"
+        clock["control_mode"] = "UNVERIFIED"
+        clock["stop_rule_active"] = False
+        clock["hard_freeze_active"] = False
     _write_json(clock_path, clock)
     return {
         "operation": "refresh-clock",
@@ -473,4 +498,272 @@ def validate_clock(project: Path) -> dict[str, Any]:
         "event_count": len(events),
         "findings": [],
         "state_dir": str(state_dir),
+    }
+
+
+def phase_for(clock: dict[str, Any], profile: dict[str, Any]) -> str:
+    """Map elapsed time to a profile phase using the actual contest duration."""
+    elapsed = int(clock["elapsed_seconds"])
+    duration = int(clock["contest_duration_seconds"])
+    if duration <= 0:
+        raise CompetitionError("contest duration must be positive")
+    if elapsed < 0:
+        return "PRE_CONTEST"
+    if elapsed >= duration:
+        return "DEADLINE_PASSED"
+    reference = int(profile["reference_duration_seconds"])
+    if reference <= 0:
+        raise CompetitionError("profile reference duration must be positive")
+    scaled_elapsed = elapsed * reference
+    for phase in profile.get("phases", []):
+        if "start_seconds" in phase and "end_seconds" in phase:
+            start = int(phase["start_seconds"])
+            end = int(phase["end_seconds"])
+            if start * duration <= scaled_elapsed < end * duration:
+                return str(phase["id"])
+        elif "start_ratio" in phase and "end_ratio" in phase:
+            start_ratio = float(phase["start_ratio"])
+            end_ratio = float(phase["end_ratio"])
+            ratio = elapsed / duration
+            if start_ratio <= ratio < end_ratio:
+                return str(phase["id"])
+    raise CompetitionError("competition profile does not cover elapsed contest time")
+
+
+def control_mode_for(
+    clock: dict[str, Any], profile: dict[str, Any] | None = None
+) -> str:
+    profile = profile or _load_profile()
+    remaining = int(clock["remaining_seconds"])
+    thresholds = profile.get("control_thresholds", {})
+    finalization = int(thresholds.get("finalization_seconds", 6 * 3600))
+    hard_freeze = int(thresholds.get("hard_freeze_seconds", 2 * 3600))
+    if remaining <= 0:
+        return "DEADLINE_PASSED"
+    if remaining <= hard_freeze:
+        return "HARD_FREEZE"
+    if remaining <= finalization:
+        return "FINALIZATION_MODE"
+    return "NORMAL"
+
+
+def _node_policy(profile: dict[str, Any], node_id: str) -> dict[str, Any]:
+    policies = profile.get("node_policies", {})
+    policy = policies.get(node_id, {})
+    return policy if isinstance(policy, dict) else {}
+
+
+def _graph_candidates(project: Path) -> tuple[dict[str, Any], dict[str, Any], list[str]]:
+    path, graph = research_graph.load_graph(project)
+    check = research_graph.validate_graph(graph)
+    if check["status"] != "PASS":
+        raise CompetitionError("graph validation failed: " + "; ".join(check["findings"]))
+    plan = research_graph.plan_next(project)
+    by_id = {
+        node.get("id"): node
+        for node in graph.get("nodes", [])
+        if isinstance(node, dict) and node.get("id")
+    }
+    candidates = set(plan.get("ready", []))
+    candidates.update(
+        node_id
+        for node_id, node in by_id.items()
+        if node.get("status") in {"READY", "REOPENED"}
+    )
+    return graph, by_id, sorted(candidates)
+
+
+def _eta_check(
+    node: dict[str, Any],
+    estimate: Any,
+    remaining: int,
+    margin: dict[str, Any],
+) -> tuple[bool, str, int | None]:
+    if not node.get("job_required") and not node.get("job_required", False):
+        return True, "", 0
+    if estimate is None:
+        return False, "new job requires an estimated runtime", None
+    if isinstance(estimate, bool) or not isinstance(estimate, int) or estimate < 0:
+        return False, "estimated runtime must be a non-negative integer", None
+    safety = max(
+        int(margin.get("minimum_seconds", 0)),
+        math.ceil(estimate * float(margin.get("eta_multiplier", 0))),
+    )
+    if estimate + safety >= remaining:
+        return (
+            False,
+            f"ETA plus safety margin ({estimate}+{safety}s) is not less than remaining time ({remaining}s)",
+            safety,
+        )
+    return True, "", safety
+
+
+def _node_is_job(node_id: str, policy: dict[str, Any]) -> bool:
+    return bool(policy.get("job_required", False))
+
+
+def _rank_key(
+    node_id: str,
+    policy: dict[str, Any],
+    phase: str,
+    graph_index: int,
+    control: str,
+) -> tuple[int, int, int, int]:
+    affinity = 0 if phase in policy.get("phase_affinity", []) else 1
+    relevance = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}.get(
+        str(policy.get("decision_relevance", "MEDIUM")), 1
+    )
+    risk = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}.get(
+        str(policy.get("scientific_risk", "MEDIUM")), 1
+    )
+    if control != "NORMAL":
+        risk *= 2
+    return affinity, relevance, risk, graph_index
+
+
+def schedule(
+    project: Path,
+    job_estimates: dict[str, int] | None = None,
+    critical_fix_nodes: set[str] | None = None,
+    now_utc: datetime | None = None,
+) -> dict[str, Any]:
+    """Return a deterministic overlay decision without mutating graph state."""
+    job_estimates = job_estimates or {}
+    critical_fix_nodes = critical_fix_nodes or set()
+    refreshed = refresh_clock(project, now_utc=now_utc)
+    clock = refreshed["clock"]
+    graph, by_id, candidate_ids = _graph_candidates(project)
+    profile = _load_profile()
+    authoritative = bool(clock.get("authoritative_deadline"))
+    phase = str(clock.get("current_phase", "UNVERIFIED"))
+    control = str(clock.get("control_mode", "UNVERIFIED"))
+    eligible: list[dict[str, Any]] = []
+    blocked: list[dict[str, Any]] = []
+    policy_actions: list[dict[str, Any]] = []
+    for graph_index, node_id in enumerate(candidate_ids):
+        node = by_id[node_id]
+        policy = _node_policy(profile, node_id)
+        if not authoritative:
+            if _node_is_job(node_id, policy):
+                reason = "clock is UNVERIFIED; cannot authorize a timed job"
+                blocked.append({"node": node_id, "reason": reason})
+            else:
+                eligible.append(
+                    {"node": node_id, "reason": "clock-unverified non-job work"}
+                )
+            continue
+        if control == "DEADLINE_PASSED":
+            reason = "deadline has passed"
+            blocked.append({"node": node_id, "reason": reason})
+        elif control == "HARD_FREEZE" and (
+            not policy.get("submission_critical", False)
+            and node_id not in critical_fix_nodes
+        ):
+            reason = "HARD_FREEZE permits only submission-critical work or CRITICAL fixes"
+            blocked.append({"node": node_id, "reason": reason})
+        elif control in {"FINALIZATION_MODE", "HARD_FREEZE"} and (
+            policy.get("high_risk_change", False) and node_id not in critical_fix_nodes
+        ):
+            reason = f"{control} blocks high-risk scientific direction changes"
+            blocked.append({"node": node_id, "reason": reason})
+        else:
+            margin = profile["safety_margins"].get(
+                control, profile["safety_margins"]["NORMAL"]
+            )
+            allowed, reason, safety = _eta_check(
+                {**node, **policy},
+                job_estimates.get(node_id),
+                int(clock["remaining_seconds"]),
+                margin,
+            )
+            if not allowed:
+                blocked.append({"node": node_id, "reason": reason})
+            else:
+                eligible.append(
+                    {
+                        "node": node_id,
+                        "reason": "policy and ETA gate passed",
+                        "safety_margin_seconds": safety,
+                    }
+                )
+        if blocked and blocked[-1]["node"] == node_id:
+            policy_actions.append(
+                {
+                    "node": node_id,
+                    "to": "BLOCKED",
+                    "reason": blocked[-1]["reason"],
+                }
+            )
+
+    eligible.sort(
+        key=lambda item: _rank_key(
+            item["node"],
+            _node_policy(profile, item["node"]),
+            phase,
+            next(
+                index
+                for index, node in enumerate(graph.get("nodes", []))
+                if node.get("id") == item["node"]
+            ),
+            control,
+        )
+    )
+    result = {
+        "operation": "competition-schedule",
+        "status": "PASS" if authoritative else "CONDITIONAL",
+        "authoritative_deadline": authoritative,
+        "current_phase": phase,
+        "control_mode": control,
+        "stop_rule_active": bool(clock.get("stop_rule_active")),
+        "hard_freeze_active": bool(clock.get("hard_freeze_active")),
+        "remaining_seconds": clock.get("remaining_seconds"),
+        "eligible": [item["node"] for item in eligible],
+        "eligible_details": eligible,
+        "blocked": blocked,
+        "policy_actions": policy_actions if authoritative else [],
+        "next_action": eligible[0] if eligible else None,
+        "state_dir": str(_state_dir(project)),
+    }
+    return result
+
+
+def advance(
+    project: Path,
+    actor: str = "competition-scheduler",
+    job_estimates: dict[str, int] | None = None,
+    critical_fix_nodes: set[str] | None = None,
+    now_utc: datetime | None = None,
+) -> dict[str, Any]:
+    """Apply only policy status transitions through the generic graph API."""
+    plan = schedule(
+        project,
+        job_estimates=job_estimates,
+        critical_fix_nodes=critical_fix_nodes,
+        now_utc=now_utc,
+    )
+    changed: list[dict[str, Any]] = []
+    for action in plan["policy_actions"]:
+        _, graph = research_graph.load_graph(project)
+        node = next(
+            item
+            for item in graph["nodes"]
+            if item.get("id") == action["node"]
+        )
+        if node.get("status") == action["to"]:
+            continue
+        changed.append(
+            research_graph.transition(
+                project,
+                action["node"],
+                action["to"],
+                action["reason"],
+                actor,
+                None,
+            )
+        )
+    return {
+        "operation": "competition-advance",
+        "status": plan["status"],
+        "changed": changed,
+        "plan": plan,
     }

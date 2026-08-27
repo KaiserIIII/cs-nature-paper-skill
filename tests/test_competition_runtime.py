@@ -263,5 +263,221 @@ class CompetitionClockEventTests(unittest.TestCase):
         self.assertEqual(resumed["elapsed_seconds"], 11 * 3600)
 
 
+class CompetitionPhaseTests(unittest.TestCase):
+    START = datetime(2026, 9, 10, 10, tzinfo=timezone.utc)
+
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.project = Path(self.tempdir.name) / "project"
+        self.project.mkdir()
+        research_state.init_state(
+            self.project,
+            "algorithmic",
+            "competition",
+            "mathematical-modeling",
+        )
+        self.configure_duration(72)
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def configure_duration(self, hours):
+        competition_runtime.configure_clock(
+            self.project,
+            self.START.isoformat(),
+            (self.START + timedelta(hours=hours)).isoformat(),
+            "https://fixture.invalid/official-rules",
+            "captain",
+            now_utc=self.START,
+        )
+        competition_runtime.verify_clock(
+            self.project,
+            "https://fixture.invalid/official-rules",
+            "captain",
+            now_utc=self.START,
+        )
+
+    def refresh_at_elapsed(self, hours):
+        return competition_runtime.refresh_clock(
+            self.project,
+            now_utc=self.START + timedelta(hours=hours),
+        )["clock"]
+
+    def test_default_72_hour_boundaries_and_control_overlays(self):
+        cases = [
+            (3, "CONTEST_INTAKE_AND_SELECTION", "NORMAL", False, False),
+            (10, "MVP_MODELING", "NORMAL", False, False),
+            (31, "VALIDATION_AND_ROBUSTNESS", "NORMAL", False, False),
+            (67, "REVIEW_AND_REVISION", "FINALIZATION_MODE", True, False),
+            (69, "SUBMISSION_FREEZE", "FINALIZATION_MODE", True, False),
+            (71, "SUBMISSION_FREEZE", "HARD_FREEZE", True, True),
+        ]
+        for hours, phase, control, stop, hard in cases:
+            with self.subTest(hours=hours):
+                clock = self.refresh_at_elapsed(hours)
+                self.assertEqual(clock["current_phase"], phase)
+                self.assertEqual(clock["control_mode"], control)
+                self.assertEqual(clock["stop_rule_active"], stop)
+                self.assertEqual(clock["hard_freeze_active"], hard)
+
+    def test_non_72_hour_schedule_scales_proportionally(self):
+        self.configure_duration(36)
+
+        clock = self.refresh_at_elapsed(6)
+
+        self.assertEqual(clock["contest_duration_seconds"], 36 * 3600)
+        self.assertEqual(clock["current_phase"], "FORMAL_MODELING")
+        self.assertEqual(clock["control_mode"], "NORMAL")
+
+    def test_precontest_and_expired_states_are_explicit(self):
+        before = self.refresh_at_elapsed(-1)
+        after = self.refresh_at_elapsed(73)
+
+        self.assertEqual(before["current_phase"], "PRE_CONTEST")
+        self.assertEqual(before["clock_status"], "SCHEDULED")
+        self.assertEqual(after["current_phase"], "DEADLINE_PASSED")
+        self.assertEqual(after["control_mode"], "DEADLINE_PASSED")
+        self.assertEqual(after["clock_status"], "EXPIRED")
+
+
+class CompetitionSchedulerTests(unittest.TestCase):
+    START = datetime(2026, 9, 10, 10, tzinfo=timezone.utc)
+    DEADLINE = START + timedelta(hours=72)
+
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.project = Path(self.tempdir.name) / "project"
+        self.project.mkdir()
+        research_state.init_state(
+            self.project,
+            "algorithmic",
+            "competition-autopilot",
+            "mathematical-modeling",
+        )
+        self.state = self.project / ".research-state"
+        self.configure_verified()
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def configure_verified(self):
+        competition_runtime.configure_clock(
+            self.project,
+            self.START.isoformat(),
+            self.DEADLINE.isoformat(),
+            "https://fixture.invalid/official-rules",
+            "captain",
+            now_utc=self.START,
+        )
+        competition_runtime.verify_clock(
+            self.project,
+            "https://fixture.invalid/official-rules",
+            "captain",
+            now_utc=self.START,
+        )
+
+    def set_ready(self, *node_ids):
+        path = self.state / "research_graph.json"
+        graph = json.loads(path.read_text(encoding="utf-8"))
+        selected = set(node_ids)
+        for node in graph["nodes"]:
+            node["status"] = "READY" if node["id"] in selected else "BLOCKED"
+        path.write_text(
+            json.dumps(graph, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    def test_unverified_clock_does_not_apply_time_policy(self):
+        competition_runtime.configure_clock(
+            self.project,
+            self.START.isoformat(),
+            self.DEADLINE.isoformat(),
+            "",
+            "captain",
+            now_utc=self.START + timedelta(hours=67),
+        )
+        self.set_ready("model_improvement")
+
+        result = competition_runtime.schedule(
+            self.project,
+            job_estimates={"model_improvement": 60},
+            now_utc=self.START + timedelta(hours=67),
+        )
+
+        self.assertEqual(result["status"], "CONDITIONAL")
+        self.assertFalse(result["authoritative_deadline"])
+        self.assertEqual(result["policy_actions"], [])
+
+    def test_any_new_job_requires_an_eta(self):
+        self.set_ready("formal_solve")
+
+        result = competition_runtime.schedule(
+            self.project,
+            now_utc=self.START + timedelta(hours=20),
+        )
+
+        blocked = {item["node"]: item["reason"] for item in result["blocked"]}
+        self.assertIn("formal_solve", blocked)
+        self.assertIn("estimated runtime", blocked["formal_solve"])
+
+    def test_eta_requires_strict_slack_after_late_stage_margin(self):
+        self.set_ready("formal_solve")
+
+        result = competition_runtime.schedule(
+            self.project,
+            job_estimates={"formal_solve": 9000},
+            now_utc=self.START + timedelta(hours=69),
+        )
+
+        blocked = {item["node"]: item["reason"] for item in result["blocked"]}
+        self.assertIn("formal_solve", blocked)
+        self.assertIn("ETA", blocked["formal_solve"])
+
+    def test_hard_freeze_allows_submission_work_but_blocks_model_change(self):
+        self.set_ready("model_improvement", "revision")
+
+        result = competition_runtime.schedule(
+            self.project,
+            job_estimates={"model_improvement": 60},
+            now_utc=self.START + timedelta(hours=71),
+        )
+
+        self.assertNotIn("model_improvement", result["eligible"])
+        self.assertIn("revision", result["eligible"])
+        blocked = {item["node"]: item["reason"] for item in result["blocked"]}
+        self.assertIn("HARD_FREEZE", blocked["model_improvement"])
+
+    def test_schedule_is_read_only_and_advance_uses_graph_event_chain(self):
+        self.set_ready("model_improvement", "revision")
+        graph_path = self.state / "research_graph.json"
+        before = graph_path.read_bytes()
+
+        scheduled = competition_runtime.schedule(
+            self.project,
+            job_estimates={"model_improvement": 60},
+            now_utc=self.START + timedelta(hours=69),
+        )
+
+        self.assertEqual(graph_path.read_bytes(), before)
+        self.assertTrue(
+            any(
+                item["node"] == "model_improvement" and item["to"] == "BLOCKED"
+                for item in scheduled["policy_actions"]
+            )
+        )
+        advanced = competition_runtime.advance(
+            self.project,
+            "competition-scheduler",
+            job_estimates={"model_improvement": 60},
+            now_utc=self.START + timedelta(hours=69),
+        )
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        by_id = {node["id"]: node for node in graph["nodes"]}
+        self.assertEqual(by_id["model_improvement"]["status"], "BLOCKED")
+        self.assertNotEqual(by_id["revision"]["status"], "PASS")
+        self.assertTrue(advanced["changed"])
+        self.assertTrue((self.state / ".research-graph-events.jsonl").exists())
+
+
 if __name__ == "__main__":
     unittest.main()
