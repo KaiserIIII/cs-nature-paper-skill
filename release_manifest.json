@@ -13,7 +13,7 @@
     "stale_benchmark_detection": "PASS"
   },
   "hosted_ci": "PASS",
-  "hosted_ci_run_id": 33105708380,
+  "hosted_ci_run_id": 33106678347,
   "hosted_ci_matrix": {
     "ubuntu-latest / Python 3.10": "PASS",
     "ubuntu-latest / Python 3.11": "PASS",
