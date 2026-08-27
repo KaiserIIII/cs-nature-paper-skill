@@ -112,7 +112,7 @@ d6e97bf930e2e18a962e7813bc6b3f7d91225a6fbf5a2ac0cec4972f0593ae5e  docs/v3-releas
 9c8308665488f0aa34c3656d3dc36514f15abdc15a98b5f44dfa84ac560787a0  docs/v3.1-release-report.md
 28143bd5cb2f2dde408aec96a20c0dadbb02ed26de9f8b4ae9e7fe7a47144d2e  docs/v3.1-skill-landscape-audit.md
 a859d8540c1071201143ec8d1b7e98f4a1307ae8f6f691bcb93600d5ae3d1020  docs/v3.1.1-release-report.md
-b9fce277de7dcf22856ceb329054500e44c8a464cd474a1be80521b5fd83fd95  docs/v3.2.0-release-report.md
+e25f5c1651f22954361777d2a04b23b0ccfef9340603fa0250c75809794f12bf  docs/v3.2.0-release-report.md
 232fe346d9a9104b24a99e92f821fb69f91ae5367644eedb24bef63f4b66c5ad  docs/venues.md
 9928cb5439b59bcc0afda002879781e9e017b4bbe8d9b24d037cc3f5878c415b  references/core/autopilot.md
 15a9e918c833ccd53739000fa269f0b806310709c8de80d7e0bb8c402c6cd4ab  references/core/control-loop.md
