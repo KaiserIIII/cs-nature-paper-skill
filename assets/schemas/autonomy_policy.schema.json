@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "mode", "risk_cap", "fail_closed", "budgets", "permissions", "standing_authorizations"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "skill_version": {"type": "string", "const": "3.2.0"},
+    "created_utc": {"type": "string"},
+    "mode": {"type": "string", "enum": ["maximum-autonomy"]},
+    "risk_cap": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+    "fail_closed": {"type": "boolean", "const": true},
+    "budgets": {"type": "object"},
+    "permissions": {"type": "object"},
+    "standing_authorizations": {"type": "array", "items": {"type": "object"}}
+  }
+}

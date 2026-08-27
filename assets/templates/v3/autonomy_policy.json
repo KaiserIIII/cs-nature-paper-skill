@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "skill_version": "3.2.0",
+  "created_utc": "",
+  "mode": "maximum-autonomy",
+  "risk_cap": "MEDIUM",
+  "fail_closed": true,
+  "budgets": {
+    "tokens": null,
+    "minutes": null,
+    "money": 0,
+    "compute": "local",
+    "network": false
+  },
+  "permissions": {
+    "local_read": true,
+    "local_write": true,
+    "execute": true,
+    "network": false,
+    "external_write": false,
+    "publish": false,
+    "submit": false,
+    "auto_hire": false,
+    "protocol_change": false,
+    "scientific_decision": false,
+    "delete": false
+  },
+  "standing_authorizations": []
+}

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 SKILL_VERSION = "3.1.1"
+V32_TEMPLATE_NAMES = {"autonomy_policy.json", "completion_contract.json", "director_session.json"}
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -60,7 +61,8 @@ def validate_json_assets() -> list[str]:
         try: value = _read(template_path)
         except (OSError, json.JSONDecodeError) as exc: findings.append(f"{template_path}: {exc}"); continue
         if not isinstance(value, dict): findings.append(f"{template_path}: root must be an object")
-        elif value.get("skill_version") != SKILL_VERSION: findings.append(f"{template_path}: skill_version must be {SKILL_VERSION}")
+        elif value.get("skill_version") != SKILL_VERSION and not (template_path.name in V32_TEMPLATE_NAMES and value.get("skill_version") == "3.2.0"):
+            findings.append(f"{template_path}: skill_version must be {SKILL_VERSION}")
     return findings
 
 
