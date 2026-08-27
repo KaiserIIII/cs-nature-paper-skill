@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "skill_version": "3.2.0",
+  "created_utc": "",
+  "required_checks": ["policy", "audit", "graph", "graph_rebuild", "argument", "feasibility", "protocol", "claims", "evidence", "e2e"],
+  "status": "PENDING",
+  "release_disposition": "V3.2.0 BLOCKED",
+  "checks": {},
+  "critical_failures": [],
+  "residual_risks": [],
+  "author_actions": []
+}

@@ -21,6 +21,7 @@ STUDY_TYPES = (
     "position", "mixed",
 )
 MODES = ("full", "guided", "copilot", "autopilot", "plan", "execute", "write", "revision", "review", "preflight")
+MODES = MODES + ("maximum-autonomy",)
 GATES = ("argument", "feasibility", "protocol", "claims", "submission")
 FINAL_CLAIM_STATUSES = {"SUPPORTED", "SCOPED", "WITHDRAWN"}
 EVIDENCED_CLAIM_STATUSES = {"SUPPORTED", "SCOPED"}
@@ -33,6 +34,7 @@ V3_TEMPLATES = (
     "employee_registry.json", "delegation_plan.json", "handoff.json", "query_log.json",
     "review_finding.json",
 )
+V32_TEMPLATES = ("autonomy_policy.json", "completion_contract.json", "director_session.json")
 
 class StateError(RuntimeError):
     """Raised for operational or malformed-state errors."""
@@ -90,6 +92,12 @@ def init_state(project_dir: Path, study_type: str, mode: str, domain: str = "") 
     if graph_path.exists():
         shutil.copy2(graph_path, state_dir / ".research-graph-initial.json")
         created.append(".research-graph-initial.json")
+    if mode == "maximum-autonomy":
+        for template_name in V32_TEMPLATES:
+            value = _read_json(TEMPLATE_DIR / template_name)
+            value["created_utc"] = created_utc
+            _write_json(state_dir / template_name, value)
+            created.append(template_name)
     return {"operation": "init", "status": "PASS", "state_dir": str(state_dir), "created": created, "private": True}
 
 def _claim_records(ledger: dict[str, Any], claims_doc: dict[str, Any] | None = None) -> Any:

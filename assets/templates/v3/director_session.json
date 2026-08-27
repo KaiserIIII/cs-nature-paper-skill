@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill_version": "3.2.0",
+  "session_id": "",
+  "status": "NEW",
+  "policy_hash": "",
+  "graph_hash": "",
+  "iteration": 0,
+  "current_node": null,
+  "completed": [],
+  "checkpoints": [],
+  "recovery_count": 0,
+  "last_decision": null,
+  "blocked_reason": null
+}

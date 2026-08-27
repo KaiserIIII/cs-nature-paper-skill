@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "session_id", "status", "iteration"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "skill_version": {"type": "string", "const": "3.2.0"},
+    "session_id": {"type": "string"},
+    "status": {"type": "string"},
+    "iteration": {"type": "integer", "minimum": 0},
+    "checkpoints": {"type": "array"},
+    "completed": {"type": "array"}
+  }
+}
