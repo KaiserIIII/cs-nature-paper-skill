@@ -17,6 +17,19 @@ ROOT = Path(__file__).resolve().parents[1]
 CLOCK_TEMPLATE = ROOT / "assets" / "templates" / "competition" / "competition_clock.json"
 CUMCM_PROFILE = ROOT / "assets" / "competition" / "cumcm_profile.json"
 CLOCK_EVENT_LOG = ".competition-clock-events.jsonl"
+QUESTION_FIELDS = (
+    "id", "goal", "inputs", "decision_variables", "state_variables", "target",
+    "constraints", "outputs", "required_evidence", "assumptions",
+    "candidate_methods", "validation", "dependencies",
+)
+ASSUMPTION_FIELDS = (
+    "id", "assumption", "reason", "consequence", "risk_if_violated",
+    "validation_or_sensitivity", "affected_questions",
+)
+RULE_FIELDS = (
+    "contest_time", "ai_policy", "file_format", "page_limit",
+    "submission_method", "problem_count", "discipline",
+)
 SCRIPT_DIR = str(ROOT / "scripts")
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
@@ -501,6 +514,138 @@ def validate_clock(project: Path) -> dict[str, Any]:
     }
 
 
+def validate_competition_state(value: dict[str, Any]) -> dict[str, Any]:
+    findings: list[str] = []
+    if not isinstance(value, dict):
+        return {
+            "operation": "validate-competition-state",
+            "status": "FAIL",
+            "findings": ["competition state must be an object"],
+        }
+    for field in ("competition", "profile_id", "mode", "canonical_references"):
+        if field not in value or value[field] in (None, ""):
+            findings.append(f"competition_state.{field} is required")
+    questions = value.get("question_decomposition")
+    if not isinstance(questions, list):
+        findings.append("competition_state.question_decomposition must be a list")
+        questions = []
+    for index, question in enumerate(questions):
+        prefix = f"question_decomposition[{index}]"
+        if not isinstance(question, dict):
+            findings.append(f"{prefix} must be an object")
+            continue
+        findings.extend(
+            f"{prefix}.{field} is required"
+            for field in QUESTION_FIELDS
+            if field not in question
+        )
+        for field in (
+            "inputs", "decision_variables", "state_variables", "constraints",
+            "outputs", "required_evidence", "assumptions", "candidate_methods",
+            "validation", "dependencies",
+        ):
+            if field in question and not isinstance(question[field], list):
+                findings.append(f"{prefix}.{field} must be a list")
+        for field in ("id", "goal", "target"):
+            if field in question and not str(question[field]).strip():
+                findings.append(f"{prefix}.{field} must be non-empty")
+        for field in (
+            "inputs", "decision_variables", "constraints", "outputs",
+            "required_evidence", "assumptions", "candidate_methods", "validation",
+        ):
+            if isinstance(question.get(field), list) and not question[field]:
+                findings.append(f"{prefix}.{field} must be non-empty")
+
+    assumptions = value.get("assumptions")
+    if not isinstance(assumptions, list):
+        findings.append("competition_state.assumptions must be a list")
+        assumptions = []
+    for index, assumption in enumerate(assumptions):
+        prefix = f"assumptions[{index}]"
+        if not isinstance(assumption, dict):
+            findings.append(f"{prefix} must be an object")
+            continue
+        findings.extend(
+            f"{prefix}.{field} is required"
+            for field in ASSUMPTION_FIELDS
+            if field not in assumption
+        )
+        for field in ASSUMPTION_FIELDS[:-1]:
+            if field in assumption and not str(assumption[field]).strip():
+                findings.append(f"{prefix}.{field} must be non-empty")
+        affected = assumption.get("affected_questions")
+        if "affected_questions" in assumption and (
+            not isinstance(affected, list) or not affected
+        ):
+            findings.append(f"{prefix}.affected_questions must be a non-empty list")
+
+    references = value.get("canonical_references")
+    expected_references = {
+        "graph": "research_graph.json",
+        "claims": "claims.json",
+        "evidence": "evidence_ledger.json",
+        "experiments": "experiment_registry.json",
+        "artifacts": "artifact_manifest.json",
+        "handoff": "handoff.json",
+    }
+    if isinstance(references, dict):
+        for key, expected in expected_references.items():
+            if references.get(key) != expected:
+                findings.append(
+                    f"competition_state.canonical_references.{key} must be {expected}"
+                )
+    return {
+        "operation": "validate-competition-state",
+        "status": "PASS" if not findings else "FAIL",
+        "findings": findings,
+    }
+
+
+def audit_rules(project: Path) -> dict[str, Any]:
+    state_dir = _state_dir(project)
+    value = _read_json(state_dir / "competition_rules.json")
+    rules = value.get("rules")
+    findings: list[str] = []
+    unverified: list[str] = []
+    if not isinstance(rules, dict):
+        return {
+            "operation": "audit-competition-rules",
+            "status": "FAIL",
+            "unverified": list(RULE_FIELDS),
+            "findings": ["competition_rules.rules must be an object"],
+            "state_dir": str(state_dir),
+        }
+    for name in RULE_FIELDS:
+        item = rules.get(name)
+        if not isinstance(item, dict) or item.get("status") != "VERIFIED":
+            unverified.append(name)
+            findings.append(f"competition rule {name} is UNVERIFIED")
+            continue
+        missing = [
+            field
+            for field in ("official_source", "verified_utc", "actor")
+            if not str(item.get(field, "")).strip()
+        ]
+        if missing:
+            unverified.append(name)
+            findings.append(f"competition rule {name} missing {missing}")
+            continue
+        try:
+            parse_utc(str(item["verified_utc"]))
+        except CompetitionError:
+            unverified.append(name)
+            findings.append(
+                f"competition rule {name} verified_utc must be timezone-aware ISO-8601"
+            )
+    return {
+        "operation": "audit-competition-rules",
+        "status": "PASS" if not findings else "FAIL",
+        "unverified": unverified,
+        "findings": findings,
+        "state_dir": str(state_dir),
+    }
+
+
 def phase_for(clock: dict[str, Any], profile: dict[str, Any]) -> str:
     """Map elapsed time to a profile phase using the actual contest duration."""
     elapsed = int(clock["elapsed_seconds"])
@@ -666,6 +811,9 @@ def schedule(
         ):
             reason = f"{control} blocks high-risk scientific direction changes"
             blocked.append({"node": node_id, "reason": reason})
+        elif node_id == "submission_preflight" and audit_rules(project)["status"] != "PASS":
+            reason = "current official rules are not fully verified"
+            blocked.append({"node": node_id, "reason": reason})
         else:
             margin = profile["safety_margins"].get(
                 control, profile["safety_margins"]["NORMAL"]
@@ -766,4 +914,59 @@ def advance(
         "status": plan["status"],
         "changed": changed,
         "plan": plan,
+    }
+
+
+def _duration_text(seconds: int) -> str:
+    sign = "-" if seconds < 0 else ""
+    seconds = abs(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes = remainder // 60
+    return f"{sign}{hours}h {minutes}m"
+
+
+def dashboard(
+    project: Path, now_utc: datetime | None = None
+) -> dict[str, Any]:
+    refreshed = refresh_clock(project, now_utc=now_utc)
+    clock = refreshed["clock"]
+    scheduled = schedule(project, now_utc=now_utc)
+    _, graph = research_graph.load_graph(project)
+    state_dir = _state_dir(project)
+    competition_state = _read_json(state_dir / "competition_state.json")
+    nodes = [item for item in graph.get("nodes", []) if isinstance(item, dict)]
+    completed = [
+        item.get("id")
+        for item in nodes
+        if item.get("status") in {"PASS", "CONDITIONAL"}
+    ]
+    running = [item.get("id") for item in nodes if item.get("status") == "RUNNING"]
+    blocked = [item.get("id") for item in nodes if item.get("status") == "BLOCKED"]
+    next_action = scheduled.get("next_action")
+    next_node = next_action.get("node") if isinstance(next_action, dict) else None
+    return {
+        "operation": "competition-dashboard",
+        "status": refreshed["status"],
+        "competition": competition_state.get("competition", "CUMCM"),
+        "competition_time": {
+            "start_utc": clock.get("contest_start_utc"),
+            "deadline_utc": clock.get("submission_deadline_utc"),
+        },
+        "elapsed": _duration_text(int(clock.get("elapsed_seconds", 0))),
+        "remaining": _duration_text(int(clock.get("remaining_seconds", 0))),
+        "elapsed_seconds": clock.get("elapsed_seconds", 0),
+        "remaining_seconds": clock.get("remaining_seconds", 0),
+        "current_phase": clock.get("current_phase", "UNVERIFIED"),
+        "stop_rule": "ON" if clock.get("stop_rule_active") else "OFF",
+        "hard_freeze": "ON" if clock.get("hard_freeze_active") else "OFF",
+        "completed": completed,
+        "running": running,
+        "blocked": blocked,
+        "current_best_model": competition_state.get("current_best_model"),
+        "largest_scoring_risk": competition_state.get("largest_scoring_risk"),
+        "highest_roi_next_action": next_node
+        or competition_state.get("highest_roi_next_action"),
+        "submission_readiness": competition_state.get("submission_readiness"),
+        "time_source": "competition_runtime",
+        "authoritative_deadline": clock.get("authoritative_deadline", False),
     }

@@ -554,5 +554,161 @@ class CompetitionMethodRouterTests(unittest.TestCase):
         self.assertIn("guess", result["failure_risks"][0])
 
 
+class CompetitionContractTests(unittest.TestCase):
+    START = datetime(2026, 9, 10, 10, tzinfo=timezone.utc)
+    DEADLINE = START + timedelta(hours=72)
+
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.project = Path(self.tempdir.name) / "project"
+        self.project.mkdir()
+        research_state.init_state(
+            self.project,
+            "algorithmic",
+            "competition",
+            "mathematical-modeling",
+        )
+        self.state_dir = self.project / ".research-state"
+        competition_runtime.configure_clock(
+            self.project,
+            self.START.isoformat(),
+            self.DEADLINE.isoformat(),
+            "https://fixture.invalid/official-rules",
+            "captain",
+            now_utc=self.START,
+        )
+        competition_runtime.verify_clock(
+            self.project,
+            "https://fixture.invalid/official-rules",
+            "captain",
+            now_utc=self.START,
+        )
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def read(self, name):
+        return json.loads((self.state_dir / name).read_text(encoding="utf-8"))
+
+    def write(self, name, value):
+        (self.state_dir / name).write_text(
+            json.dumps(value, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    def set_ready(self, *node_ids):
+        graph = self.read("research_graph.json")
+        selected = set(node_ids)
+        for node in graph["nodes"]:
+            node["status"] = "READY" if node["id"] in selected else "BLOCKED"
+        self.write("research_graph.json", graph)
+
+    def test_question_and_assumption_contracts_reject_missing_fields(self):
+        state = self.read("competition_state.json")
+        state["question_decomposition"] = [{"id": "Q1", "goal": "choose a site"}]
+        state["assumptions"] = [{"id": "A1", "assumption": "demand is fixed"}]
+
+        result = competition_runtime.validate_competition_state(state)
+
+        self.assertEqual(result["status"], "FAIL")
+        self.assertTrue(any("decision_variables" in item for item in result["findings"]))
+        self.assertTrue(any("risk_if_violated" in item for item in result["findings"]))
+
+    def test_complete_question_and_assumption_contracts_pass(self):
+        state = self.read("competition_state.json")
+        state["question_decomposition"] = [
+            {
+                "id": "Q1",
+                "goal": "choose a site",
+                "inputs": ["capacity", "cost"],
+                "decision_variables": ["selected site"],
+                "state_variables": [],
+                "target": "minimum cost",
+                "constraints": ["capacity >= demand"],
+                "outputs": ["site", "cost"],
+                "required_evidence": ["executed enumeration output"],
+                "assumptions": ["A1"],
+                "candidate_methods": ["exhaustive enumeration"],
+                "validation": ["independent feasibility check"],
+                "dependencies": [],
+            }
+        ]
+        state["assumptions"] = [
+            {
+                "id": "A1",
+                "assumption": "declared demand is fixed",
+                "reason": "the fixture supplies one demand value",
+                "consequence": "one deterministic capacity constraint",
+                "risk_if_violated": "selected site may become infeasible",
+                "validation_or_sensitivity": "repeat at adjacent demand values",
+                "affected_questions": ["Q1"],
+            }
+        ]
+
+        self.assertEqual(
+            competition_runtime.validate_competition_state(state)["status"],
+            "PASS",
+        )
+
+    def test_submission_preflight_requires_all_current_official_rules(self):
+        result = competition_runtime.audit_rules(self.project)
+
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(
+            set(result["unverified"]),
+            {
+                "contest_time",
+                "ai_policy",
+                "file_format",
+                "page_limit",
+                "submission_method",
+                "problem_count",
+                "discipline",
+            },
+        )
+
+        rules = self.read("competition_rules.json")
+        for item in rules["rules"].values():
+            item.update(
+                {
+                    "status": "VERIFIED",
+                    "official_source": "https://fixture.invalid/official-rules",
+                    "verified_utc": "2026-09-10T09:30:00Z",
+                    "actor": "fixture-verifier",
+                }
+            )
+        self.write("competition_rules.json", rules)
+        self.assertEqual(competition_runtime.audit_rules(self.project)["status"], "PASS")
+
+    def test_scheduler_blocks_submission_preflight_until_rules_are_verified(self):
+        self.set_ready("submission_preflight")
+
+        result = competition_runtime.schedule(
+            self.project,
+            now_utc=self.START + timedelta(hours=69),
+        )
+
+        blocked = {item["node"]: item["reason"] for item in result["blocked"]}
+        self.assertIn("submission_preflight", blocked)
+        self.assertIn("official rules", blocked["submission_preflight"])
+
+    def test_dashboard_uses_refreshed_clock_and_graph_state(self):
+        result = competition_runtime.dashboard(
+            self.project,
+            now_utc=self.START + timedelta(hours=31),
+        )
+
+        self.assertEqual(result["elapsed_seconds"], 31 * 3600)
+        self.assertEqual(result["remaining_seconds"], 41 * 3600)
+        self.assertEqual(result["current_phase"], "VALIDATION_AND_ROBUSTNESS")
+        self.assertEqual(result["stop_rule"], "OFF")
+        self.assertEqual(result["hard_freeze"], "OFF")
+        self.assertIn("completed", result)
+        self.assertIn("running", result)
+        self.assertIn("blocked", result)
+        self.assertIn("highest_roi_next_action", result)
+        self.assertEqual(result["time_source"], "competition_runtime")
+
+
 if __name__ == "__main__":
     unittest.main()
