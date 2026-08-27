@@ -1,0 +1,11 @@
+{
+  "id": "SYNTHETIC-CUMCM-FACILITY-001",
+  "question": "Choose one facility with capacity at least 80 and minimum declared cost.",
+  "sites": [
+    {"id": "A", "capacity": 70, "cost": 8},
+    {"id": "B", "capacity": 90, "cost": 11},
+    {"id": "C", "capacity": 100, "cost": 14}
+  ],
+  "minimum_capacity": 80,
+  "expected_selected_site": "B"
+}

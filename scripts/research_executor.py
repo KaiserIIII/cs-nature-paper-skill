@@ -223,6 +223,20 @@ def _feasibility(project: Path) -> dict[str, Any]:
         "lower_resource_option": "retain deterministic fixture and skip model-backed evaluation",
     }
     _write(contract_path, contract)
+    risks_path = _state(project) / "risks.json"
+    risks = _read(risks_path, {})
+    risks["risks"] = [{
+        "id": "RISK-1",
+        "category": "scientific",
+        "description": "The deterministic fixture does not establish external scientific or model-behavior validity.",
+        "severity": "MAJOR",
+        "trigger": "a claim extends beyond the project fixture",
+        "owner": "director",
+        "mitigation": "scope all claims and keep MODEL_BEHAVIOR_EVAL as NOT_RUN",
+        "residual_risk": "external validity remains untested",
+        "status": "RESIDUAL_RISK_DOCUMENTED",
+    }]
+    _write(risks_path, risks)
     artifact = project / "artifacts" / "feasibility.json"
     _write(artifact, contract["feasibility"])
     anchor_id = _anchor(project, "feasibility", artifact, "feasibility", extra={"decision": "GO"})

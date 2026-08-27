@@ -14,6 +14,8 @@ REGISTRY = Path(__file__).resolve().parents[1] / "assets" / "registry"
 FLOATING = {"", "head", "latest", "main", "master", "trunk"}
 CAP_FIELDS = ("id", "name", "department", "description", "input_types", "output_types", "scientific_risk", "required_permissions", "checker_requirement", "possible_native_tools", "specialist_triggers")
 SKILL_FIELDS = ("skill_id", "source", "exact_ref", "license", "host_support", "capabilities", "inputs", "outputs", "permissions", "network", "credentials", "write_scope", "runtime", "context_cost", "estimated_tool_cost", "known_risks", "adoption_status", "runtime_status", "last_reviewed", "behavior_trials", "rollback")
+COMPETITION_METHOD_FIELDS = ("id", "problem_type", "triggers", "candidate_models", "recommended_baseline", "recommended_primary_model", "optional_improvement", "why", "main_assumptions", "failure_risks", "validation_plan", "complexity_upgrade_condition")
+COMPETITION_METHOD_CATEGORIES = {"evaluation", "prediction", "optimization", "classification-clustering", "graph-network", "time-series", "differential-equations", "simulation", "spatial-routing", "data-preparation"}
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -23,8 +25,8 @@ def _read(path: Path) -> dict[str, Any]:
 
 
 def validate(registry_dir: Path = REGISTRY) -> dict[str, Any]:
-    findings: list[str] = []; capabilities = _read(registry_dir / "capabilities.json"); catalog = _read(registry_dir / "skill_catalog.json"); methods = _read(registry_dir / "method_router.json")
-    if any(doc.get("skill_version") != SKILL_VERSION for doc in (capabilities, catalog, methods)): findings.append(f"all registries must declare skill_version {SKILL_VERSION}")
+    findings: list[str] = []; capabilities = _read(registry_dir / "capabilities.json"); catalog = _read(registry_dir / "skill_catalog.json"); methods = _read(registry_dir / "method_router.json"); competition_methods = _read(registry_dir / "competition_method_router.json")
+    if any(doc.get("skill_version") != SKILL_VERSION for doc in (capabilities, catalog, methods, competition_methods)): findings.append(f"all registries must declare skill_version {SKILL_VERSION}")
     cap_ids: list[str] = []
     for index, item in enumerate(capabilities.get("capabilities", [])):
         if not isinstance(item, dict): findings.append(f"capabilities[{index}] must be an object"); continue
@@ -53,7 +55,18 @@ def validate(registry_dir: Path = REGISTRY) -> dict[str, Any]:
     method_ids = [item.get("id") for item in methods.get("methods", []) if isinstance(item, dict)]
     if len(method_ids) < 13: findings.append("method router must cover at least 13 method families")
     if len(method_ids) != len(set(method_ids)): findings.append("method ids must be unique")
-    return {"operation": "validate-registry", "status": "PASS" if not findings else "FAIL", "skill_version": SKILL_VERSION, "capability_count": len(cap_ids), "skill_count": len(skill_ids), "method_count": len(method_ids), "findings": findings}
+    competition_ids: list[str] = []
+    for index, item in enumerate(competition_methods.get("categories", [])):
+        if not isinstance(item, dict): findings.append(f"competition categories[{index}] must be an object"); continue
+        competition_ids.append(item.get("id")); findings.extend(f"competition categories[{index}].{field} is required" for field in COMPETITION_METHOD_FIELDS if not item.get(field))
+        for field in ("triggers", "candidate_models", "main_assumptions", "failure_risks", "validation_plan"):
+            if not isinstance(item.get(field), list) or not item.get(field): findings.append(f"competition categories[{index}].{field} must be a non-empty list")
+    if set(competition_ids) != COMPETITION_METHOD_CATEGORIES: findings.append("competition method router must cover exactly the ten required categories")
+    if len(competition_ids) != len(set(competition_ids)): findings.append("competition method category ids must be unique")
+    optimization = next((item for item in competition_methods.get("categories", []) if isinstance(item, dict) and item.get("id") == "optimization"), {})
+    classes = optimization.get("method_classes", {}) if isinstance(optimization, dict) else {}
+    if set(classes) != {"exact", "heuristic", "metaheuristic"} or not all(isinstance(value, list) and value for value in classes.values()): findings.append("competition optimization methods must distinguish exact, heuristic, and metaheuristic classes")
+    return {"operation": "validate-registry", "status": "PASS" if not findings else "FAIL", "skill_version": SKILL_VERSION, "capability_count": len(cap_ids), "skill_count": len(skill_ids), "method_count": len(method_ids), "competition_method_category_count": len(competition_ids), "findings": findings}
 
 
 if __name__ == "__main__":

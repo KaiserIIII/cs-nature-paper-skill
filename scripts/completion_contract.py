@@ -17,7 +17,7 @@ SKILL_VERSION = "3.2.0"
 REQUIRED = (
     "policy", "audit", "graph", "graph_rebuild", "argument", "feasibility", "protocol", "claims", "evidence",
     "literature_sufficiency", "experiment_completeness", "figure_traceability", "manuscript_complete",
-    "review_resolution", "reproducibility", "artifact_package", "director_orchestration_e2e", "e2e",
+    "review_resolution", "risk_resolution", "reproducibility", "artifact_package", "director_orchestration_e2e", "e2e",
 )
 
 
@@ -175,6 +175,20 @@ def _review(project: Path) -> dict[str, Any]:
     return _check("PASS" if not problems else "FAIL", problems, unresolved_critical=len(unresolved_critical), unresolved_major=len(unresolved_major))
 
 
+def _risks(project: Path) -> dict[str, Any]:
+    value = _read(_state_dir(project) / "risks.json", {})
+    risks = value.get("risks", []) if isinstance(value, dict) else []
+    findings = []
+    for item in risks:
+        if item.get("status") not in {"RESOLVED", "RESIDUAL_RISK_DOCUMENTED"}:
+            findings.append(f"risk {item.get('id')} is unresolved")
+        if item.get("status") == "RESIDUAL_RISK_DOCUMENTED" and not all(item.get(field) for field in ("description", "mitigation", "residual_risk", "owner")):
+            findings.append(f"risk {item.get('id')} residual-risk record is incomplete")
+    if not risks:
+        findings.append("risk register is empty")
+    return _check("PASS" if not findings else "FAIL", findings, risk_count=len(risks))
+
+
 def _reproducibility(project: Path) -> dict[str, Any]:
     manifest = _read(project / "artifacts" / "package_manifest.json", {})
     findings = []
@@ -243,6 +257,7 @@ def evaluate(project: Path, *, e2e_result: Path | None = None, audit_path: Path 
     checks["figure_traceability"] = _figure(project)
     checks["manuscript_complete"] = _manuscript(project)
     checks["review_resolution"] = _review(project)
+    checks["risk_resolution"] = _risks(project)
     checks["reproducibility"] = _reproducibility(project)
     checks["artifact_package"] = _package(project)
     checks["director_orchestration_e2e"] = _director(project)

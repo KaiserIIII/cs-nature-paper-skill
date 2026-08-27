@@ -1,0 +1,23 @@
+{
+  "schema_version": 3,
+  "skill_version": "3.1.1",
+  "created_utc": "",
+  "competition": "CUMCM",
+  "findings": [],
+  "score_radar": {
+    "problem_understanding": null,
+    "model_appropriateness": null,
+    "mathematical_rigor": null,
+    "implementation": null,
+    "validation": null,
+    "innovation": null,
+    "visualization": null,
+    "writing": null,
+    "reproducibility": null,
+    "overall_coherence": null
+  },
+  "current_strongest_point": "",
+  "current_weakest_point": "",
+  "largest_award_level_blocker": "",
+  "highest_roi_remaining_improvement": ""
+}

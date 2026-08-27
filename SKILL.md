@@ -1,6 +1,6 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V3.2: student-first, evidence-bound, maximum-autonomy executable AI Research OS for turning research intent into a provenance-tracked package without fabricated science, silent installs, or unauthorized release."
+description: "CS Nature Paper V3.2: student-first, evidence-bound maximum-autonomy Research OS for research papers and CUMCM competitions, with executable Director orchestration, provenance tracking, deterministic contest timing, and no fabricated science or unauthorized release."
 metadata:
   version: "3.2.0"
   architecture: "research-control-plane + execution-plane + capability-runtime + adaptive-graph"
@@ -31,6 +31,9 @@ Infer the narrowest useful operating mode from the request:
 | `revision` | review, rejection, or resubmission | private concern matrix and bounded amendments |
 | `review` | adversarial assessment of a draft or artifact | threat-selected findings with anchors |
 | `preflight` | submission readiness | current-source venue card and package audit |
+| `competition` | active CUMCM work with author-owned major direction changes | runtime dashboard and highest-ROI eligible action |
+| `competition-autopilot` | compare supplied contest problems and start a defensible baseline | structured problem comparison and clock-aware plan |
+| `competition-review` | red-team a contest paper and submission package | severity-ordered findings and score radar |
 
 Do not ask a questionnaire when low-risk orientation work can answer it. Give a
 recommended default and a plain-language explanation. Ask the author only for
@@ -41,6 +44,11 @@ For a vague request, read [references/core/autopilot.md](references/core/autopil
 and [references/mentoring/student-first.md](references/mentoring/student-first.md).
 Select one domain profile from [references/domains/](references/domains/) and one
 study-type profile from [references/study-types/](references/study-types/).
+
+For any competition mode, first read
+[references/competitions/cumcm.md](references/competitions/cumcm.md). Use the
+competition runtime for clock, phase, freeze, ETA, and scheduling decisions;
+never infer remaining time from the conversation.
 
 ## Control the research before expanding it
 
@@ -58,6 +66,14 @@ Preserve them. If no control plane exists and local state is in scope:
 ```bash
 python scripts/research_state.py init PROJECT --study-type empirical --mode copilot --domain machine-learning
 python scripts/research_state.py audit PROJECT --gate argument
+```
+
+For a new CUMCM project, initialize the same control plane with a competition
+mode. This selects a competition graph profile while retaining the canonical
+claims, evidence, experiment, artifact, and handoff files:
+
+```bash
+python scripts/research_state.py init PROJECT --study-type algorithmic --mode competition --domain mathematical-modeling
 ```
 
 Initialization is private and refuses overwrite. V3 adds graph, claims,
@@ -123,6 +139,10 @@ python scripts/research_graph.py rebuild PROJECT
 python scripts/research_graph.py explain PROJECT
 ```
 
+Competition modes use the same graph engine with a CUMCM graph template. The
+competition overlay may rank, freeze, block, or reopen generic nodes through
+the graph API; it does not maintain a second node-status or provenance store.
+
 Use `scripts/skill_router.py` to resolve capabilities before staffing work. A
 catalog entry is a design source only unless its `runtime_status` is qualified;
 approved external employees require an exact pinned ref, least privilege, a
@@ -178,16 +198,24 @@ Largest scientific risk: ...
 Author checkpoint: ... (only when required)
 ```
 
+Competition modes replace conversational time estimates with the runtime
+dashboard: elapsed, remaining, phase, STOP RULE, hard freeze, completed,
+running, blocked, current best model, largest scoring risk, highest-ROI next
+action, and submission readiness.
+
 Respect a budget for tokens, time, network, compute, money, private paths, and
 external writes. Long jobs are resumable and checked at meaningful boundaries.
-No mode silently changes an RQ, promotes pilot results, publishes, uploads, or
-submits. `maximum-autonomy` remains deny-by-default for unknown, irreversible,
-external, scientific-decision, and protocol-change actions. Its unified
-`scripts/autonomy.py` policy/authorize API records standing grants, AUTO_HIRE
-risk decisions, and a hash-chained audit log. `scripts/director_loop.py` resumes
-only when policy and graph identities match; `scripts/completion_contract.py`
-fails closed until provenance, evidence, graph, scientific gates, audit, and the
-deterministic full-paper harness all pass.
+No mode silently replaces the core RQ, promotes pilot results, publishes,
+uploads, or submits. In `maximum-autonomy`, ordinary reversible research and
+low-risk hires are `AUTO`; network research, bounded protocol amendments,
+method/model replacements, formal jobs, rollback, and medium-risk hires are
+`AUTO_WITH_AUDIT`. Fundamental scientific scope changes, ethics or human-subject
+scope, material budget expansion, credentials, payment, privileged/global
+installation, private-data export, irreversible external actions, publication,
+and submission are `ASK_AUTHOR` or `DENY`. `scripts/autonomy.py` is the single
+authorization boundary and writes the hash-chained audit. The Director resumes
+only when policy and graph identities match, dispatches real executors, and
+marks a node `PASS` only after its artifact/evidence contract succeeds.
 
 ## Progressive-disclosure routing
 
@@ -206,6 +234,14 @@ deterministic full-paper harness all pass.
 - External skill request: read `core/skill-marketplace.md` before activation.
 - Methods decision: run `scripts/method_router.py` and load only the selected
   bounded module; escalate high-risk methods to a qualified checker.
+- CUMCM competition: read `competitions/cumcm.md`; use
+  `scripts/competition_runtime.py` for clock and scheduling,
+  `scripts/competition_method_router.py` for model families, and
+  `scripts/competition_review.py` for contest review. Scheduling blocks are an
+  overlay and never overwrite canonical scientific status. Use
+  `competition_runtime.py execute-next` to pass eligible work through shared
+  authorization, executor, evidence, audit, recovery, and graph contracts. A
+  zero-match contest route is `UNRESOLVED`, not a guessed method.
 - Literature: keep discovery, identity verification, and claim-support
   verification separate; snippets and metadata cannot support a load-bearing
   claim. Use `scripts/literature_runtime.py` and the query log.

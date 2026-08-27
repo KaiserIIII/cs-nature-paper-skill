@@ -36,6 +36,8 @@ jobs:
         run: python scripts/security_pressure_run.py --output .security-pressure-run
       - name: True local E2E smoke
         run: python scripts/smoke_run.py --output .ci-smoke-result.json
+      - name: CUMCM competition E2E smoke
+        run: python scripts/competition_smoke_run.py --output .competition-smoke-result.json
       - name: Reject stale E2E output
         run: python scripts/check_smoke.py .ci-smoke-result.json
       - name: Deterministic full-paper E2E
@@ -53,6 +55,7 @@ jobs:
           name: runtime-${{ matrix.os }}-py${{ matrix.python }}
           path: |
             .ci-smoke-result.json
+            .competition-smoke-result.json
             .full-paper-e2e.json
             .director-orchestration-e2e.json
           include-hidden-files: true

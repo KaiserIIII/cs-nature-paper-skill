@@ -20,12 +20,14 @@ STUDY_TYPES = (
     "reproduction", "survey", "systematic-review", "benchmark-dataset", "tool-demo",
     "position", "mixed",
 )
-MODES = ("full", "guided", "copilot", "autopilot", "plan", "execute", "write", "revision", "review", "preflight")
-MODES = MODES + ("maximum-autonomy",)
+RESEARCH_MODES = ("full", "guided", "copilot", "autopilot", "plan", "execute", "write", "revision", "review", "preflight")
+COMPETITION_MODES = ("competition", "competition-autopilot", "competition-review")
+MODES = RESEARCH_MODES + ("maximum-autonomy",) + COMPETITION_MODES
 GATES = ("argument", "feasibility", "protocol", "claims", "submission")
 FINAL_CLAIM_STATUSES = {"SUPPORTED", "SCOPED", "WITHDRAWN"}
 EVIDENCED_CLAIM_STATUSES = {"SUPPORTED", "SCOPED"}
 TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "assets" / "templates" / "v3"
+COMPETITION_TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "assets" / "templates" / "competition"
 LEGACY_TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "assets" / "legacy" / "v2"
 V3_TEMPLATES = (
     "project.json", "research_contract.json", "research_graph.json", "claims.json",
@@ -35,6 +37,10 @@ V3_TEMPLATES = (
     "review_finding.json",
 )
 V32_TEMPLATES = ("autonomy_policy.json", "completion_contract.json", "director_session.json")
+COMPETITION_TEMPLATES = (
+    "competition_clock.json", "competition_state.json", "competition_rules.json",
+    "competition_review.json",
+)
 
 class StateError(RuntimeError):
     """Raised for operational or malformed-state errors."""
@@ -75,13 +81,24 @@ def init_state(project_dir: Path, study_type: str, mode: str, domain: str = "") 
     created_utc, title = _utc_now(), project_dir.name
     state_dir.mkdir(); created: list[str] = []
     for template_name in V3_TEMPLATES:
-        value = _read_json(TEMPLATE_DIR / template_name)
+        template_path = TEMPLATE_DIR / template_name
+        if template_name == "research_graph.json" and mode in COMPETITION_MODES:
+            template_path = COMPETITION_TEMPLATE_DIR / template_name
+        value = _read_json(template_path)
         value["skill_version"], value["created_utc"] = SKILL_VERSION, created_utc
         if "schema_version" in value: value["schema_version"] = SCHEMA_VERSION
         if template_name == "project.json":
-            value.update({"project_dir": str(project_dir), "title": title, "domain": domain, "study_type": study_type, "mode": mode, "automation_mode": mode, "budget": {"tokens": None, "minutes": None, "network": False, "compute": None, "money": 0}, "permissions": {"private_paths": [str(project_dir)], "external_writes": [], "publish": False, "submit": False}})
+            autonomous = mode == "maximum-autonomy" or mode in COMPETITION_MODES
+            value.update({"project_dir": str(project_dir), "title": title, "domain": domain, "study_type": study_type, "mode": mode, "automation_mode": mode, "budget": {"tokens": None, "minutes": None, "network": autonomous, "compute": None, "money": 0}, "permissions": {"private_paths": [str(project_dir)], "external_writes": [], "publish": False, "submit": False}})
         elif template_name == "research_contract.json": value["project"].update({"title": title, "study_type": study_type, "mode": mode, "domain": domain})
         _write_json(state_dir / template_name, value); created.append(template_name)
+    if mode in COMPETITION_MODES:
+        for template_name in COMPETITION_TEMPLATES:
+            value = _read_json(COMPETITION_TEMPLATE_DIR / template_name)
+            value["skill_version"], value["created_utc"] = SKILL_VERSION, created_utc
+            if "schema_version" in value: value["schema_version"] = SCHEMA_VERSION
+            if template_name == "competition_state.json": value["mode"] = mode
+            _write_json(state_dir / template_name, value); created.append(template_name)
     decision_template_path = TEMPLATE_DIR / "decision_log.md"
     if not decision_template_path.exists():
         decision_template_path = Path(__file__).resolve().parents[1] / "assets" / "templates" / "decision_log.md"
@@ -92,7 +109,7 @@ def init_state(project_dir: Path, study_type: str, mode: str, domain: str = "") 
     if graph_path.exists():
         shutil.copy2(graph_path, state_dir / ".research-graph-initial.json")
         created.append(".research-graph-initial.json")
-    if mode == "maximum-autonomy":
+    if mode == "maximum-autonomy" or mode in COMPETITION_MODES:
         for template_name in V32_TEMPLATES:
             value = _read_json(TEMPLATE_DIR / template_name)
             value["created_utc"] = created_utc

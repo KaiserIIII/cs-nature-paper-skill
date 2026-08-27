@@ -11,6 +11,15 @@
 - Added fail-closed completion contracts and a deterministic full-paper
   `HARNESS_SELF_TEST` that executes a public fixture through provenance,
   evidence, graph, writing, validation, review, and package stages.
+- Added real Director executor dispatch, checked artifacts/evidence, per-node
+  recovery budgets, a full isolated AUTO_HIRE lifecycle, and explicit
+  `HARNESS_SELF_TEST` / `DIRECTOR_ORCHESTRATION_E2E` / `MODEL_BEHAVIOR_EVAL`
+  separation.
+- Integrated the CUMCM competition clock, scheduler, method router, review, and
+  deterministic E2E as a maximum-autonomy overlay. Temporary freeze and ETA
+  blocks no longer overwrite canonical graph status.
+- Bound release readiness to the exact Hosted CI workflow, branch, head SHA,
+  successful conclusion, and complete Ubuntu/Windows Python 3.10-3.12 matrix.
 - Preserved the v3.1.1 provenance/evidence/research-graph/scientific-gate and
   regression contracts; no dependency or skill installation was added.
 

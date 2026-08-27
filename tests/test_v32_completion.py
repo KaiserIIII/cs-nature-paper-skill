@@ -56,7 +56,7 @@ class CompletionContractTests(unittest.TestCase):
 
     def test_manuscript_figure_and_review_are_fail_closed(self):
         result = completion_contract.evaluate(self.project)
-        for name in ("manuscript_complete", "figure_traceability", "review_resolution"):
+        for name in ("manuscript_complete", "figure_traceability", "review_resolution", "risk_resolution"):
             self.assertIn(name, result["checks"])
             self.assertEqual(result["checks"][name]["status"], "FAIL")
 

@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["schema_version", "skill_version", "required_checks", "status", "release_disposition"],
+  "required": ["schema_version", "skill_version", "required_checks", "status", "project_disposition"],
   "properties": {
     "schema_version": {"type": "integer", "const": 1},
     "skill_version": {"type": "string", "const": "3.2.0"},
     "required_checks": {"type": "array", "minItems": 1},
     "status": {"type": "string", "enum": ["PENDING", "PASS", "CONDITIONAL", "FAIL"]},
-    "release_disposition": {"type": "string"},
+    "project_disposition": {"enum": ["IN_PROGRESS", "READY_FOR_SUBMISSION", "BLOCKED"]},
     "checks": {"type": "object"},
     "critical_failures": {"type": "array"}
   }

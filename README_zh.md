@@ -213,17 +213,60 @@ git -C ~/.codex/skills/cs-nature-paper rev-parse HEAD
 | `revision` | 审稿问题、有界修订与转投 |
 | `review` | 对抗性、威胁驱动的独立审查 |
 | `preflight` | 当前 venue 规则与投稿包就绪检查 |
+| `competition` | 正在进行的 CUMCM 工作；重大方向仍由作者决定 |
+| `competition-autopilot` | 比较已提供赛题并启动可辩护的基线 |
+| `competition-review` | 对竞赛论文和提交包做红队审查 |
 
 Autopilot 不会取消作者控制权。遇到证据矛盾、provenance 缺失、预算边界、
 伦理问题、未审核能力、协议修订或外部操作时，它必须停止。
 
 Maximum autonomy 使用 `scripts/autonomy.py` 作为统一 policy/authorize 边界：
-未知、不可逆、科学决策、协议变更、发布、投稿和外部写操作默认阻断或必须
-作者授权。授权、AUTO_HIRE 风险门和 director 决策写入独立的 hash-chained
-审计日志。`scripts/director_loop.py` 只有在 policy 与 graph 身份一致时才会
-跨 session 恢复；`scripts/completion_contract.py` 在 v3.1.1 科学门禁、
-provenance、evidence、科研图、审计和 deterministic full-paper harness 全部
-通过前拒绝 release candidate。
+普通、可逆科研工作默认自动执行；网络科研、有界协议修订和中风险 Skill 招聘
+会自动执行并写入 hash-chain audit。只有根本性科研范围变化、伦理、credentials、
+付费、全局/管理员安装、私有数据外传、不可逆外部操作、公开发布和投稿才询问
+作者。`scripts/director_loop.py` 调用真实 executor，并且只在 artifact 与 evidence
+通过 output contract 后推进 graph。项目完成语义为 `READY_FOR_SUBMISSION`；
+软件 release readiness 由独立流程验证。
+
+## CUMCM 比赛覆盖层
+
+比赛模式是通用 Research Graph 上的 policy overlay，继续使用原有的 evidence
+ledger、claims、experiments、artifacts、provenance 和 handoffs，不建立第二套
+科研状态系统。Runtime 只能根据时钟、风险、决策相关性和预计运行时间对
+通用图节点进行排序、限制、冻结或放行。
+
+唯一权威的时间边界是带时区的 ISO-8601 `contest_start_utc` 和
+`submission_deadline_utc`。Runtime 统一转换为 UTC，并根据系统时钟计算实际
+比赛时长、已用时间、剩余时间、阶段、STOP RULE 和 HARD FREEZE。仅配置时间
+后，状态仍是 `UNVERIFIED`；必须由人工明确记录当届官方来源后才能核验。
+未核验期间，Runtime 不得用截止时间授权新 job，也不得声称官方规则已确认。
+人工偏移、暂停和恢复都必须填写 actor 与 reason，并追加到 SHA-256 哈希链
+event log；`competition_clock.json` 只是当前派生快照。
+
+三种典型调用方式：
+
+```text
+Use $cs-nature-paper in competition mode.
+初始化这份 CUMCM 赛题和比赛时钟。重大科学方向变化由作者决定；每次输出
+Runtime 计算的 dashboard 后，执行 Research Graph 中最高 ROI 的可用节点。
+```
+
+```text
+Use $cs-nature-paper in competition-autopilot mode.
+读取已提供的赛题和当前 competition state，核验时钟来源，比较题目并启动
+最小且可辩护的 baseline。按图状态、风险、决策相关性、ETA 和剩余时间调度。
+```
+
+```text
+Use $cs-nature-paper in competition-review mode.
+审查这份竞赛论文和提交包，输出按严重性排序且有 evidence anchor 的问题，
+以及十轴评分雷达。不要预测奖项，也不要编造当届官方规则。
+```
+
+默认 CUMCM profile 使用既定 72 小时阶段边界；其他时长按比例映射，除非
+profile 给出显式边界。`SUBMISSION_FREEZE` 是正常计划阶段；绝对剩余 6 小时
+触发的 `FINALIZATION_MODE` 和剩余 2 小时触发的 `HARD_FREEZE` 会覆盖普通
+调度。任何新执行 job 都必须先通过 ETA 加当前阶段 safety margin 的门禁。
 
 ## 最小 CLI 工作流
 
@@ -244,6 +287,34 @@ python "$SkillRoot\scripts\research_graph.py" ready $Project
 python "$SkillRoot\scripts\research_graph.py" advance $Project
 python "$SkillRoot\scripts\evidence_anchor.py" ledger $Project --deep
 ```
+
+初始化并操作比赛覆盖层：
+
+```powershell
+python "$SkillRoot\scripts\research_state.py" init $Project `
+  --study-type algorithmic --mode competition-autopilot `
+  --domain mathematical-modeling
+
+python "$SkillRoot\scripts\competition_runtime.py" configure-clock $Project `
+  --start "2026-09-10T10:00:00Z" `
+  --deadline "2026-09-13T10:00:00Z" `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" verify-clock $Project `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" dashboard $Project
+python "$SkillRoot\scripts\competition_runtime.py" status $Project
+python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
+python "$SkillRoot\scripts\competition_method_router.py" route `
+  "Minimize facility cost subject to capacity constraints"
+python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+```
+
+`configure-clock` 只记录候选边界，不会自动证明其权威性。执行
+`verify-clock` 前必须重新检查真实比赛的当届官方来源。需要有记录的时钟
+校正时，使用 `adjust-clock --offset-seconds ... --reason ... --actor ...`；
+不要手工编辑快照或 event log。
 
 解析能力或方法手册时，要把“选中了什么”与“实际执行了什么”区分开：
 
@@ -284,7 +355,12 @@ python scripts/validate_registry.py
 python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
+python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 ```
+
+Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只验证 runtime
+集成。它的分类是 `HARNESS_SELF_TEST`，model-backed behavior evaluation 仍为
+`NOT_RUN`。
 
 ## 这个项目不声称什么
 

@@ -3,12 +3,14 @@
   "type": "object",
   "required": ["schema_version", "skill_version", "session_id", "status", "iteration"],
   "properties": {
-    "schema_version": {"type": "integer", "const": 1},
+    "schema_version": {"type": "integer", "const": 2},
     "skill_version": {"type": "string", "const": "3.2.0"},
     "session_id": {"type": "string"},
     "status": {"type": "string"},
     "iteration": {"type": "integer", "minimum": 0},
     "checkpoints": {"type": "array"},
-    "completed": {"type": "array"}
+    "completed": {"type": "array"},
+    "recovery": {"type": "object"},
+    "ordinary_author_prompts": {"type": "integer", "minimum": 0}
   }
 }

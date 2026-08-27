@@ -25,9 +25,25 @@ REQUIRED_CI_MATRIX = (
     "windows-latest / Python 3.12",
 )
 EXPECTED_WORKFLOW = "cs-nature-paper-v3.2"
+SCHEMA_INSTANCES = {
+    "competition_clock": "assets/templates/competition/competition_clock.json",
+    "competition_method_router": "assets/registry/competition_method_router.json",
+    "competition_profile": "assets/competition/cumcm_profile.json",
+    "competition_review": "assets/templates/competition/competition_review.json",
+    "competition_rules": "assets/templates/competition/competition_rules.json",
+    "competition_state": "assets/templates/competition/competition_state.json",
+}
 
 
 def _read(path: Path) -> Any: return json.loads(path.read_text(encoding="utf-8"))
+
+
+def schema_instance_path(stem: str, root: Path = ROOT) -> Path:
+    if stem == "release_manifest":
+        return root / "release_manifest.json"
+    if stem in SCHEMA_INSTANCES:
+        return root / SCHEMA_INSTANCES[stem]
+    return root / "assets" / "templates" / "v3" / f"{stem}.json"
 
 
 def _type_ok(value: Any, kind: str) -> bool:
@@ -66,7 +82,7 @@ def validate_json_assets() -> list[str]:
         # These two documents describe array items, not a standalone template.
         if stem in {"evidence_anchor", "review_finding"}:
             continue
-        candidate = ROOT / "release_manifest.json" if stem == "release_manifest" else template_dir / f"{stem}.json"
+        candidate = schema_instance_path(stem, ROOT)
         if candidate.exists():
             try: validate_instance(_read(candidate), schema, str(candidate), findings=findings)
             except (OSError, json.JSONDecodeError) as exc: findings.append(f"{candidate}: {exc}")

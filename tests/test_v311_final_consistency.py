@@ -68,6 +68,46 @@ class FinalConsistencyRegressionTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn("include-hidden-files: true", workflow)
 
+    def test_ci_runs_competition_smoke_and_uploads_its_hidden_artifact(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "python scripts/competition_smoke_run.py --output .competition-smoke-result.json",
+            workflow,
+        )
+        self.assertIn(".competition-smoke-result.json", workflow)
+
+    def test_competition_schemas_map_to_release_validation_instances(self):
+        expected = {
+            "competition_clock": ROOT
+            / "assets/templates/competition/competition_clock.json",
+            "competition_method_router": ROOT
+            / "assets/registry/competition_method_router.json",
+            "competition_profile": ROOT / "assets/competition/cumcm_profile.json",
+            "competition_review": ROOT
+            / "assets/templates/competition/competition_review.json",
+            "competition_rules": ROOT
+            / "assets/templates/competition/competition_rules.json",
+            "competition_state": ROOT
+            / "assets/templates/competition/competition_state.json",
+        }
+
+        actual = {
+            stem: release.schema_instance_path(stem, ROOT) for stem in expected
+        }
+
+        self.assertEqual(actual, expected)
+        self.assertTrue(all(path.exists() for path in actual.values()))
+
+    def test_competition_smoke_result_is_not_release_controlled_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            generated = root / ".competition-smoke-result.json"
+            generated.write_text("{}\n", encoding="utf-8")
+
+            self.assertFalse(manifest.is_release_controlled(generated, root))
+
     def test_repository_release_manifest_is_explicitly_unresolved(self):
         manifest = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest.get("source_commit_mode"), "publisher-injected")
