@@ -710,5 +710,86 @@ class CompetitionContractTests(unittest.TestCase):
         self.assertEqual(result["time_source"], "competition_runtime")
 
 
+class CompetitionReviewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.reviewer = load("competition_review")
+
+    def valid_review(self):
+        return {
+            "schema_version": 3,
+            "skill_version": "3.1.1",
+            "competition": "CUMCM",
+            "findings": [
+                {
+                    "issue": "Q2 conclusion lacks a robustness check",
+                    "severity": "MAJOR",
+                    "location": "Section 4.2",
+                    "why_it_matters": "the selected decision may reverse under plausible inputs",
+                    "smallest_sufficient_fix": "run the declared parameter perturbation",
+                    "estimated_scoring_impact": "HIGH",
+                    "evidence_anchors": ["EA-Q2-RESULT"],
+                },
+                {
+                    "issue": "one axis label omits its unit",
+                    "severity": "MINOR",
+                    "location": "Figure 3",
+                    "why_it_matters": "the plotted magnitude is ambiguous",
+                    "smallest_sufficient_fix": "add the declared unit",
+                    "estimated_scoring_impact": "LOW",
+                    "evidence_anchors": ["EA-FIG-003"],
+                },
+            ],
+            "score_radar": {
+                "problem_understanding": 8,
+                "model_appropriateness": 8,
+                "mathematical_rigor": 7,
+                "implementation": 8,
+                "validation": 5,
+                "innovation": 6,
+                "visualization": 7,
+                "writing": 7,
+                "reproducibility": 8,
+                "overall_coherence": 7,
+            },
+            "current_strongest_point": "the baseline is reproducible",
+            "current_weakest_point": "Q2 robustness evidence",
+            "largest_award_level_blocker": "the unresolved Q2 robustness finding",
+            "highest_roi_remaining_improvement": "run the declared Q2 perturbation",
+        }
+
+    def test_review_accepts_bounded_findings_and_ten_scores(self):
+        result = self.reviewer.audit(self.valid_review())
+
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(len(result["score_radar"]), 10)
+        self.assertEqual(
+            [item["severity"] for item in result["ordered_findings"]],
+            ["MAJOR", "MINOR"],
+        )
+
+    def test_review_rejects_out_of_range_scores_and_award_probability(self):
+        value = self.valid_review()
+        value["score_radar"]["validation"] = 11
+        value["largest_award_level_blocker"] = "95% chance of first prize"
+
+        result = self.reviewer.audit(value)
+
+        self.assertEqual(result["status"], "FAIL")
+        self.assertTrue(any("0 through 10" in item for item in result["findings"]))
+        self.assertTrue(any("award probability" in item for item in result["findings"]))
+
+    def test_review_rejects_missing_evidence_and_invalid_severity(self):
+        value = self.valid_review()
+        value["findings"][0]["severity"] = "INFO"
+        value["findings"][0]["evidence_anchors"] = []
+
+        result = self.reviewer.audit(value)
+
+        self.assertEqual(result["status"], "FAIL")
+        self.assertTrue(any("severity" in item for item in result["findings"]))
+        self.assertTrue(any("evidence_anchors" in item for item in result["findings"]))
+
+
 if __name__ == "__main__":
     unittest.main()
