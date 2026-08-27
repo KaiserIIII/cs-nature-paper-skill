@@ -102,7 +102,7 @@ d6e97bf930e2e18a962e7813bc6b3f7d91225a6fbf5a2ac0cec4972f0593ae5e  docs/v3-releas
 6c63cfd9064e8ca7d2c50da75996e542285fa9edab8238a277657c9e1d7f97b0  docs/v3.1-red-team-audit.md
 9c8308665488f0aa34c3656d3dc36514f15abdc15a98b5f44dfa84ac560787a0  docs/v3.1-release-report.md
 28143bd5cb2f2dde408aec96a20c0dadbb02ed26de9f8b4ae9e7fe7a47144d2e  docs/v3.1-skill-landscape-audit.md
-deac4fcb3e9952ec95e1c5f8939d42bd32c96db85cb0c2d66a37bbc69f9f2c27  docs/v3.1.1-release-report.md
+910be0f89d0ca3d1c600b8cac871163bdab79b22f93f4a702a00f3561a13257b  docs/v3.1.1-release-report.md
 232fe346d9a9104b24a99e92f821fb69f91ae5367644eedb24bef63f4b66c5ad  docs/venues.md
 9928cb5439b59bcc0afda002879781e9e017b4bbe8d9b24d037cc3f5878c415b  references/core/autopilot.md
 15a9e918c833ccd53739000fa269f0b806310709c8de80d7e0bb8c402c6cd4ab  references/core/control-loop.md
