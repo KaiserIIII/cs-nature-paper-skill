@@ -1,5 +1,6 @@
 {
   "id": "SYNTHETIC-CUMCM-FACILITY-001",
+  "provider_mode": "fixture",
   "question": "Choose one facility with capacity at least 80 and minimum declared cost.",
   "sites": [
     {"id": "A", "capacity": 70, "cost": 8},

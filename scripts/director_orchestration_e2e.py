@@ -64,6 +64,7 @@ def _seed(project: Path) -> None:
         "question": "Does the normal Director runtime preserve output provenance for a deterministic fixture?",
         "scope": "public synthetic fixture only",
         "source_title": "Synthetic provenance source",
+        "provider_mode": "fixture",
     })
     _write(project / "inputs" / "literature_source.txt", "Deterministic execution records connect commands to content-addressed outputs.\n")
 

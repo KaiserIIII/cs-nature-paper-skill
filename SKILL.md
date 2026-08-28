@@ -64,6 +64,27 @@ but its outputs must return as typed artifacts with provenance before they can
 support a formal claim. Read [references/core/control-loop.md](references/core/control-loop.md)
 and [references/core/evidence-provenance.md](references/core/evidence-provenance.md).
 
+The Provider layer supplies execution capacity without creating a second
+control plane. Read [references/core/providers.md](references/core/providers.md).
+Resolve each graph node's capability through `scripts/provider_runtime.py`:
+qualified native providers first, then qualified installed Skills, then the
+current host/tool, then capability-driven AUTO_HIRE discovery. A provider may
+produce an artifact but cannot mark the graph PASS, upgrade evidence, or bypass
+authorization. Formal/load-bearing work requires a qualified provider and a
+separate checker invocation.
+
+In `maximum-autonomy`, when Provider Runtime requests a host capability, use
+the current host's available search, read, code, execute, and review tools to
+perform it. Materialize the result using the host request/handoff contract,
+record actions, uncertainties, tool calls, artifacts, and evidence inputs,
+invoke a distinct checker, register hashes and provenance, then resume the
+deterministic Director. Do not merely tell the author to run
+`director_loop.py`, and do not ask the author for ordinary host-capable work.
+If the capability is genuinely missing, run `scripts/skill_discovery_provider.py`
+and `skill_marketplace_runtime.auto_hire_missing_capability`: discovery,
+static audit, immutable pin, isolated materialization, qualification,
+execution, checking, then acceptance. Discovery alone is never success.
+
 Before a major experiment or manuscript-wide rewrite, locate existing project
 protocols, preregistration, decision logs, claims, evidence, and native systems.
 Preserve them. If no control plane exists and local state is in scope:
@@ -241,6 +262,9 @@ marks a node `PASS` only after its artifact/evidence contract succeeds.
 - Validation/review: read `departments/validation.md`, `departments/review.md`,
   and `core/security.md`.
 - External skill request: read `core/skill-marketplace.md` before activation.
+- Provider request: read `core/providers.md`; perform a host-native handoff when
+  available, otherwise use capability-driven discovery. Never inherit secrets
+  into an external employee without explicit authorization.
 - Methods decision: run `scripts/method_router.py` and load only the selected
   bounded module; escalate high-risk methods to a qualified checker.
 - CUMCM competition: read `competitions/cumcm.md`; use
@@ -253,6 +277,9 @@ marks a node `PASS` only after its artifact/evidence contract succeeds.
   `competition_runtime.py execute-next` to pass eligible work through shared
   authorization, executor, evidence, audit, recovery, and graph contracts. A
   zero-match contest route is `UNRESOLVED`, not a guessed method.
+  Production competition execution is structure-driven through the modeling,
+  coding, analysis, and writing providers. The legacy logistics solver is an
+  explicit fixture provider and must not be selected in production.
 - Literature: keep discovery, identity verification, and claim-support
   verification separate; snippets and metadata cannot support a load-bearing
   claim. Use `scripts/literature_runtime.py` and the query log.

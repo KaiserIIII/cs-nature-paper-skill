@@ -11,6 +11,8 @@ Thumbs.db
 .ci-smoke-result.json
 .competition-smoke-result.json
 .competition-orchestration-e2e.json
+.generic-research-orchestration-e2e.json
+.generic-competition-orchestration-e2e.json
 .director-orchestration-e2e.json
 .full-paper-e2e.json
 resolved_release_manifest.json

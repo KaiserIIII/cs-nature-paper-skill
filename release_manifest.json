@@ -20,7 +20,11 @@
     "full_paper_harness": "PASS",
     "completion_contract": "PASS",
     "competition_e2e": "PASS",
-    "competition_orchestration_e2e": "PASS"
+    "competition_orchestration_e2e": "PASS",
+    "provider_runtime": "PASS",
+    "skill_discovery_provider": "PASS",
+    "generic_research_orchestration_e2e": "PASS",
+    "generic_competition_orchestration_e2e": "PASS"
   },
   "hosted_ci": {
     "run_id": null,
@@ -35,8 +39,8 @@
   "known_limitations": [
     "The repository manifest is intentionally unresolved and release-blocked; Hosted CI creates the exact-SHA resolved manifest only after all six matrix jobs pass.",
     "Model-backed end-to-end autonomous research behavior has not been independently validated.",
-    "Live venue pages, paywalled sources, and external skill HEADs require activation-time verification.",
-    "The deterministic E2E uses a public synthetic fixture and does not establish a scientific result or venue outcome."
+    "Live venue pages, paywalled sources, and external Skills require activation-time access, exact immutable pins, and verification.",
+    "Deterministic generic and fixture E2Es demonstrate routing and artifact contracts; they do not establish a scientific result, universal generalization, model behavior, or venue outcome."
   ],
   "release_disposition": "V3.2.0 RELEASE BLOCKED; exact-SHA Hosted CI evidence has not yet been injected"
 }

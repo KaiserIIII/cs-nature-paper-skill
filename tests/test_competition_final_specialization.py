@@ -52,6 +52,7 @@ def official_rules():
 
 def contest_input():
     return {
+        "provider_mode": "fixture",
         "competition": "CUMCM",
         "contest_start_utc": "2026-09-10T08:00:00Z",
         "submission_deadline_utc": "2026-09-13T08:00:00Z",

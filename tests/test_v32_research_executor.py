@@ -29,6 +29,7 @@ def seed(project):
                 "question": "Does a deterministic fixture preserve output provenance?",
                 "scope": "public synthetic fixture only",
                 "source_title": "Synthetic provenance source",
+                "provider_mode": "fixture",
             }
         ),
         encoding="utf-8",

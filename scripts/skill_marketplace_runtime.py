@@ -81,10 +81,10 @@ def discover(capability: str, candidates: list[dict[str, Any]]) -> list[dict[str
 
 
 def classify_risk(candidate: dict[str, Any]) -> str:
-    if any(candidate.get(field) is True for field in ("credentials", "paid", "admin", "system_wide_write", "private_data_export", "dangerous_hooks")):
-        return "HIGH"
     if candidate.get("license_compatible") is False:
         return "CRITICAL"
+    if any(candidate.get(field) is True for field in ("credentials", "paid", "admin", "system_wide_write", "private_data_export", "dangerous_hooks")):
+        return "HIGH"
     if any(candidate.get(field) is True for field in ("network_runtime", "complex_installer", "large_dependency_set")):
         return "MEDIUM"
     declared = candidate.get("risk")
@@ -274,4 +274,81 @@ def hire_and_execute(
         "audit": audit,
         "result": execution.get("result"),
         "lifecycle": lifecycle,
+    }
+
+
+def auto_hire_missing_capability(
+    project: Path,
+    capability: str,
+    payload: dict[str, Any],
+    *,
+    policy: dict[str, Any],
+    discovery_backends: list[Any] | None = None,
+    known_catalog: list[dict[str, Any]] | None = None,
+    installed: list[dict[str, Any]] | None = None,
+    actor: str = "director",
+) -> dict[str, Any]:
+    """Discover a vacancy online/catalog-first, then audit, pin, isolate, qualify, execute, and check."""
+    discovery_runtime = _load("skill_discovery_provider")
+    lifecycle = ["DISCOVERY"]
+    discovered = discovery_runtime.discover_capability(
+        capability,
+        backends=discovery_backends,
+        known_catalog=known_catalog,
+        installed=installed,
+    )
+    if discovered.get("status") != "PASS":
+        return {
+            "operation": "auto-hire-missing-capability", "status": "BLOCKED",
+            "reason": "discovery returned no candidate", "discovery": discovered,
+            "provider_lifecycle": lifecycle,
+        }
+    audited = []
+    for candidate in discovered["candidates"]:
+        audit = discovery_runtime.static_audit(candidate)
+        audited.append((candidate, audit))
+    lifecycle.append("AUDIT")
+    eligible = [
+        (candidate, audit) for candidate, audit in audited
+        if audit.get("status") == "PASS" and audit.get("authorization") in {"AUTO", "AUTO_WITH_AUDIT"}
+    ]
+    if not eligible:
+        author_required = any(audit.get("authorization") == "ASK_AUTHOR" for _, audit in audited)
+        return {
+            "operation": "auto-hire-missing-capability", "status": "BLOCKED",
+            "reason": "candidate requires author authorization" if author_required else "no candidate passed static audit",
+            "requires_author": author_required, "audits": [audit for _, audit in audited],
+            "provider_lifecycle": lifecycle,
+        }
+    risk_order = {"LOW": 0, "MEDIUM": 1}
+    selected, audit = sorted(eligible, key=lambda item: (risk_order.get(item[1]["risk"], 9), str(item[0].get("id", ""))))[0]
+    lifecycle.append("PIN")
+    materialized = discovery_runtime.materialize(project, selected)
+    if materialized.get("status") != "MATERIALIZED":
+        return {
+            "operation": "auto-hire-missing-capability", "status": "REJECTED",
+            "audit": audit, "materialization": materialized, "provider_lifecycle": lifecycle,
+        }
+    lifecycle.append("MATERIALIZE")
+    candidate = dict(selected)
+    candidate.update({
+        "source_path": materialized["path"], "license_compatible": True,
+        "source_audit": "PASS", "installer_audit": "PASS", "dependency_audit": "PASS",
+        "security_audit": "PASS", "behavior_trial": "PASS", "risk": audit["risk"],
+        "dangerous_hooks": False, "credentials": audit["credentials"],
+        "system_wide_write": audit["system_writes"], "private_data_export": False,
+        "network_runtime": audit["network"], "permission_scope": selected.get("permission_scope", [capability]),
+    })
+    result = hire_and_execute(project, capability, [candidate], payload, policy=policy, actor=actor)
+    if result.get("status") != "ACCEPTED":
+        return result | {
+            "operation": "auto-hire-missing-capability", "discovery": discovered,
+            "discovery_audit": audit, "materialization": materialized,
+            "provider_lifecycle": lifecycle + (["QUALIFY"] if "QUALIFIED" in result.get("lifecycle", []) else []),
+        }
+    return result | {
+        "operation": "auto-hire-missing-capability", "discovery": discovered,
+        "discovery_audit": audit, "materialization": materialized,
+        "legacy_lifecycle": result.get("lifecycle", []),
+        "provider_lifecycle": lifecycle + ["QUALIFY", "EXECUTE", "CHECK", "ACCEPT"],
     }

@@ -4,6 +4,18 @@
 
 ### Added
 
+- Added a host-neutral Provider Runtime with qualification-aware routing,
+  typed host handoffs, independent checking, artifact freshness, and
+  dependency invalidation while retaining the existing control plane.
+- Added capability-driven catalog/GitHub Skill discovery, static audit,
+  immutable commit resolution, isolated materialization, no-secrets execution,
+  and the full DISCOVERY-to-ACCEPT AUTO_HIRE lifecycle.
+- Split legacy research and logistics solvers into explicit fixture providers;
+  production research and competition executors now route to project-aware
+  literature, coding, analysis, writing, review, and mixed-method providers.
+- Added input-derived generic research orchestration and three-structure
+  competition orchestration E2Es. Host model behavior remains separately
+  classified and is `NOT_RUN` without an isolated host adapter.
 - Added bounded `maximum-autonomy` mode with one policy/authorization API,
   expiring and revocable standing authorizations, and an AUTO_HIRE risk gate.
 - Added a canonical hash-chained autonomy audit log, resumable director loop,

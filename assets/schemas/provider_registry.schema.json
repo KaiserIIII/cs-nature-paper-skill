@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cs-nature-paper/provider_registry.schema.json",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "providers"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "skill_version": {"const": "3.2.0"},
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["provider_id", "type", "capabilities", "input_contract", "output_contract", "permissions", "network", "credentials_required", "cost_class", "formal_eligible", "checker_required", "qualification", "failure_modes"],
+        "properties": {
+          "provider_id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["NATIVE", "HOST_LLM", "WEB", "EXTERNAL_SKILL", "TOOL"]},
+          "status": {"enum": ["AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED"]},
+          "capabilities": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "input_contract": {"type": "object"},
+          "output_contract": {"type": "object"},
+          "permissions": {"type": "array", "items": {"type": "string"}},
+          "network": {"type": "boolean"},
+          "credentials_required": {"type": "boolean"},
+          "cost_class": {"const": "FREE"},
+          "formal_eligible": {"type": "boolean"},
+          "checker_required": {"type": "boolean"},
+          "qualification": {"type": "string"},
+          "failure_modes": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

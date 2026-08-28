@@ -2,7 +2,7 @@ name: cs-nature-paper-v3.2
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final, feat/v32-provider-final]
   pull_request:
   workflow_dispatch:
 
@@ -48,6 +48,10 @@ jobs:
         run: python scripts/full_paper_e2e.py --output .full-paper-e2e.json
       - name: Director orchestration E2E
         run: python scripts/director_orchestration_e2e.py --output .director-orchestration-e2e.json
+      - name: Generic research Provider orchestration E2E
+        run: python scripts/generic_research_orchestration_e2e.py --output .generic-research-orchestration-e2e.json
+      - name: Generic competition Provider orchestration E2E
+        run: python scripts/generic_competition_orchestration_e2e.py --output .generic-competition-orchestration-e2e.json
       - name: Validate v3.2 completion contract
         run: python scripts/validate_release.py --v32-e2e .full-paper-e2e.json
       - name: Graph rebuild and E2E artifact checks
@@ -63,6 +67,8 @@ jobs:
             .competition-orchestration-e2e.json
             .full-paper-e2e.json
             .director-orchestration-e2e.json
+            .generic-research-orchestration-e2e.json
+            .generic-competition-orchestration-e2e.json
           include-hidden-files: true
           if-no-files-found: error
       - name: Quick skill validation when available

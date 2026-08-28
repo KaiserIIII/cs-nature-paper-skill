@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "skill_version": "3.2.0",
+  "providers": [
+    {
+      "provider_id": "native-deterministic",
+      "type": "NATIVE",
+      "status": "QUALIFIED",
+      "capabilities": ["project-orientation", "execution", "experiment-execution", "artifact-validation"],
+      "input_contract": {"type": "object"},
+      "output_contract": {"type": "object", "typed_artifact": true},
+      "permissions": ["local_read", "local_write", "execute"],
+      "network": false,
+      "credentials_required": false,
+      "cost_class": "FREE",
+      "formal_eligible": true,
+      "checker_required": true,
+      "qualification": "QUALIFIED",
+      "failure_modes": ["unsupported study structure", "command failure"]
+    },
+    {
+      "provider_id": "host-native",
+      "type": "HOST_LLM",
+      "status": "AVAILABLE",
+      "capabilities": ["research-question-structuring", "novelty-analysis", "feasibility-analysis", "code-generation", "statistical-analysis", "evidence-bound-writing", "adversarial-review"],
+      "input_contract": {"type": "object", "contract": "host-request"},
+      "output_contract": {"type": "object", "contract": "host-handoff"},
+      "permissions": ["local_read", "local_write"],
+      "network": false,
+      "credentials_required": false,
+      "cost_class": "FREE",
+      "formal_eligible": false,
+      "checker_required": true,
+      "qualification": "PROVISIONAL",
+      "failure_modes": ["host unavailable", "typed handoff missing", "checker failure"]
+    },
+    {
+      "provider_id": "public-literature-web",
+      "type": "WEB",
+      "status": "AVAILABLE",
+      "capabilities": ["literature-discovery", "literature-retrieval", "literature-verification"],
+      "input_contract": {"type": "object", "required": ["research_question"]},
+      "output_contract": {"type": "object", "required": ["queries", "candidate_sources", "retrieval_records"]},
+      "permissions": ["network"],
+      "network": true,
+      "credentials_required": false,
+      "cost_class": "FREE",
+      "formal_eligible": false,
+      "checker_required": true,
+      "qualification": "PROVISIONAL",
+      "failure_modes": ["network denied", "identity unresolved", "full text unavailable"]
+    }
+  ]
+}

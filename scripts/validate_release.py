@@ -14,7 +14,7 @@ from typing import Any
 
 SKILL_VERSION = "3.2.0"
 LEGACY_SKILL_VERSION = "3.1.1"
-V32_TEMPLATE_NAMES = {"autonomy_policy.json", "completion_contract.json", "director_session.json"}
+V32_TEMPLATE_NAMES = {"autonomy_policy.json", "completion_contract.json", "director_session.json", "provider_registry.json"}
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_CI_MATRIX = (
     "ubuntu-latest / Python 3.10",
@@ -174,7 +174,7 @@ def validate_release_manifest_value(
         findings.append(f"HOSTED_CI_WRONG_SHA: expected {source_commit}, got {hosted.get('head_sha')}")
     branch = hosted.get("branch")
     allowed_branch = expected_branch or value.get("source_branch")
-    if branch != allowed_branch or branch not in {"v3.2", "main", "feat/cumcm-v32-final"}:
+    if branch != allowed_branch or branch not in {"v3.2", "main", "feat/cumcm-v32-final", "feat/v32-provider-final"}:
         findings.append(f"HOSTED_CI_WRONG_BRANCH: expected {allowed_branch}, got {branch}")
     if hosted.get("workflow") != expected_workflow:
         findings.append(f"HOSTED_CI_WRONG_WORKFLOW: expected {expected_workflow}, got {hosted.get('workflow')}")

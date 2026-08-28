@@ -1,7 +1,7 @@
 interface:
   display_name: "CS Nature Paper V3.2.0 Maximum Autonomy"
-  short_description: "Student-first executable evidence-bound AI Research OS"
+  short_description: "Provider-driven evidence-bound autonomous Research OS"
   brand_color: "#2457A7"
-  default_prompt: "Use $cs-nature-paper to diagnose my research idea or project, select a bounded path, and execute the next evidence-traceable step."
+  default_prompt: "Use $cs-nature-paper in maximum-autonomy mode to inspect my project, route qualified providers, execute evidence-traceable research, review and repair it, and stop at READY_FOR_SUBMISSION."
 policy:
   allow_implicit_invocation: true

@@ -241,6 +241,29 @@ irreversible external actions, publication, and submission require the author.
 only after artifacts and evidence pass their contracts. Project completion is
 `READY_FOR_SUBMISSION`; software release readiness is validated separately.
 
+## Provider-driven execution
+
+V3.2.0 separates four validation layers that must not be conflated:
+
+- **Deterministic runtime:** graph, authorization, commands, artifact hashes,
+  checkers, evidence, provenance, freshness, and dependency invalidation.
+- **Host Provider:** the current Codex/Claude-style host may search, read, code,
+  execute, write, or review through a neutral typed request/handoff contract.
+  A separate invocation/checker must accept the artifact before graph PASS.
+- **External Skill Provider:** a capability vacancy can trigger catalog,
+  installed-Skill, marketplace, and GitHub discovery. Candidates are statically
+  audited, pinned to an exact 40-character commit, isolated, qualified, run
+  without inherited secrets, checked, and only then accepted.
+- **Model Behavior:** host/model quality is a separate evaluation. It remains
+  `NOT_RUN` when no genuinely isolated host-backed adapter was executed.
+
+`scripts/research_executor.py` and `scripts/competition_executor.py` are now
+Provider adapters. The production research path reads actual project data and
+executes input-derived code. The competition path routes by problem structure
+and supports mixed forecasting/optimization, evaluation/clustering, and
+simulation/ODE workflows. Legacy research and logistics examples live only in
+explicit fixture providers.
+
 ## CUMCM competition overlay
 
 Competition mode is a policy overlay on the same Research Graph, evidence
@@ -390,6 +413,8 @@ python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
 python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 python scripts/competition_orchestration_e2e.py
+python scripts/generic_research_orchestration_e2e.py
+python scripts/generic_competition_orchestration_e2e.py
 ```
 
 The competition smoke uses a finite synthetic facility-selection fixture and
@@ -398,6 +423,13 @@ standard-library enumeration. It tests runtime integration only. Its class is
 The orchestration E2E is a deterministic runtime orchestration test, not a
 model-behavior evaluation; `MODEL_BEHAVIOR_EVAL` remains `NOT_RUN` unless an
 authorized model adapter is supplied.
+
+The generic research E2E uses a small CSV, compares two transparent candidate
+methods, executes generated project code, analyzes the observed output, writes
+from the evidence state, reviews, repairs, and reaches `READY_FOR_SUBMISSION`.
+The generic competition E2E runs the same production providers on three
+different structures. These deterministic tests demonstrate routing and
+artifact contracts, not universal scientific validity or host-model quality.
 
 ## What this project does not claim
 

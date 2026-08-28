@@ -36,7 +36,7 @@ V3_TEMPLATES = (
     "employee_registry.json", "delegation_plan.json", "handoff.json", "query_log.json",
     "review_finding.json",
 )
-V32_TEMPLATES = ("autonomy_policy.json", "completion_contract.json", "director_session.json")
+V32_TEMPLATES = ("autonomy_policy.json", "completion_contract.json", "director_session.json", "provider_registry.json")
 COMPETITION_TEMPLATES = (
     "competition_clock.json", "competition_state.json", "competition_rules.json",
     "competition_review.json", "competition_risks.json",

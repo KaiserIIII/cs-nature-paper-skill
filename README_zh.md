@@ -228,6 +228,26 @@ Maximum autonomy 使用 `scripts/autonomy.py` 作为统一 policy/authorize 边�
 通过 output contract 后推进 graph。项目完成语义为 `READY_FOR_SUBMISSION`；
 软件 release readiness 由独立流程验证。
 
+## Provider 驱动执行
+
+V3.2.0 明确区分四层，不能混为一谈：
+
+- **Deterministic Runtime**：科研图、授权、真实命令、artifact hash、checker、
+  evidence、provenance、freshness 和依赖失效。
+- **Host Provider**：当前 Codex/Claude 类 host 可通过中立的 typed
+  request/handoff 执行搜索、读取、编码、运行、写作和审查；独立 checker 接受
+  artifact 后 graph 才能 PASS。
+- **External Skill Provider**：能力缺口可触发 catalog、已安装 Skill、公共
+  marketplace 和 GitHub 搜索。候选必须静态审计、解析为 40 位 immutable SHA、
+  隔离 materialize、qualification、无 secrets 执行、检查，最后才能接受。
+- **Model Behavior**：host/model 质量属于独立评测；没有真正隔离的 host-backed
+  adapter 时必须诚实记录为 `NOT_RUN`。
+
+`scripts/research_executor.py` 与 `scripts/competition_executor.py` 现在只是
+Provider adapter。生产科研路径读取真实项目数据并执行输入派生代码；比赛路径
+根据问题结构路由，支持 forecasting+optimization、evaluation+clustering、
+simulation/ODE 等混合方法。旧科研示例与物流求解器只存在于显式 fixture provider。
+
 ## CUMCM 比赛覆盖层
 
 比赛模式是通用 Research Graph 上的 policy overlay，继续使用原有的 evidence
@@ -364,6 +384,8 @@ python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
 python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 python scripts/competition_orchestration_e2e.py
+python scripts/generic_research_orchestration_e2e.py
+python scripts/generic_competition_orchestration_e2e.py
 ```
 
 Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只验证 runtime
@@ -371,6 +393,12 @@ Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只�
 `NOT_RUN`。
 Competition orchestration E2E 是确定性的 runtime orchestration 测试，不是模型
 行为评测；没有授权 model adapter 时 `MODEL_BEHAVIOR_EVAL` 仍为 `NOT_RUN`。
+
+通用科研 E2E 使用小型 CSV、比较两个透明候选方法、真实执行生成代码、分析
+观测输出、从 evidence state 写作、审稿和修复，最终达到
+`READY_FOR_SUBMISSION`。通用比赛 E2E 让同一组生产 Provider 处理三种不同
+结构。这些确定性测试证明路由与 artifact contract，不证明任意科研结论或
+host model 行为质量。
 
 ## 这个项目不声称什么
 
