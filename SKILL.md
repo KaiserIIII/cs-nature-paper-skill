@@ -31,8 +31,8 @@ Infer the narrowest useful operating mode from the request:
 | `revision` | review, rejection, or resubmission | private concern matrix and bounded amendments |
 | `review` | adversarial assessment of a draft or artifact | threat-selected findings with anchors |
 | `preflight` | submission readiness | current-source venue card and package audit |
-| `competition` | active CUMCM work with author-owned major direction changes | runtime dashboard and highest-ROI eligible action |
-| `competition-autopilot` | compare supplied contest problems and start a defensible baseline | structured problem comparison and clock-aware plan |
+| `competition` | execute an already selected competition problem | runtime dashboard and highest-ROI executable action |
+| `competition-autopilot` | run supplied problems through the full competition lifecycle | automatic qualitative selection, executable baseline, and continuous Director run |
 | `competition-review` | red-team a contest paper and submission package | severity-ordered findings and score radar |
 
 Do not ask a questionnaire when low-risk orientation work can answer it. Give a
@@ -48,7 +48,12 @@ study-type profile from [references/study-types/](references/study-types/).
 For any competition mode, first read
 [references/competitions/cumcm.md](references/competitions/cumcm.md). Use the
 competition runtime for clock, phase, freeze, ETA, and scheduling decisions;
-never infer remaining time from the conversation.
+never infer remaining time from the conversation. In `competition-autopilot`,
+auto-select a clearly dominant problem and continue ordinary modeling, coding,
+validation, writing, review, and repair without author prompts. Ask only for a
+substantive tie/unknown external resource, required human rule action, paid or
+credentialed access, sensitive-data egress, irreversible external mutation,
+administrator privilege, or final submission.
 
 ## Control the research before expanding it
 
@@ -142,6 +147,10 @@ python scripts/research_graph.py explain PROJECT
 Competition modes use the same graph engine with a CUMCM graph template. The
 competition overlay may rank, freeze, block, or reopen generic nodes through
 the graph API; it does not maintain a second node-status or provenance store.
+Temporary ETA/finalization/freeze blocks are projections only and never write
+canonical `BLOCKED` state. `scripts/competition_director.py` is the normal
+schedule -> authorize -> execute -> check -> evidence -> graph loop; continue
+until `COMPETITION_SUBMISSION_READY` whenever author action is `NONE`.
 
 Use `scripts/skill_router.py` to resolve capabilities before staffing work. A
 catalog entry is a design source only unless its `runtime_status` is qualified;
@@ -237,7 +246,9 @@ marks a node `PASS` only after its artifact/evidence contract succeeds.
 - CUMCM competition: read `competitions/cumcm.md`; use
   `scripts/competition_runtime.py` for clock and scheduling,
   `scripts/competition_method_router.py` for model families, and
-  `scripts/competition_review.py` for contest review. Scheduling blocks are an
+  `scripts/competition_quality.py` for solver/unit/numeric/figure/paper/preflight
+  gates, `scripts/competition_review.py` for contest review, and
+  `scripts/competition_director.py` for continuous execution. Scheduling blocks are an
   overlay and never overwrite canonical scientific status. Use
   `competition_runtime.py execute-next` to pass eligible work through shared
   authorization, executor, evidence, audit, recovery, and graph contracts. A

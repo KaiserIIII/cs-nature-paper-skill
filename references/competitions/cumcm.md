@@ -32,10 +32,10 @@ results, sensitivity findings, citations, or model effects.
 
 ### `competition`
 
-Act as contest captain, modeling lead, implementation lead, and paper-review
-lead. Continue safe routine work autonomously. The author owns final problem
-selection, major scientific direction changes, rule-required decisions, and
-irreversible high-risk operations.
+Execute an already selected problem through modeling, implementation,
+validation, writing, review, repair, and preflight. Continue while author
+action is `NONE`; ordinary scientific and implementation choices inherit the
+v3.2 autonomy policy and do not create a second authorization system.
 
 ### `competition-autopilot`
 
@@ -53,10 +53,13 @@ Time-to-completion risk
 Defensible 72-hour completion assessment
 ```
 
-Recommend a problem from evidence and feasibility, not from how advanced a
-method sounds. The author confirms the final problem choice. Then create the
-problem tree, baseline, primary model, validation plan, and time plan before
-executing the smallest viable model.
+Select a problem from evidence and feasibility, not from how advanced a method
+sounds. Use qualitative `HIGH` / `MEDIUM` / `LOW` profiles instead of false
+precision. `AUTO_SELECT` a clear winner and record the rationale, rejected
+alternatives, largest selection risk, and fallback. Ask the author only for a
+material tie, missing decisive data, a rule-required choice, or unknown
+author-owned external resources. Then continue the full Director lifecycle to
+`COMPETITION_SUBMISSION_READY`.
 
 ### `competition-review`
 
@@ -73,18 +76,22 @@ verify current official primary sources for every item in
 `competition_rules.json`:
 
 ```text
-contest time and deadline
+contest start and deadline
+problem count and participant eligibility
 AI-use policy
-file format
-page limit
-submission method
-problem count
-discipline and conduct requirements
+paper format and page limit
+file naming and attachment requirements
+code requirements
+submission platform and method
+anonymity and discipline requirements
 ```
 
-Each verified item records the official source, verification UTC, and actor.
-If current official information is unavailable, keep the item `UNVERIFIED`.
-Do not infer a rule from prior years or describe it as confirmed.
+Each item records `rule_id`, `status`, `official_source`, retrieval and
+verification UTC, actor, and exact supporting region/evidence. Only an
+official primary source may produce `VERIFIED`; prior-year material is
+`BACKGROUND_ONLY`, and incompatible official statements are `CONFLICTING`.
+Unverified rules do not block early modeling, but they fail submission
+preflight closed.
 
 ## Competition Clock
 
@@ -123,6 +130,11 @@ manual_override_utc
 No correction is silent. An unverified clock may show provisional arithmetic,
 but it cannot authorize deadline policy, timed jobs, or a claim that the
 official deadline is confirmed.
+
+Clock events are `CONFIGURE`, `VERIFY`, `ADJUST`, `OFFICIAL_EXTENSION`,
+`PAUSE`, or `RESUME`. Every event contains `event_id`, `event_type`, before and
+after snapshots, reason, actor, UTC, predecessor hash, and event hash. Any
+chain mutation fails closed.
 
 ## Schedule phase and control mode
 
@@ -183,10 +195,28 @@ model. Graph PASS transitions still require canonical evidence anchors.
 The deterministic next-action rule is:
 
 ```text
-Research Graph + Clock + Risk + Decision Relevance + ETA -> Next Action
+Research Graph
++ Clock
++ Competition Phase
++ Scientific Risk
++ Scoring Risk
++ Decision Relevance
++ Expected Information Gain
++ ETA and Safety Margin
++ Paper / Validation / Complexity Debt
++ Autonomy Policy
+= Next Action
 ```
 
 Do not substitute conversational preference for this policy.
+
+Temporary ETA, finalization, hard-freeze, or unverified-clock restrictions are
+runtime policy projections such as `TEMPORARILY_BLOCKED`; they never overwrite
+a scientifically `READY` canonical graph node. The node becomes eligible again
+when the condition clears without a manual reopen.
+
+For the reference 72-hour profile, a missing executable, interpretable MVP at
+T+10h is high risk. At T+12h, trigger scope reduction or a simpler method.
 
 ## Job ETA gate
 
@@ -213,19 +243,16 @@ the finalization gate.
 After each major operation, report Runtime-derived values:
 
 ```text
-Competition time:
-Elapsed:
-Remaining:
-Current phase:
-STOP RULE:
-Hard freeze:
-Completed:
-Running:
-Blocked:
-Current best model:
-Largest scoring risk:
+Competition / Problem selected:
+Elapsed / Remaining / Phase / Control mode:
+Completed / Running:
+Blocked by science / policy / time:
+Current best model / Baseline / Primary model:
+Largest scientific risk / Largest scoring risk:
+Paper debt / Validation debt / Complexity debt:
 Highest-ROI next action:
 Submission readiness:
+Author action required:
 ```
 
 Do not hand-calculate or rewrite elapsed and remaining time.
@@ -238,16 +265,22 @@ Transform each contest question into one record:
 ID
 Goal
 Inputs
+Known data
+Unknown data
 Decision variables
 State variables
+Parameters
 Target
+Objective
 Constraints
-Outputs
+Required outputs
 Required evidence
-Assumptions
-Candidate methods
-Validation
 Dependencies
+Candidate method families
+Validation requirements
+Likely paper section
+Difficulty
+Execution risk
 ```
 
 Record dependencies such as `Q1 -> Q2 -> Q3`. Reuse definitions, units, data,
@@ -278,15 +311,14 @@ differential equations, simulation, spatial/routing, and data preparation.
 Required output:
 
 ```text
-Problem type
-Candidate models
-Recommended baseline
-Recommended primary model
-Optional improvement
-Why
-Main assumptions
-Failure risks
-Validation plan
+primary_family
+secondary_families
+dependency
+baseline_first
+candidate models
+recommended baseline and primary model
+optional justified improvement
+assumptions, failure risks, and validation plan
 ```
 
 If no category matches, return `UNRESOLVED`. Do not guess. Distinguish exact,
@@ -334,6 +366,13 @@ project's existing dependencies; do not add packages merely because they are
 common in modeling contests. A unified reproducible entry point such as
 `python run.py` is preferred when the project owns one.
 
+The Competition Executor creates `src/`, `data/`, `data_raw/`,
+`data_processed/`, `results/`, `figures/`, `tables/`, `configs/`, `logs/`, and
+`paper/`. Formal execution records command, exit code, runtime, input/config/
+code/output hashes, environment, and stdout/stderr. It independently checks
+feasibility, bounds, integrality, capacity, conservation, units, and objective
+recalculation where applicable.
+
 ## Validation
 
 Select checks from the model's actual threats:
@@ -350,6 +389,11 @@ error analysis
 Important parameters should normally receive `+/-5%` and `+/-10%` checks or a
 better justified domain range. If the conclusion reverses, state that the
 model is highly sensitive. Never invent a sensitivity result.
+
+Every variable records symbol, meaning, unit, range, and source. Core equation
+dimension errors, rate/quantity confusion, percentage/proportion confusion,
+or failed conversions are `CRITICAL`. Numeric values must agree across the
+abstract, body, tables, figures, and conclusion.
 
 ## Paper and abstract
 
@@ -371,6 +415,11 @@ Each figure supports one conclusion. Check axis, unit, legend, caption, font,
 resolution, and data consistency. Prioritize model structure, trend, fit,
 error, sensitivity, optimization, spatial distribution, and model comparison
 only when they answer the question.
+
+Every figure traces to source data, rendering code, and hashes. The paper
+checker requires all questions, main models, variables, figure/table files,
+and cited artifacts; it rejects `TODO`, `XXX`, fake citations, missing units,
+or an abstract without every question outcome.
 
 ## Competition review
 
@@ -412,6 +461,21 @@ Also report the strongest point, weakest point, largest award-level blocker,
 and highest-ROI remaining improvement. These are diagnostic priorities, not
 award probabilities.
 
+Unresolved `CRITICAL` or `MAJOR` findings enter an automatic repair loop:
+root-cause analysis, smallest sufficient authorized fix, affected-artifact
+revalidation, figure/paper refresh, and repeat review. Do not ask the author
+for ordinary repairs.
+
+## Completion and submission boundary
+
+`COMPETITION_SUBMISSION_READY` requires a selected problem, all questions
+answered, complete formal outputs, observed or verified load-bearing results,
+formula/unit/numeric checks, baseline, validation, sensitivity, traceable
+figures, complete paper and abstract, no unresolved CRITICAL finding, resolved
+or explicitly accepted residual MAJOR risk, verified official rules, and a
+passing submission preflight. The Director keeps executing while author action
+is `NONE`. Actual upload or submission remains `ASK_AUTHOR`.
+
 ## STOP RULE and HARD FREEZE
 
 When `time_remaining <= 6 hours`, activate `FINALIZATION_MODE`. By default,
@@ -449,17 +513,20 @@ exception. The ETA gate still applies.
 ```text
 Use $cs-nature-paper in competition-autopilot mode.
 Read all supplied CUMCM problems and the verified competition clock. Compare
-problem structure, data, computation, algorithm, paper, and time risk. Recommend
-one problem, build its question tree, baseline, primary model, validation plan,
-and time plan, then execute the smallest viable model.
+problem structure, data, computation, algorithm, paper, and time risk. Select
+the clear winner automatically, build its question graph, and execute baseline,
+formal solution, validation, sensitivity, figures, paper, review, repair, and
+preflight. Stop only at COMPETITION_SUBMISSION_READY or a genuine author-only
+boundary.
 ```
 
 ```text
 Use $cs-nature-paper in competition mode.
 Read current competition state. Refresh the clock and dashboard. Use the graph,
 risk, decision relevance, and ETA to execute the highest-ROI eligible action.
-Ask only for final problem choice, major scientific direction, rule-required
-decisions, or irreversible high-risk operations.
+Ask only for payment, credentials, sensitive-data disclosure, administrator
+rights, a rule-required human action, irreversible external operation, or final
+submission.
 ```
 
 ```text

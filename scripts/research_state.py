@@ -39,7 +39,7 @@ V3_TEMPLATES = (
 V32_TEMPLATES = ("autonomy_policy.json", "completion_contract.json", "director_session.json")
 COMPETITION_TEMPLATES = (
     "competition_clock.json", "competition_state.json", "competition_rules.json",
-    "competition_review.json",
+    "competition_review.json", "competition_risks.json",
 )
 
 class StateError(RuntimeError):

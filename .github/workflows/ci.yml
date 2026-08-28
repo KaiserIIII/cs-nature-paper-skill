@@ -2,7 +2,7 @@ name: cs-nature-paper-v3.2
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final]
   pull_request:
   workflow_dispatch:
 
@@ -38,6 +38,10 @@ jobs:
         run: python scripts/smoke_run.py --output .ci-smoke-result.json
       - name: CUMCM competition E2E smoke
         run: python scripts/competition_smoke_run.py --output .competition-smoke-result.json
+      - name: Competition Director orchestration E2E
+        run: python scripts/competition_orchestration_e2e.py --output .competition-orchestration-e2e.json
+      - name: Validate Competition Director completion contract
+        run: python scripts/validate_release.py --competition-e2e .competition-orchestration-e2e.json
       - name: Reject stale E2E output
         run: python scripts/check_smoke.py .ci-smoke-result.json
       - name: Deterministic full-paper E2E
@@ -56,6 +60,7 @@ jobs:
           path: |
             .ci-smoke-result.json
             .competition-smoke-result.json
+            .competition-orchestration-e2e.json
             .full-paper-e2e.json
             .director-orchestration-e2e.json
           include-hidden-files: true

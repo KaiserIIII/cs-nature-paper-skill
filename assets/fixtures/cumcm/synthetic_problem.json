@@ -7,5 +7,51 @@
     {"id": "C", "capacity": 100, "cost": 14}
   ],
   "minimum_capacity": 80,
-  "expected_selected_site": "B"
+  "expected_selected_site": "B",
+  "competition": "CUMCM",
+  "contest_start_utc": "2026-09-10T08:00:00Z",
+  "submission_deadline_utc": "2026-09-13T08:00:00Z",
+  "fixture_now_utc": "2026-09-10T16:00:00Z",
+  "official_rules_source": "fixture://official-cumcm/2026-rules",
+  "rules": [
+    {"rule_id":"contest_time","value":"72-hour fixture","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#contest_time"},
+    {"rule_id":"problem_count","value":"2 fixture problems","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#problem_count"},
+    {"rule_id":"participant_eligibility","value":"synthetic participants","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#participant_eligibility"},
+    {"rule_id":"ai_policy","value":"synthetic execution permitted","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#ai_policy"},
+    {"rule_id":"paper_format","value":"Markdown fixture","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#paper_format"},
+    {"rule_id":"page_limit","value":"fixture limit","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#page_limit"},
+    {"rule_id":"file_naming","value":"fixture naming","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#file_naming"},
+    {"rule_id":"attachments","value":"code and figures","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#attachments"},
+    {"rule_id":"code_requirements","value":"reproducible entrypoint","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#code_requirements"},
+    {"rule_id":"submission_platform","value":"fixture platform","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#submission_platform"},
+    {"rule_id":"submission_method","value":"author performs final submission","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#submission_method"},
+    {"rule_id":"anonymity","value":"synthetic anonymous paper","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#anonymity"},
+    {"rule_id":"discipline","value":"no fabricated results","source_type":"OFFICIAL_PRIMARY","official_source":"fixture://official-cumcm/2026-rules","retrieved_utc":"2026-09-10T08:00:00Z","exact_region":"rules#discipline"}
+  ],
+  "problems": [
+    {
+      "id": "A",
+      "title": "Opaque sparse-data task",
+      "decision_profile": {"understanding_difficulty":"HIGH","data_availability":"LOW","implementation_difficulty":"HIGH","validation_feasibility":"LOW","paper_potential":"MEDIUM","interpretability":"LOW","completion_risk":"HIGH","capability_fit":"LOW"},
+      "questions": [{"id":"A-Q1","goal":"infer an unspecified mechanism"}]
+    },
+    {
+      "id": "B",
+      "title": "Facility evaluation, demand forecast, and allocation",
+      "decision_profile": {"understanding_difficulty":"LOW","data_availability":"HIGH","implementation_difficulty":"LOW","validation_feasibility":"HIGH","paper_potential":"HIGH","interpretability":"HIGH","completion_risk":"LOW","capability_fit":"HIGH"},
+      "sites": [
+        {"id":"A","capacity":105.0,"fixed_cost":12.0,"distance":8.0},
+        {"id":"B","capacity":125.0,"fixed_cost":14.0,"distance":5.0},
+        {"id":"C","capacity":145.0,"fixed_cost":19.0,"distance":4.0}
+      ],
+      "demand_history": [92.0,96.0,100.0,104.0],
+      "distance_cost_rate": 0.01,
+      "questions": [
+        {"id":"B-Q1","goal":"evaluate candidate facilities"},
+        {"id":"B-Q2","goal":"forecast next-period demand"},
+        {"id":"B-Q3","goal":"optimize facility choice and allocation"},
+        {"id":"B-Q4","goal":"test sensitivity and scenarios"}
+      ]
+    }
+  ]
 }

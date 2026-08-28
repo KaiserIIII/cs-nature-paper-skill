@@ -19,7 +19,8 @@
     "director_orchestration_e2e": "PASS",
     "full_paper_harness": "PASS",
     "completion_contract": "PASS",
-    "competition_e2e": "PASS"
+    "competition_e2e": "PASS",
+    "competition_orchestration_e2e": "PASS"
   },
   "hosted_ci": {
     "run_id": null,

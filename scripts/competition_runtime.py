@@ -37,6 +37,8 @@ if SCRIPT_DIR not in sys.path:
 import research_graph  # noqa: E402
 import autonomy  # noqa: E402
 import competition_executor  # noqa: E402
+import competition_problem  # noqa: E402
+import competition_quality  # noqa: E402
 import director_loop  # noqa: E402
 
 
@@ -171,9 +173,12 @@ def _append_clock_event(
         "utc": _format_utc(now),
         "actor": actor,
         "operation": operation,
+        "event_type": operation.removesuffix("_CLOCK"),
         "reason": reason,
         "old_value": old_value,
         "new_value": new_value,
+        "before": old_value,
+        "after": new_value,
         "predecessor_hash": events[-1]["event_hash"] if events else "GENESIS",
     }
     event["event_hash"] = _event_hash(event)
@@ -240,6 +245,14 @@ def _replay_clock(state_dir: Path, events: list[dict[str, Any]]) -> dict[str, An
             clock["manual_override_reason"] = event.get("reason", "")
             clock["manual_override_actor"] = event.get("actor", "")
             clock["manual_override_utc"] = event.get("utc", "")
+        elif operation == "OFFICIAL_EXTENSION" and isinstance(new_value, dict):
+            clock["submission_deadline_utc"] = new_value.get(
+                "submission_deadline_utc", clock.get("submission_deadline_utc", "")
+            )
+            clock["official_source"] = new_value.get(
+                "official_source", clock.get("official_source", "")
+            )
+            clock["source_verified_utc"] = event.get("utc", "")
     return clock
 
 
@@ -510,6 +523,46 @@ def resume_clock(
     return result
 
 
+def official_extension(
+    project: Path,
+    deadline: str,
+    official_source: str,
+    reason: str,
+    actor: str,
+    now_utc: datetime | None = None,
+) -> dict[str, Any]:
+    """Append and apply a verified official deadline extension."""
+    if not all(str(value).strip() for value in (official_source, reason, actor)):
+        raise CompetitionError(
+            "official extension requires official source, reason, and actor"
+        )
+    state_dir = _state_dir(project)
+    clock, _ = _configured_clock(state_dir)
+    new_deadline = parse_utc(deadline)
+    old_deadline = parse_utc(str(clock["submission_deadline_utc"]))
+    if new_deadline <= old_deadline:
+        raise CompetitionError("official extension must move the deadline later")
+    current = _normalize_now(now_utc)
+    _append_clock_event(
+        state_dir,
+        "OFFICIAL_EXTENSION",
+        str(actor).strip(),
+        str(reason).strip(),
+        {
+            "submission_deadline_utc": clock["submission_deadline_utc"],
+            "official_source": clock.get("official_source", ""),
+        },
+        {
+            "submission_deadline_utc": _format_utc(new_deadline),
+            "official_source": str(official_source).strip(),
+        },
+        current,
+    )
+    result = refresh_clock(project, now_utc=current)
+    result["operation"] = "official-extension"
+    return result
+
+
 def validate_clock(project: Path) -> dict[str, Any]:
     try:
         state_dir = _state_dir(project)
@@ -614,8 +667,14 @@ def validate_competition_state(value: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def decompose_problems(problems: list[dict[str, Any]]) -> dict[str, Any]:
+    return competition_problem.decompose(problems)
+
+
 def select_problem(candidates: list[dict[str, Any]], *, close_margin: float = 0.05) -> dict[str, Any]:
     """Select a clearly dominant contest problem; ask only for a close/unknown choice."""
+    if any(isinstance(item.get("decision_profile"), dict) for item in candidates):
+        return competition_problem.select(candidates)
     fields = (
         "completion_risk", "data_risk", "model_risk", "paper_potential",
         "resource_risk", "expected_workload",
@@ -656,7 +715,78 @@ def select_problem(candidates: list[dict[str, Any]], *, close_margin: float = 0.
     }
 
 
-def audit_rules(project: Path) -> dict[str, Any]:
+def verify_rule_records(
+    project: Path,
+    records: list[dict[str, Any]],
+    *,
+    actor: str,
+    now_utc: datetime | None = None,
+) -> dict[str, Any]:
+    """Verify rule records while reserving VERIFIED for current official sources."""
+    verifier = str(actor).strip()
+    if not verifier:
+        raise CompetitionError("rule verification actor is required")
+    current = _format_utc(_normalize_now(now_utc))
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        rule_id = str(record.get("rule_id", "")).strip()
+        if rule_id:
+            grouped.setdefault(rule_id, []).append(record)
+    state_dir = _state_dir(project)
+    value = _read_json(state_dir / "competition_rules.json")
+    rules = value.setdefault("rules", {})
+    for rule_id in competition_quality.REQUIRED_OFFICIAL_RULES:
+        candidates = grouped.get(rule_id, [])
+        official = [
+            item
+            for item in candidates
+            if str(item.get("source_type", "")).upper() == "OFFICIAL_PRIMARY"
+        ]
+        distinct = {
+            json.dumps(item.get("value"), ensure_ascii=False, sort_keys=True)
+            for item in official
+        }
+        if len(distinct) > 1:
+            status = "CONFLICTING"
+            chosen = official[0]
+        elif official:
+            status = "VERIFIED"
+            chosen = official[0]
+        elif candidates:
+            status = "BACKGROUND_ONLY"
+            chosen = candidates[0]
+        else:
+            status = "UNVERIFIED"
+            chosen = {}
+        rules[rule_id] = {
+            "rule_id": rule_id,
+            "status": status,
+            "value": chosen.get("value"),
+            "official_source": str(chosen.get("official_source", "")),
+            "retrieved_utc": str(chosen.get("retrieved_utc", "")),
+            "verified_utc": current if status == "VERIFIED" else "",
+            "verification_actor": verifier,
+            "actor": verifier,
+            "exact_region": str(chosen.get("exact_region", "")),
+            "source_type": str(chosen.get("source_type", "")),
+        }
+    value["last_verification_utc"] = current
+    _write_json(state_dir / "competition_rules.json", value)
+    unverified = [
+        rule_id
+        for rule_id in competition_quality.REQUIRED_OFFICIAL_RULES
+        if rules[rule_id]["status"] != "VERIFIED"
+    ]
+    return {
+        "operation": "verify-competition-rule-records",
+        "status": "PASS" if not unverified else "CONDITIONAL",
+        "rules": rules,
+        "unverified": unverified,
+        "state_dir": str(state_dir),
+    }
+
+
+def audit_rules(project: Path, *, submission: bool = False) -> dict[str, Any]:
     state_dir = _state_dir(project)
     value = _read_json(state_dir / "competition_rules.json")
     rules = value.get("rules")
@@ -670,7 +800,10 @@ def audit_rules(project: Path) -> dict[str, Any]:
             "findings": ["competition_rules.rules must be an object"],
             "state_dir": str(state_dir),
         }
-    for name in RULE_FIELDS:
+    required_fields = (
+        competition_quality.REQUIRED_OFFICIAL_RULES if submission else RULE_FIELDS
+    )
+    for name in required_fields:
         item = rules.get(name)
         if not isinstance(item, dict) or item.get("status") != "VERIFIED":
             unverified.append(name)
@@ -821,6 +954,35 @@ def _rank_key(
     return affinity, relevance, risk, graph_index
 
 
+def _dynamic_priority(
+    node_id: str,
+    competition_state: dict[str, Any],
+    clock: dict[str, Any],
+) -> int:
+    """Lower is earlier; use qualitative debts and the 12-hour baseline rule."""
+    priority = 0
+    elapsed = int(clock.get("elapsed_seconds", 0))
+    baseline_missing = not bool(competition_state.get("baseline_available"))
+    if baseline_missing and elapsed >= 10 * 3600 and node_id in {
+        "minimal_viable_model",
+        "pilot_solve",
+    }:
+        priority -= 8
+    if str(competition_state.get("paper_debt", "LOW")) == "HIGH" and node_id in {
+        "paper_draft",
+        "revision",
+    }:
+        priority -= 5
+    if str(competition_state.get("validation_debt", "LOW")) == "HIGH" and node_id in {
+        "model_validation",
+        "sensitivity_robustness",
+    }:
+        priority -= 5
+    if str(competition_state.get("complexity_debt", "LOW")) == "HIGH" and node_id == "model_improvement":
+        priority += 8
+    return priority
+
+
 def schedule(
     project: Path,
     job_estimates: dict[str, int] | None = None,
@@ -842,6 +1004,7 @@ def schedule(
     policy_actions: list[dict[str, Any]] = []
     policy_path = _state_dir(project) / "autonomy_policy.json"
     policy_value = autonomy.load_policy(policy_path) if policy_path.exists() else None
+    competition_state = _read_json(_state_dir(project) / "competition_state.json")
     for graph_index, node_id in enumerate(candidate_ids):
         node = by_id[node_id]
         policy = _node_policy(profile, node_id)
@@ -868,7 +1031,7 @@ def schedule(
         ):
             reason = f"{control} blocks high-risk scientific direction changes"
             blocked.append({"node": node_id, "reason": reason, "policy_blocked": True, "policy_block_reason": reason, "canonical_status": node.get("status")})
-        elif node_id == "submission_preflight" and audit_rules(project)["status"] != "PASS":
+        elif node_id == "submission_preflight" and audit_rules(project, submission=True)["status"] != "PASS":
             reason = "current official rules are not fully verified"
             blocked.append({"node": node_id, "reason": reason, "policy_blocked": True, "policy_block_reason": reason, "canonical_status": node.get("status")})
         else:
@@ -900,11 +1063,21 @@ def schedule(
                         "reason": "policy and ETA gate passed",
                         "safety_margin_seconds": safety,
                         "autonomy": auth,
+                        "scientific_risk": policy.get("scientific_risk", "MEDIUM"),
+                        "scoring_risk": policy.get("scoring_risk", "MEDIUM"),
+                        "decision_relevance": policy.get("decision_relevance", "MEDIUM"),
+                        "expected_information_gain": policy.get("expected_information_gain", "MEDIUM"),
+                        "paper_debt": competition_state.get("paper_debt", "LOW"),
+                        "validation_debt": competition_state.get("validation_debt", "LOW"),
+                        "complexity_debt": competition_state.get("complexity_debt", "LOW"),
                     }
                 )
 
     eligible.sort(
-        key=lambda item: _rank_key(
+        key=lambda item: (
+            _dynamic_priority(item["node"], competition_state, clock),
+        )
+        + _rank_key(
             item["node"],
             _node_policy(profile, item["node"]),
             phase,
@@ -925,6 +1098,17 @@ def schedule(
         "stop_rule_active": bool(clock.get("stop_rule_active")),
         "hard_freeze_active": bool(clock.get("hard_freeze_active")),
         "remaining_seconds": clock.get("remaining_seconds"),
+        "baseline_rule": {
+            "baseline_missing": not bool(competition_state.get("baseline_available")),
+            "risk_high_at_t_plus_10h": (
+                not bool(competition_state.get("baseline_available"))
+                and int(clock.get("elapsed_seconds", 0)) >= 10 * 3600
+            ),
+            "scope_reduction_required_at_t_plus_12h": (
+                not bool(competition_state.get("baseline_available"))
+                and int(clock.get("elapsed_seconds", 0)) >= 12 * 3600
+            ),
+        },
         "eligible": [item["node"] for item in eligible],
         "eligible_details": eligible,
         "blocked": blocked,
@@ -1031,6 +1215,7 @@ def dashboard(
         "operation": "competition-dashboard",
         "status": refreshed["status"],
         "competition": competition_state.get("competition", "CUMCM"),
+        "problem_selected": competition_state.get("selected_problem"),
         "competition_time": {
             "start_utc": clock.get("contest_start_utc"),
             "deadline_utc": clock.get("submission_deadline_utc"),
@@ -1040,20 +1225,35 @@ def dashboard(
         "elapsed_seconds": clock.get("elapsed_seconds", 0),
         "remaining_seconds": clock.get("remaining_seconds", 0),
         "current_phase": clock.get("current_phase", "UNVERIFIED"),
+        "control_mode": clock.get("control_mode", "UNVERIFIED"),
         "stop_rule": "ON" if clock.get("stop_rule_active") else "OFF",
         "hard_freeze": "ON" if clock.get("hard_freeze_active") else "OFF",
         "completed": completed,
         "running": running,
         "blocked": blocked,
+        "blocked_by_science": blocked,
         "policy_blocked": policy_blocked,
+        "blocked_by_policy": policy_blocked,
+        "blocked_by_time": [
+            item.get("node")
+            for item in scheduled.get("blocked", [])
+            if any(token in item.get("reason", "") for token in ("ETA", "remaining time", "HARD_FREEZE", "FINALIZATION", "deadline"))
+        ],
         "policy_projection": scheduled.get("policy_projection", {}),
         "current_best_model": competition_state.get("current_best_model"),
+        "baseline": competition_state.get("baseline_model"),
+        "primary_model": competition_state.get("primary_model"),
+        "largest_scientific_risk": competition_state.get("largest_scientific_risk", "not assessed"),
         "largest_scoring_risk": competition_state.get("largest_scoring_risk"),
+        "paper_debt": competition_state.get("paper_debt", "LOW"),
+        "validation_debt": competition_state.get("validation_debt", "LOW"),
+        "complexity_debt": competition_state.get("complexity_debt", "LOW"),
         "highest_roi_next_action": next_node
         or competition_state.get("highest_roi_next_action"),
         "submission_readiness": competition_state.get("submission_readiness"),
         "time_source": "competition_runtime",
         "authoritative_deadline": clock.get("authoritative_deadline", False),
+        "author_action_required": competition_state.get("author_action_required", "NONE"),
     }
 
 
@@ -1097,6 +1297,18 @@ def _parser() -> argparse.ArgumentParser:
     verify.add_argument("project", type=Path)
     verify.add_argument("--official-source", required=True)
     verify.add_argument("--actor", required=True)
+
+    verify_rules_parser = sub.add_parser("verify-rules")
+    verify_rules_parser.add_argument("project", type=Path)
+    verify_rules_parser.add_argument("--records", required=True, type=Path)
+    verify_rules_parser.add_argument("--actor", required=True)
+
+    extension = sub.add_parser("official-extension")
+    extension.add_argument("project", type=Path)
+    extension.add_argument("--deadline", required=True)
+    extension.add_argument("--official-source", required=True)
+    extension.add_argument("--reason", required=True)
+    extension.add_argument("--actor", required=True)
 
     adjust = sub.add_parser("adjust-clock")
     adjust.add_argument("project", type=Path)
@@ -1191,6 +1403,26 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
                 args.project,
                 job_estimates=estimates,
                 critical_fix_nodes=critical,
+            ),
+        )
+    if args.command == "verify-rules":
+        records_value = _read_json(args.records)
+        records = records_value.get("rules")
+        if not isinstance(records, list):
+            raise CompetitionError("rule records file must contain a rules list")
+        return _with_dashboard(
+            args.project,
+            verify_rule_records(args.project, records, actor=args.actor),
+        )
+    if args.command == "official-extension":
+        return _with_dashboard(
+            args.project,
+            official_extension(
+                args.project,
+                args.deadline,
+                args.official_source,
+                args.reason,
+                args.actor,
             ),
         )
     if args.command == "execute-next":

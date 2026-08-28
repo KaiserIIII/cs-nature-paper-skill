@@ -30,6 +30,7 @@ SCHEMA_INSTANCES = {
     "competition_method_router": "assets/registry/competition_method_router.json",
     "competition_profile": "assets/competition/cumcm_profile.json",
     "competition_review": "assets/templates/competition/competition_review.json",
+    "competition_risks": "assets/templates/competition/competition_risks.json",
     "competition_rules": "assets/templates/competition/competition_rules.json",
     "competition_state": "assets/templates/competition/competition_state.json",
 }
@@ -173,7 +174,7 @@ def validate_release_manifest_value(
         findings.append(f"HOSTED_CI_WRONG_SHA: expected {source_commit}, got {hosted.get('head_sha')}")
     branch = hosted.get("branch")
     allowed_branch = expected_branch or value.get("source_branch")
-    if branch != allowed_branch or branch not in {"v3.2", "main"}:
+    if branch != allowed_branch or branch not in {"v3.2", "main", "feat/cumcm-v32-final"}:
         findings.append(f"HOSTED_CI_WRONG_BRANCH: expected {allowed_branch}, got {branch}")
     if hosted.get("workflow") != expected_workflow:
         findings.append(f"HOSTED_CI_WRONG_WORKFLOW: expected {expected_workflow}, got {hosted.get('workflow')}")
@@ -243,6 +244,34 @@ def validate_v32_e2e(path: Path, root: Path = ROOT) -> list[str]:
     return findings
 
 
+def validate_competition_e2e(path: Path) -> list[str]:
+    """Validate the normal-runtime competition orchestration record."""
+    try:
+        value = _read(path)
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"competition orchestration e2e is unreadable: {exc}"]
+    findings: list[str] = []
+    if value.get("status") != "PASS": findings.append("competition orchestration e2e status is not PASS")
+    if value.get("evaluation_class") != "COMPETITION_ORCHESTRATION_E2E": findings.append("competition e2e class is invalid")
+    if value.get("model_behavior") != "NOT_RUN": findings.append("competition e2e must not claim model behavior")
+    if value.get("submission_readiness") != "COMPETITION_SUBMISSION_READY": findings.append("competition e2e did not reach submission ready")
+    if value.get("executed_nodes") != 16: findings.append("competition e2e did not execute all 16 graph nodes")
+    if value.get("ordinary_author_prompts") != 0: findings.append("competition e2e used ordinary author prompts")
+    if value.get("automatic_repair") != "PASS": findings.append("competition automatic repair did not pass")
+    if value.get("completion_contract") != "PASS": findings.append("competition completion contract did not pass")
+    if value.get("failure_case_count") != 10: findings.append("competition e2e failure-case count is incomplete")
+    cases = value.get("failure_cases")
+    if not isinstance(cases, dict) or len(cases) != 10 or any(status != "PASS" for status in cases.values()):
+        findings.append("competition e2e fail-closed cases are incomplete")
+    unresolved = value.get("unresolved")
+    if not isinstance(unresolved, dict) or unresolved.get("CRITICAL") != 0 or unresolved.get("MAJOR") != 0:
+        findings.append("competition e2e has unresolved CRITICAL or MAJOR findings")
+    artifacts = value.get("artifacts")
+    if not isinstance(artifacts, dict) or not artifacts or any(not str(digest).startswith("sha256:") for digest in artifacts.values()):
+        findings.append("competition e2e artifact hashes are incomplete")
+    return findings
+
+
 def validate_docs() -> list[str]:
     findings: list[str] = []
     for path in ROOT.rglob("*.md"):
@@ -257,6 +286,7 @@ def validate_docs() -> list[str]:
 def validate(
     v32_e2e: Path | None = None,
     *,
+    competition_e2e: Path | None = None,
     manifest_path: Path | None = None,
     expected_commit: str | None = None,
     expected_branch: str | None = None,
@@ -266,6 +296,8 @@ def validate(
     findings = validate_json_assets() + validate_behavior_cases() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
     if v32_e2e is not None:
         findings.extend(validate_v32_e2e(v32_e2e))
+    if competition_e2e is not None:
+        findings.extend(validate_competition_e2e(competition_e2e))
     try:
         from validate_registry import validate as registry_validate
         registry = registry_validate()
@@ -282,10 +314,11 @@ def validate(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--v32-e2e", type=Path)
+    parser.add_argument("--competition-e2e", type=Path)
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--expected-commit")
     parser.add_argument("--expected-branch")
     parser.add_argument("--expected-workflow", default=EXPECTED_WORKFLOW)
     parser.add_argument("--require-hosted-ci", action="store_true")
     args = parser.parse_args()
-    result = validate(args.v32_e2e, manifest_path=args.manifest, expected_commit=args.expected_commit, expected_branch=args.expected_branch, expected_workflow=args.expected_workflow, require_hosted_ci=args.require_hosted_ci); print(json.dumps(result, indent=2, ensure_ascii=False)); sys.exit(0 if result["status"] == "PASS" else 1)
+    result = validate(args.v32_e2e, competition_e2e=args.competition_e2e, manifest_path=args.manifest, expected_commit=args.expected_commit, expected_branch=args.expected_branch, expected_workflow=args.expected_workflow, require_hosted_ci=args.require_hosted_ci); print(json.dumps(result, indent=2, ensure_ascii=False)); sys.exit(0 if result["status"] == "PASS" else 1)

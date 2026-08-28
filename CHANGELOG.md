@@ -18,6 +18,12 @@
 - Integrated the CUMCM competition clock, scheduler, method router, review, and
   deterministic E2E as a maximum-autonomy overlay. Temporary freeze and ETA
   blocks no longer overwrite canonical graph status.
+- Finalized the CUMCM Competition Director with qualitative automatic problem
+  selection, full question/dependency decomposition, mixed-method routing,
+  baseline-first real code execution, solver/unit/numeric checks, sensitivity,
+  traceable figures, Chinese paper generation, automatic review/repair, strict
+  official-rule preflight, and a 16-node orchestration E2E with ten fail-closed
+  corruption and policy cases.
 - Bound release readiness to the exact Hosted CI workflow, branch, head SHA,
   successful conclusion, and complete Ubuntu/Windows Python 3.10-3.12 matrix.
 - Preserved the v3.1.1 provenance/evidence/research-graph/scientific-gate and

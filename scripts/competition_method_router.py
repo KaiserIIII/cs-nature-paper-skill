@@ -34,6 +34,13 @@ def _hits(text: str, triggers: list[str]) -> list[str]:
     ]
 
 
+def _first_hit_position(text: str, triggers: list[str]) -> int:
+    normalized = text.casefold()
+    positions = [normalized.find(trigger.casefold()) for trigger in triggers]
+    positions = [position for position in positions if position >= 0]
+    return min(positions) if positions else 10**9
+
+
 def _unresolved(task: str) -> dict[str, Any]:
     return {
         "operation": "competition-route",
@@ -51,6 +58,10 @@ def _unresolved(task: str) -> dict[str, Any]:
         "complexity_upgrade_condition": None,
         "conflicts": [],
         "candidate_families": [],
+        "primary_family": None,
+        "secondary_families": [],
+        "dependency": [],
+        "baseline_first": {"decision": "UNRESOLVED", "reason": "problem structure is unresolved"},
         "routing_stage": "CANDIDATE_FAMILY_DETECTION",
         "scientific_reasoning": {"baseline": None, "primary_model": None, "upgrade_condition": None, "validation_plan": []},
         "source": str(ROUTER),
@@ -107,7 +118,17 @@ def route(task: str, explicit: str | None = None) -> dict[str, Any]:
                 "findings": [f"unknown competition method category: {explicit}"],
                 "source": str(ROUTER),
             }
-        return _result(task, selected, [], "explicit") | {"candidate_families": [selected["id"]]}
+        return _result(task, selected, [], "explicit") | {
+            "candidate_families": [selected["id"]],
+            "primary_family": selected["id"],
+            "secondary_families": [],
+            "dependency": [],
+            "baseline_first": {
+                "decision": "BASELINE_FIRST",
+                "baseline": selected["recommended_baseline"],
+                "upgrade_only_if": selected["complexity_upgrade_condition"],
+            },
+        }
 
     scored = [
         (len(_hits(task, item.get("triggers", []))), item) for item in categories
@@ -117,12 +138,30 @@ def route(task: str, explicit: str | None = None) -> dict[str, Any]:
     if top_score == 0:
         return _unresolved(task)
     detected = [item for score, item in scored if score > 0]
+    detected_in_task_order = sorted(
+        detected,
+        key=lambda item: (_first_hit_position(task, item.get("triggers", [])), item["id"]),
+    )
     tied = [item for score, item in scored if score == top_score]
     selected = tied[0]
     conflicts = [item["id"] for item in tied[1:]]
+    primary = detected_in_task_order[0]
+    secondary = detected_in_task_order[1:]
+    dependency = [
+        f"{detected_in_task_order[index]['id']} -> {detected_in_task_order[index + 1]['id']}"
+        for index in range(len(detected_in_task_order) - 1)
+    ]
     return _result(task, selected, conflicts, "keyword") | {
         "candidate_families": [item["id"] for item in detected],
         "hybrid": len(detected) > 1,
+        "primary_family": primary["id"],
+        "secondary_families": [item["id"] for item in secondary],
+        "dependency": dependency,
+        "baseline_first": {
+            "decision": "BASELINE_FIRST",
+            "baseline": primary["recommended_baseline"],
+            "upgrade_only_if": primary["complexity_upgrade_condition"],
+        },
     }
 
 

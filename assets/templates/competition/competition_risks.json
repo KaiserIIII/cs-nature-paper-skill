@@ -1,0 +1,26 @@
+{
+  "schema_version": 4,
+  "skill_version": "3.2.0",
+  "created_utc": "",
+  "competition": "CUMCM",
+  "risks": [
+    {"risk_id":"CR-01","category":"wrong problem interpretation","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"map every requested output to a question answer","status":"OPEN"},
+    {"risk_id":"CR-02","category":"model-question mismatch","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"route from problem structure and validate answer coverage","status":"OPEN"},
+    {"risk_id":"CR-03","category":"unjustified assumptions","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"maintain assumption contracts with sensitivity","status":"OPEN"},
+    {"risk_id":"CR-04","category":"incorrect formula","severity":"HIGH","probability_class":"LOW","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"symbol, dimension, boundary, and numerical spot checks","status":"OPEN"},
+    {"risk_id":"CR-05","category":"unit inconsistency","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"run the unit and dimension engine","status":"OPEN"},
+    {"risk_id":"CR-06","category":"weak parameter source","severity":"MEDIUM","probability_class":"MEDIUM","scoring_impact":"MEDIUM","affected_question":"ALL","mitigation":"record parameter provenance and test assumptions","status":"OPEN"},
+    {"risk_id":"CR-07","category":"coding bug","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"execute code and independently verify outputs","status":"OPEN"},
+    {"risk_id":"CR-08","category":"solver failure","severity":"HIGH","probability_class":"LOW","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"watch jobs and simplify or repair on failure","status":"OPEN"},
+    {"risk_id":"CR-09","category":"data leakage","severity":"HIGH","probability_class":"LOW","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"use time-respecting validation and frozen inputs","status":"OPEN"},
+    {"risk_id":"CR-10","category":"overfitting","severity":"MEDIUM","probability_class":"MEDIUM","scoring_impact":"MEDIUM","affected_question":"ALL","mitigation":"prefer simple baselines and held-out or rolling checks","status":"OPEN"},
+    {"risk_id":"CR-11","category":"lack of validation","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"track validation debt and require model-appropriate checks","status":"OPEN"},
+    {"risk_id":"CR-12","category":"weak sensitivity","severity":"MEDIUM","probability_class":"MEDIUM","scoring_impact":"MEDIUM","affected_question":"ALL","mitigation":"perturb load-bearing, assumed, and estimated parameters","status":"OPEN"},
+    {"risk_id":"CR-13","category":"model-paper inconsistency","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"bind paper numbers to executed artifacts and run consistency checks","status":"OPEN"},
+    {"risk_id":"CR-14","category":"poor result explanation","severity":"MEDIUM","probability_class":"MEDIUM","scoring_impact":"MEDIUM","affected_question":"ALL","mitigation":"explain units, derivation, baseline, and decision consequence","status":"OPEN"},
+    {"risk_id":"CR-15","category":"poor abstract","severity":"MEDIUM","probability_class":"MEDIUM","scoring_impact":"MEDIUM","affected_question":"ALL","mitigation":"include every question method, key number, conclusion, and stability","status":"OPEN"},
+    {"risk_id":"CR-16","category":"poor figure readability","severity":"MEDIUM","probability_class":"LOW","scoring_impact":"MEDIUM","affected_question":"ALL","mitigation":"run figure QA and provenance checks","status":"OPEN"},
+    {"risk_id":"CR-17","category":"submission violation","severity":"HIGH","probability_class":"LOW","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"verify current official rules and run strict preflight","status":"OPEN"},
+    {"risk_id":"CR-18","category":"time overrun","severity":"HIGH","probability_class":"MEDIUM","scoring_impact":"HIGH","affected_question":"ALL","mitigation":"apply ETA, safety margin, finalization, and hard-freeze gates","status":"OPEN"}
+  ]
+}

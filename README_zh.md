@@ -213,8 +213,8 @@ git -C ~/.codex/skills/cs-nature-paper rev-parse HEAD
 | `revision` | 审稿问题、有界修订与转投 |
 | `review` | 对抗性、威胁驱动的独立审查 |
 | `preflight` | 当前 venue 规则与投稿包就绪检查 |
-| `competition` | 正在进行的 CUMCM 工作；重大方向仍由作者决定 |
-| `competition-autopilot` | 比较已提供赛题并启动可辩护的基线 |
+| `competition` | 将已选定的 CUMCM 赛题自动执行到提交预检 |
+| `competition-autopilot` | 自动选题并执行完整竞赛生命周期 |
 | `competition-review` | 对竞赛论文和提交包做红队审查 |
 
 Autopilot 不会取消作者控制权。遇到证据矛盾、provenance 缺失、预算边界、
@@ -232,8 +232,9 @@ Maximum autonomy 使用 `scripts/autonomy.py` 作为统一 policy/authorize 边�
 
 比赛模式是通用 Research Graph 上的 policy overlay，继续使用原有的 evidence
 ledger、claims、experiments、artifacts、provenance 和 handoffs，不建立第二套
-科研状态系统。Runtime 只能根据时钟、风险、决策相关性和预计运行时间对
-通用图节点进行排序、限制、冻结或放行。
+科研状态系统。Runtime 只能根据时钟、科学/评分风险、决策相关性、预期信息
+增益、ETA 以及论文/验证/复杂度债务对通用图节点进行排序、临时限制、冻结或
+放行。临时 policy block 始终保留在 overlay，不污染 canonical 科研图。
 
 唯一权威的时间边界是带时区的 ISO-8601 `contest_start_utc` 和
 `submission_deadline_utc`。Runtime 统一转换为 UTC，并根据系统时钟计算实际
@@ -247,14 +248,15 @@ event log；`competition_clock.json` 只是当前派生快照。
 
 ```text
 Use $cs-nature-paper in competition mode.
-初始化这份 CUMCM 赛题和比赛时钟。重大科学方向变化由作者决定；每次输出
-Runtime 计算的 dashboard 后，执行 Research Graph 中最高 ROI 的可用节点。
+把已选定的 CUMCM 赛题自动推进到 baseline、正式求解、验证、敏感性、图表、
+论文、审稿、修复和提交预检；只要 Author action required 为 NONE 就继续。
 ```
 
 ```text
 Use $cs-nature-paper in competition-autopilot mode.
-读取已提供的赛题和当前 competition state，核验时钟来源，比较题目并启动
-最小且可辩护的 baseline。按图状态、风险、决策相关性、ETA 和剩余时间调度。
+读取全部赛题和当前 competition state，核验当届官方规则与时钟来源，拆解并
+比较所有题目，明显占优时自动选题。运行完整 Director 生命周期，仅在达到
+COMPETITION_SUBMISSION_READY 或真正的作者专属边界时停止。
 ```
 
 ```text
@@ -309,6 +311,8 @@ python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
 python "$SkillRoot\scripts\competition_method_router.py" route `
   "Minimize facility cost subject to capacity constraints"
 python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+python "$SkillRoot\scripts\competition_director.py" $Project `
+  --input competition_input.json
 ```
 
 `configure-clock` 只记录候选边界，不会自动证明其权威性。执行
@@ -341,7 +345,10 @@ python "$SkillRoot\scripts\method_router.py" route `
 1. Schema 和确定性测试检查局部不变量。
 2. 工作流集成测试检查状态、科研图、路由、迁移和 provenance。
 3. Answer-hidden 行为用例定义安全和用户交互预期。
-4. 公开安全的合成 smoke workflow 检查运行时能否端到端执行。
+4. 公开安全的合成 smoke workflow 检查 infrastructure 集成。
+5. Competition orchestration E2E 通过正常 Director 推进全部 16 个节点，并实际
+   执行代码、验证、图表、论文、审稿、修复和预检；十类破坏/policy 用例必须
+   fail closed。
 
 合成流程的分类是 `HARNESS_SELF_TEST`；它不是科学证据，也不是对研究模型
 的评测。Model-backed behavior evaluation 仍为 `NOT_RUN`。不得把 harness
@@ -356,11 +363,14 @@ python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
 python scripts/competition_smoke_run.py --output .competition-smoke-result.json
+python scripts/competition_orchestration_e2e.py
 ```
 
 Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只验证 runtime
 集成。它的分类是 `HARNESS_SELF_TEST`，model-backed behavior evaluation 仍为
 `NOT_RUN`。
+Competition orchestration E2E 是确定性的 runtime orchestration 测试，不是模型
+行为评测；没有授权 model adapter 时 `MODEL_BEHAVIOR_EVAL` 仍为 `NOT_RUN`。
 
 ## 这个项目不声称什么
 

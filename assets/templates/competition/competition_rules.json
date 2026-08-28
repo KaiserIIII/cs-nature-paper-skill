@@ -1,15 +1,22 @@
 {
-  "schema_version": 3,
-  "skill_version": "3.1.1",
+  "schema_version": 4,
+  "skill_version": "3.2.0",
   "created_utc": "",
   "competition": "CUMCM",
   "rules": {
-    "contest_time": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
-    "ai_policy": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
-    "file_format": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
-    "page_limit": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
-    "submission_method": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
-    "problem_count": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""},
-    "discipline": {"status": "UNVERIFIED", "official_source": "", "verified_utc": "", "actor": "", "notes": ""}
+    "contest_time": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "problem_count": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "participant_eligibility": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "ai_policy": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "paper_format": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "file_format": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "page_limit": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "file_naming": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "attachments": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "code_requirements": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "submission_platform": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "submission_method": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "anonymity": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null},
+    "discipline": {"status": "UNVERIFIED", "official_source": "", "retrieved_utc":"", "verified_utc": "", "verification_actor":"", "actor": "", "exact_region":"", "value":null}
   }
 }

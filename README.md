@@ -223,8 +223,8 @@ threats, and report the smallest defensible repairs. Do not predict acceptance.
 | `revision` | Reviewer concerns, bounded amendments, and resubmission |
 | `review` | Adversarial, threat-selected assessment |
 | `preflight` | Current venue rules and package-readiness audit |
-| `competition` | Active CUMCM work with author-owned major direction changes |
-| `competition-autopilot` | Compare supplied problems and start a defensible baseline |
+| `competition` | Execute an already selected CUMCM problem through preflight |
+| `competition-autopilot` | Auto-select and run the full competition lifecycle |
 | `competition-review` | Red-team a contest paper and submission package |
 
 Autopilot does not remove author control. It stops at contradictory evidence,
@@ -246,8 +246,10 @@ only after artifacts and evidence pass their contracts. Project completion is
 Competition mode is a policy overlay on the same Research Graph, evidence
 ledger, claims, experiments, artifacts, provenance, and handoffs used by the
 general Research OS. It does not create a second scientific state system.
-The runtime may rank, block, freeze, or release generic graph nodes according
-to the clock, risk, decision relevance, and estimated runtime.
+The runtime may rank, temporarily block, freeze, or release generic graph
+nodes according to the clock, scientific and scoring risk, decision relevance,
+information gain, ETA, and paper/validation/complexity debt. Temporary policy
+blocks remain overlay state and never pollute the canonical scientific graph.
 
 The only authoritative time boundaries are timezone-aware ISO-8601
 `contest_start_utc` and `submission_deadline_utc`. The runtime converts them
@@ -263,16 +265,17 @@ Typical requests are:
 
 ```text
 Use $cs-nature-paper in competition mode.
-Initialize this supplied CUMCM problem and clock. Keep major scientific
-direction changes under author control, and execute the highest-ROI eligible
-Research Graph node after each runtime-derived dashboard update.
+Execute this selected CUMCM problem through baseline, formal solve, validation,
+sensitivity, figures, paper, review, repair, and submission preflight. Continue
+while author action is NONE.
 ```
 
 ```text
 Use $cs-nature-paper in competition-autopilot mode.
 Read the supplied contest problems and current competition state. Verify the
-clock source, compare the problems, start the smallest defensible baseline,
-and schedule by graph state, risk, decision relevance, ETA, and remaining time.
+official rules and clock source, decompose and compare every problem, and
+auto-select a clear winner. Run the full Director lifecycle and stop only at
+COMPETITION_SUBMISSION_READY or a genuine author-only boundary.
 ```
 
 ```text
@@ -330,6 +333,8 @@ python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
 python "$SkillRoot\scripts\competition_method_router.py" route `
   "Minimize facility cost subject to capacity constraints"
 python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+python "$SkillRoot\scripts\competition_director.py" $Project `
+  --input competition_input.json
 ```
 
 `configure-clock` records candidate boundaries but does not verify their
@@ -365,7 +370,10 @@ The validation layers have deliberately different meanings:
 1. Schema and deterministic tests check local invariants.
 2. Workflow integration checks state, graph, routing, migration, and provenance.
 3. Answer-hidden behavior cases define safety and user-facing expectations.
-4. A public synthetic smoke workflow checks that the runtime can execute end to end.
+4. A public synthetic smoke workflow checks infrastructure integration.
+5. The competition orchestration E2E advances all 16 nodes through the normal
+   Director and actually executes code, validation, figures, paper, review,
+   repair, and preflight; ten corruption/policy cases must fail closed.
 
 The synthetic workflow is classified as `HARNESS_SELF_TEST`; it is not
 scientific evidence and not an evaluation of a research model. Model-backed
@@ -381,11 +389,15 @@ python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
 python scripts/competition_smoke_run.py --output .competition-smoke-result.json
+python scripts/competition_orchestration_e2e.py
 ```
 
 The competition smoke uses a finite synthetic facility-selection fixture and
 standard-library enumeration. It tests runtime integration only. Its class is
 `HARNESS_SELF_TEST`, and model-backed behavior evaluation remains `NOT_RUN`.
+The orchestration E2E is a deterministic runtime orchestration test, not a
+model-behavior evaluation; `MODEL_BEHAVIOR_EVAL` remains `NOT_RUN` unless an
+authorized model adapter is supplied.
 
 ## What this project does not claim
 

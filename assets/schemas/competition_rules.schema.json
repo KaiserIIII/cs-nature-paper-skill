@@ -6,6 +6,9 @@
     "schema_version": {"type": "integer"},
     "skill_version": {"type": "string"},
     "competition": {"type": "string"},
-    "rules": {"type": "object"}
+    "rules": {
+      "type": "object",
+      "required": ["contest_time", "problem_count", "participant_eligibility", "ai_policy", "paper_format", "file_format", "page_limit", "file_naming", "attachments", "code_requirements", "submission_platform", "submission_method", "anonymity", "discipline"]
+    }
   }
 }

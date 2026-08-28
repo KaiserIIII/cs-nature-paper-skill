@@ -1,19 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["schema_version", "skill_version", "competition", "profile_id", "mode", "question_decomposition", "assumptions", "candidate_models", "completed_node_ids", "running_node_ids", "blocked_node_ids", "canonical_references"],
+  "required": ["schema_version", "skill_version", "competition", "profile_id", "mode", "selected_problem", "question_decomposition", "assumptions", "candidate_models", "baseline_available", "question_answers", "completed_node_ids", "running_node_ids", "blocked_node_ids", "paper_debt", "validation_debt", "complexity_debt", "submission_readiness", "author_action_required", "canonical_references"],
   "properties": {
     "schema_version": {"type": "integer"},
     "skill_version": {"type": "string"},
     "competition": {"type": "string"},
     "profile_id": {"type": "string"},
     "mode": {"type": "string"},
+    "selected_problem": {"type": ["string", "null"]},
     "question_decomposition": {"type": "array"},
     "assumptions": {"type": "array"},
     "candidate_models": {"type": "array"},
+    "baseline_available": {"type": "boolean"},
+    "question_answers": {"type": "object"},
     "completed_node_ids": {"type": "array"},
     "running_node_ids": {"type": "array"},
     "blocked_node_ids": {"type": "array"},
+    "paper_debt": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+    "validation_debt": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+    "complexity_debt": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+    "submission_readiness": {"type": "string"},
+    "author_action_required": {"type": "string"},
     "canonical_references": {"type": "object"}
   }
 }
