@@ -20,7 +20,21 @@ class V32ReleaseTests(unittest.TestCase):
     def test_v31_tag_and_baseline_are_untouched(self):
         tagged = subprocess.run(["git", "show", "v3.1.1:SKILL.md"], cwd=ROOT, capture_output=True, text=True, check=True)
         self.assertIn("3.1.1", tagged.stdout)
-        merge_base = subprocess.run(["git", "merge-base", "v3.2", "6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4"], cwd=ROOT, capture_output=True, text=True, check=True)
+        baseline_ref = next(
+            (
+                ref
+                for ref in ("v3.2", "refs/remotes/origin/v3.2")
+                if subprocess.run(
+                    ["git", "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                ).returncode == 0
+            ),
+            None,
+        )
+        self.assertIsNotNone(baseline_ref, "v3.2 baseline ref is unavailable")
+        merge_base = subprocess.run(["git", "merge-base", baseline_ref, "6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4"], cwd=ROOT, capture_output=True, text=True, check=True)
         self.assertEqual(merge_base.stdout.strip(), "6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4")
 
     def test_ci_runs_and_uploads_v32_full_paper_e2e(self):
