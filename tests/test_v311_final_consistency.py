@@ -103,10 +103,16 @@ class FinalConsistencyRegressionTests(unittest.TestCase):
     def test_competition_smoke_result_is_not_release_controlled_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            generated = root / ".competition-smoke-result.json"
-            generated.write_text("{}\n", encoding="utf-8")
+            generated = [
+                root / ".competition-smoke-result.json",
+                root / ".competition-orchestration-e2e.json",
+            ]
+            for path in generated:
+                path.write_text("{}\n", encoding="utf-8")
 
-            self.assertFalse(manifest.is_release_controlled(generated, root))
+            self.assertTrue(
+                all(not manifest.is_release_controlled(path, root) for path in generated)
+            )
 
     def test_repository_release_manifest_is_explicitly_unresolved(self):
         manifest = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
