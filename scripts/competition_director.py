@@ -135,6 +135,20 @@ def run(
         )
         if (result.get("authorization") or {}).get("decision") == "ASK_AUTHOR":
             ordinary_author_prompts += 1
+        if result.get("status") == "HOST_EXECUTION_REQUIRED":
+            pending = {
+                "operation": "competition-director-run",
+                "status": "HOST_EXECUTION_REQUIRED",
+                "competition": source.get("competition"),
+                "node": result.get("node"),
+                "request_path": result.get("request_path") or (result.get("execution") or {}).get("request_path"),
+                "host_request_created": True,
+                "ordinary_author_prompts": ordinary_author_prompts,
+                "history": history,
+                "model_behavior_eval": "NOT_RUN",
+            }
+            _write(state_dir / "competition_completion.json", pending)
+            return pending
         if result.get("status") != "PASS":
             break
 

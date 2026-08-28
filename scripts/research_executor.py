@@ -26,6 +26,7 @@ import coding_provider  # noqa: E402
 import analysis_provider  # noqa: E402
 import writing_provider  # noqa: E402
 import review_provider  # noqa: E402
+import host_coding_provider  # noqa: E402
 
 
 MAIN_SEQUENCE = (
@@ -41,7 +42,7 @@ NODE_CAPABILITIES = {
     "innovation": ["novelty-analysis", "closest-work-analysis"],
     "prior_art_red_team": ["closest-work-analysis"],
     "feasibility": ["feasibility-analysis"],
-    "pilot": ["code-generation", "experimental-design", "execution"],
+    "pilot": ["baseline-feasibility", "experimental-design", "execution"],
     "protocol_freeze": ["experimental-design"],
     "implementation": ["software-implementation"],
     "formal_experiment": ["experiment-execution"],
@@ -76,24 +77,34 @@ def _fixture_mode(project: Path) -> bool:
 
 
 def _registry(project: Path) -> list[dict[str, Any]]:
+    native_research_status = "QUALIFIED" if coding_provider.native_available(project) else "UNAVAILABLE"
     records = [
-        provider_runtime.provider("host-research", "HOST_LLM", [
+        provider_runtime.provider("research-runtime-provider", "NATIVE", [
             "project-orientation", "research-question-structuring", "novelty-analysis", "closest-work-analysis",
             "feasibility-analysis", "experimental-design", "artifact-validation",
         ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
         provider_runtime.provider("literature-provider", "WEB", [
             "literature-discovery", "literature-retrieval", "literature-verification",
         ], qualification="QUALIFIED", formal_eligible=False, permissions=["local_read"]),
-        provider_runtime.provider("coding-provider", "NATIVE", [
-            "code-generation", "execution", "software-implementation", "experiment-execution",
+        provider_runtime.provider("native-research-pilot", "NATIVE", [
+            "baseline-feasibility",
         ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
+        provider_runtime.provider("native-research-baseline", "NATIVE", [
+            "software-implementation",
+        ], status=native_research_status, qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
+        provider_runtime.provider("deterministic-execution-provider", "NATIVE", [
+            "experiment-execution",
+        ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
+        provider_runtime.provider("host-coding-provider", "HOST_LLM", [
+            "software-implementation",
+        ], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", formal_eligible=False, permissions=["local_read", "local_write"]),
         provider_runtime.provider("analysis-provider", "NATIVE", [
             "statistical-analysis", "scientific-visualization",
         ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
-        provider_runtime.provider("writing-provider", "HOST_LLM", [
+        provider_runtime.provider("writing-provider", "NATIVE", [
             "evidence-bound-writing", "evidence-bound-revision",
         ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
-        provider_runtime.provider("review-provider", "HOST_LLM", ["adversarial-review"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
+        provider_runtime.provider("review-provider", "NATIVE", ["adversarial-review"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
     ]
     state_path = support.state_dir(project) / "provider_registry.json"
     state_path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,7 +120,7 @@ def _permissions(project: Path) -> dict[str, bool]:
 def _invoke(project: Path, provider_id: str, node: str) -> dict[str, Any]:
     if provider_id == "literature-provider":
         return literature_provider.execute(project)
-    if provider_id == "coding-provider":
+    if provider_id in {"native-research-pilot", "native-research-baseline", "deterministic-execution-provider"}:
         return coding_provider.execute(project, node)
     if provider_id == "analysis-provider":
         return analysis_provider.execute(project, node)
@@ -194,7 +205,7 @@ def validate_output(project: Path, node: str, result: dict[str, Any]) -> dict[st
             findings.append(f"artifact is missing or empty: {relative}")
     if node == "formal_experiment" and result.get("execution_record", {}).get("status") != "PASS":
         findings.append("formal work lacks a passing observed execution record")
-    if node == "literature" and not all(result.get(field) for field in ("sources", "retrieval_records", "verified_relations")):
+    if node == "literature" and any(field not in result for field in ("sources", "retrieval_records", "verified_relations")):
         findings.append("literature contract is incomplete")
     return {"operation": "validate-provider-output", "status": "PASS" if not findings else "FAIL", "findings": findings}
 
@@ -208,13 +219,22 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
     permissions = _permissions(project)
     capability = NODE_CAPABILITIES[node][0]
     route = provider_runtime.resolve_provider(capability, {"node": node, "project": project.name}, node in FORMAL_NODES, "LOW", permissions, _registry(project))
-    if route["status"] != "PASS":
+    if route["status"] == "HOST_EXECUTION_REQUIRED" and route.get("provider", {}).get("provider_id") == "host-coding-provider":
+        selected = route["provider"]
+        result = host_coding_provider.request_or_consume(project, node)
+        if result.get("status") == "HOST_EXECUTION_REQUIRED":
+            return result | {
+                "operation": "execute-node", "node": node, "capability": capability,
+                "provider_route": route, "host_request_created": True,
+            }
+    elif route["status"] != "PASS":
         return {"operation": "execute-node", "node": node, "status": route["status"], "findings": [f"provider route: {route['status']}"], "provider_route": route}
-    selected = route["provider"]
-    try:
-        result = _invoke(project, selected["provider_id"], node)
-    except Exception as exc:
-        return {"operation": "execute-node", "node": node, "status": "FAIL", "findings": [f"{type(exc).__name__}: {exc}"], "failure_signature": f"{node}:{type(exc).__name__}:{exc}"}
+    else:
+        selected = route["provider"]
+        try:
+            result = _invoke(project, selected["provider_id"], node)
+        except Exception as exc:
+            return {"operation": "execute-node", "node": node, "status": "FAIL", "findings": [f"{type(exc).__name__}: {exc}"], "failure_signature": f"{node}:{type(exc).__name__}:{exc}"}
     check = validate_output(project, node, result)
     if check["status"] != "PASS":
         return result | {"operation": "execute-node", "node": node, "status": "FAIL", "findings": check["findings"], "output_validation": check, "provider_route": route, "failure_signature": f"{node}:output-contract"}

@@ -102,9 +102,18 @@ def audit_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
     license_name = str(candidate.get("license", "")).upper()
     if candidate.get("license_compatible") is False or license_name not in SAFE_LICENSES:
         findings.append("license is absent or not in the compatible allowlist")
-    for field in ("source_audit", "installer_audit", "dependency_audit", "security_audit", "behavior_trial"):
+    for field in ("source_audit", "installer_audit", "dependency_audit", "security_audit"):
         if candidate.get(field, "PASS") != "PASS":
             findings.append(f"{field} is not PASS")
+    trial = candidate.get("behavior_trial")
+    trial_passed = trial == "PASS" or (
+        isinstance(trial, dict)
+        and trial.get("status") == "PASS"
+        and trial.get("output_contract") == "PASS"
+        and bool(trial.get("checker"))
+    )
+    if not trial_passed:
+        findings.append("behavior_trial is not PASS")
     source = Path(str(candidate.get("source_path", ""))).resolve()
     if not source.is_dir():
         findings.append("candidate source directory is missing")
@@ -225,7 +234,23 @@ def hire_and_execute(
 ) -> dict[str, Any]:
     """Run discovery through checked handoff; discovery alone never counts as success."""
     lifecycle: list[str] = []
-    ranked = rank_candidates(capability, candidates)
+    discovery_runtime = _load("skill_discovery_provider")
+    confirmed = []
+    verifications = []
+    for candidate in candidates:
+        verification = discovery_runtime.verify_capability(candidate, capability)
+        verifications.append(verification)
+        if verification.get("status") == "CONFIRMED" and verification.get("formal_eligible") is True:
+            confirmed.append(dict(candidate) | {"capability_verification": verification})
+    if not confirmed:
+        return {
+            "operation": "auto-hire",
+            "status": "BLOCKED",
+            "reason": "formal AUTO_HIRE requires CONFIRMED capability verification",
+            "capability_verifications": verifications,
+            "lifecycle": lifecycle,
+        }
+    ranked = rank_candidates(capability, confirmed)
     if not ranked:
         return {"operation": "auto-hire", "status": "BLOCKED", "reason": "no candidate covers capability", "lifecycle": lifecycle}
     selected = ranked[0]
@@ -233,7 +258,9 @@ def hire_and_execute(
     audit = selected["audit"]
     if audit["status"] != "PASS":
         return {"operation": "auto-hire", "status": "REJECTED", "reason": "candidate audit failed", "audit": audit, "lifecycle": lifecycle + ["REJECTED"]}
-    gate_candidate = {key: value for key, value in selected.items() if key != "audit"} | {"risk": audit["risk"]}
+    gate_candidate = {
+        key: value for key, value in selected.items() if key != "audit"
+    } | {"risk": audit["risk"], "behavior_trial": "PASS"}
     authorization = autonomy.auto_hire_gate(policy, gate_candidate, actor=actor)
     if authorization.get("status") != "AUTHORIZED":
         return {"operation": "auto-hire", "status": "BLOCKED", "authorization": authorization, "lifecycle": lifecycle}
@@ -253,7 +280,6 @@ def hire_and_execute(
         "qualification": "DELEGATION_READY",
         "materialized_path": str(materialized),
     }
-    _register(project, record)
     execution_gate = can_execute(record)
     if not execution_gate["allowed"]:
         return {"operation": "auto-hire", "status": "BLOCKED", "reason": execution_gate["reason"], "lifecycle": lifecycle}
@@ -266,6 +292,8 @@ def hire_and_execute(
     lifecycle.append("CHECKED")
     final = "ACCEPTED" if checked else "REJECTED"
     lifecycle.append(final)
+    if checked:
+        _register(project, record)
     return {
         "operation": "auto-hire",
         "status": final,
@@ -305,23 +333,32 @@ def auto_hire_missing_capability(
         }
     audited = []
     for candidate in discovered["candidates"]:
-        audit = discovery_runtime.static_audit(candidate)
-        audited.append((candidate, audit))
+        verification = candidate.get("capability_verification") or discovery_runtime.verify_capability(candidate, capability)
+        checked_candidate = dict(candidate)
+        checked_candidate["requested_capability"] = capability
+        checked_candidate["capability_verification"] = verification
+        if verification.get("status") == "CONFIRMED":
+            checked_candidate["capabilities"] = sorted(set(checked_candidate.get("capabilities", [])) | {capability})
+        audit = discovery_runtime.static_audit(checked_candidate)
+        audited.append((checked_candidate, audit, verification))
     lifecycle.append("AUDIT")
     eligible = [
-        (candidate, audit) for candidate, audit in audited
-        if audit.get("status") == "PASS" and audit.get("authorization") in {"AUTO", "AUTO_WITH_AUDIT"}
+        (candidate, audit, verification) for candidate, audit, verification in audited
+        if audit.get("status") == "PASS"
+        and audit.get("authorization") in {"AUTO", "AUTO_WITH_AUDIT"}
+        and verification.get("status") == "CONFIRMED"
     ]
     if not eligible:
-        author_required = any(audit.get("authorization") == "ASK_AUTHOR" for _, audit in audited)
+        author_required = any(audit.get("authorization") == "ASK_AUTHOR" for _, audit, _ in audited)
         return {
             "operation": "auto-hire-missing-capability", "status": "BLOCKED",
-            "reason": "candidate requires author authorization" if author_required else "no candidate passed static audit",
-            "requires_author": author_required, "audits": [audit for _, audit in audited],
+            "reason": "candidate requires author authorization" if author_required else "no CONFIRMED candidate passed audit and behavior verification",
+            "requires_author": author_required, "audits": [audit for _, audit, _ in audited],
+            "capability_verifications": [verification for _, _, verification in audited],
             "provider_lifecycle": lifecycle,
         }
     risk_order = {"LOW": 0, "MEDIUM": 1}
-    selected, audit = sorted(eligible, key=lambda item: (risk_order.get(item[1]["risk"], 9), str(item[0].get("id", ""))))[0]
+    selected, audit, verification = sorted(eligible, key=lambda item: (risk_order.get(item[1]["risk"], 9), str(item[0].get("id", ""))))[0]
     lifecycle.append("PIN")
     materialized = discovery_runtime.materialize(project, selected)
     if materialized.get("status") != "MATERIALIZED":
@@ -334,7 +371,8 @@ def auto_hire_missing_capability(
     candidate.update({
         "source_path": materialized["path"], "license_compatible": True,
         "source_audit": "PASS", "installer_audit": "PASS", "dependency_audit": "PASS",
-        "security_audit": "PASS", "behavior_trial": "PASS", "risk": audit["risk"],
+        "security_audit": "PASS", "behavior_trial": selected.get("behavior_trial"), "risk": audit["risk"],
+        "capability_verification": verification,
         "dangerous_hooks": False, "credentials": audit["credentials"],
         "system_wide_write": audit["system_writes"], "private_data_export": False,
         "network_runtime": audit["network"], "permission_scope": selected.get("permission_scope", [capability]),

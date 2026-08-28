@@ -4,6 +4,19 @@
 
 ### Added
 
+- Added a real resumable Host Provider lifecycle: request creation,
+  `HOST_EXECUTION_REQUIRED`, typed handoff receipt, independent checking,
+  acceptance/rejection, Director resume, and downstream invalidation. Recorded
+  CI handoffs validate this protocol while model behavior remains `NOT_RUN`.
+- Reclassified the built-in research and competition algorithms as bounded
+  native baselines. Native-unsupported classification and graph-network E2Es
+  now route through problem-specific host coding/modeling and then execute the
+  returned code with deterministic runtimes.
+- Added semantic Skill capability states (`CONFIRMED`, `PARTIAL`, `UNVERIFIED`,
+  `MISMATCH`) and restricted formal AUTO_HIRE to content-audited, behavior-
+  trialed, checked `CONFIRMED` candidates.
+- Added literature retrieval sufficiency states and required materialized full
+  text plus independently verified exact regions for load-bearing claims.
 - Added a host-neutral Provider Runtime with qualification-aware routing,
   typed host handoffs, independent checking, artifact freshness, and
   dependency invalidation while retaining the existing control plane.

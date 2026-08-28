@@ -22,6 +22,7 @@ import competition_modeling_provider  # noqa: E402
 import competition_coding_provider  # noqa: E402
 import competition_analysis_provider  # noqa: E402
 import competition_writing_provider  # noqa: E402
+import competition_host_provider  # noqa: E402
 
 
 SKILL_VERSION = "3.2.0"
@@ -31,10 +32,10 @@ NODE_PROVIDER = {
     "problem_selection": ("competition-modeling-provider", "problem-selection"),
     "assumptions": ("competition-modeling-provider", "mathematical-modeling"),
     "method_candidates": ("competition-modeling-provider", "mathematical-modeling"),
-    "minimal_viable_model": ("competition-coding-provider", "code-generation"),
-    "pilot_solve": ("competition-coding-provider", "execution"),
+    "minimal_viable_model": ("native-competition-baseline", "code-generation"),
+    "pilot_solve": ("deterministic-competition-execution", "execution"),
     "model_validation": ("competition-analysis-provider", "model-validation"),
-    "formal_solve": ("competition-coding-provider", "experiment-execution"),
+    "formal_solve": ("deterministic-competition-execution", "experiment-execution"),
     "sensitivity_robustness": ("competition-analysis-provider", "sensitivity-analysis"),
     "model_improvement": ("competition-analysis-provider", "model-validation"),
     "visualization": ("competition-analysis-provider", "scientific-visualization"),
@@ -65,19 +66,23 @@ def _fixture():
     return module
 
 
-def _providers() -> list[dict[str, Any]]:
+def _providers(project: Path) -> list[dict[str, Any]]:
+    native_status = "QUALIFIED" if competition_coding_provider.native_available(project) else "UNAVAILABLE"
     return [
         provider_runtime.provider("competition-modeling-provider", "NATIVE", ["competition-intake", "question-decomposition", "problem-selection", "mathematical-modeling"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
-        provider_runtime.provider("competition-coding-provider", "NATIVE", ["code-generation", "execution", "experiment-execution"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
+        provider_runtime.provider("native-competition-baseline", "NATIVE", ["code-generation"], status=native_status, qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
+        provider_runtime.provider("deterministic-competition-execution", "NATIVE", ["execution", "experiment-execution"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
+        provider_runtime.provider("host-competition-modeling", "HOST_LLM", ["mathematical-modeling"], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", permissions=["local_read", "local_write"]),
+        provider_runtime.provider("host-competition-coding", "HOST_LLM", ["code-generation"], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", permissions=["local_read", "local_write"]),
         provider_runtime.provider("competition-analysis-provider", "NATIVE", ["model-validation", "sensitivity-analysis", "scientific-visualization"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
-        provider_runtime.provider("competition-writing-provider", "HOST_LLM", ["evidence-bound-writing", "adversarial-review", "evidence-bound-revision", "artifact-validation"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
+        provider_runtime.provider("competition-writing-provider", "NATIVE", ["evidence-bound-writing", "adversarial-review", "evidence-bound-revision", "artifact-validation"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
     ]
 
 
 def _invoke(project: Path, provider_id: str, node: str) -> dict[str, Any]:
     if provider_id == "competition-modeling-provider":
         return competition_modeling_provider.execute(project, node)
-    if provider_id == "competition-coding-provider":
+    if provider_id in {"native-competition-baseline", "deterministic-competition-execution"}:
         return competition_coding_provider.execute(project, node)
     if provider_id == "competition-analysis-provider":
         return competition_analysis_provider.execute(project, node)
@@ -142,7 +147,7 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
     project = project.resolve()
     if _fixture_mode(project):
         return _fixture().execute_node(project, node_id)
-    registry = _providers()
+    registry = _providers(project)
     support.write(support.state_dir(project) / "provider_registry.json", {"schema_version": 1, "skill_version": SKILL_VERSION, "providers": registry})
     entry = NODE_PROVIDER.get(node_id)
     if entry is None:
@@ -151,12 +156,33 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
     policy = support.read_json(support.state_dir(project) / "autonomy_policy.json", {})
     permissions = policy.get("permissions", {"local_read": True, "local_write": True, "execute": True})
     route = provider_runtime.resolve_provider(capability, {"node": node_id}, node_id in FORMAL_NODES, "LOW", permissions, registry)
-    if route.get("status") != "PASS" or route["provider"]["provider_id"] != expected_provider:
+    if route.get("status") == "HOST_EXECUTION_REQUIRED":
+        selected = route.get("provider", {})
+        capability_name = "competition-code-generation" if node_id == "minimal_viable_model" else "competition-modeling"
+        result = competition_host_provider.request_or_consume(project, node_id, capability_name)
+        if result.get("status") == "HOST_EXECUTION_REQUIRED":
+            return result | {
+                "operation": "competition-execute-node", "node": node_id,
+                "provider_route": route, "host_request_created": True,
+            }
+        expected_provider = str(selected.get("provider_id") or expected_provider)
+    elif route.get("status") != "PASS":
         return {"operation": "competition-execute-node", "status": route.get("status", "FAIL"), "node": node_id, "findings": ["provider route did not resolve the required capability"], "provider_route": route}
-    try:
-        result = _invoke(project, expected_provider, node_id)
-    except Exception as exc:
-        return {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": [f"{type(exc).__name__}: {exc}"]}
+    else:
+        selected = route["provider"]
+        expected_provider = selected["provider_id"]
+        try:
+            result = _invoke(project, expected_provider, node_id)
+        except Exception as exc:
+            return {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": [f"{type(exc).__name__}: {exc}"]}
+        if node_id == "method_candidates" and result.get("status") != "PASS":
+            result = competition_host_provider.request_or_consume(project, node_id, "competition-modeling")
+            if result.get("status") == "HOST_EXECUTION_REQUIRED":
+                return result | {
+                    "operation": "competition-execute-node", "node": node_id,
+                    "provider_route": route, "host_request_created": True,
+                }
+            expected_provider = "host-competition-modeling"
     check = _validate(project, result)
     if check["status"] != "PASS":
         return result | {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": check["findings"], "checker": check, "provider_route": route}

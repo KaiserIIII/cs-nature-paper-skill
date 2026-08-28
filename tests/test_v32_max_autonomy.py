@@ -100,7 +100,7 @@ class AutoHireLifecycleTests(unittest.TestCase):
             source = Path(tmp) / "candidate"
             project.mkdir()
             source.mkdir()
-            (source / "SKILL.md").write_text("---\nname: bounded-employee\ndescription: Bounded fixture.\n---\n", encoding="utf-8")
+            (source / "SKILL.md").write_text("---\nname: bounded-employee\ndescription: Perform analysis on supplied data.\n---\n", encoding="utf-8")
             (source / "worker.py").write_text(
                 "import json,sys\nfrom pathlib import Path\n"
                 "payload=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))\n"
@@ -111,6 +111,8 @@ class AutoHireLifecycleTests(unittest.TestCase):
                 "source_path": str(source),
                 "entrypoint": "worker.py",
                 "capabilities": ["analysis"],
+                "semantic_audit": {"status": "CONFIRMED", "actor": "recorded-host-audit", "evidence": ["SKILL.md", "worker.py"]},
+                "behavior_trial": {"status": "PASS", "checker": "deterministic-output-checker", "output_contract": "PASS"},
             }
             result = marketplace.hire_and_execute(project, "analysis", [item], {"value": 2}, policy=maximum_policy())
             self.assertEqual(result["status"], "ACCEPTED")
@@ -129,6 +131,25 @@ class AutoHireLifecycleTests(unittest.TestCase):
                     "ACCEPTED",
                 ],
             )
+
+    def test_unverified_direct_hire_cannot_execute(self):
+        marketplace = load("skill_marketplace_runtime")
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "project"
+            source = Path(tmp) / "candidate"
+            project.mkdir()
+            source.mkdir()
+            (source / "SKILL.md").write_text("---\nname: unverified\ndescription: Candidate.\n---\n", encoding="utf-8")
+            (source / "worker.py").write_text("print('must not execute')\n", encoding="utf-8")
+            item = candidate("LOW") | {
+                "source_path": str(source),
+                "entrypoint": "worker.py",
+                "capabilities": ["analysis"],
+                "capability_verification": {"status": "CONFIRMED", "formal_eligible": True},
+            }
+            result = marketplace.hire_and_execute(project, "analysis", [item], {}, policy=maximum_policy())
+            self.assertEqual(result["status"], "BLOCKED")
+            self.assertNotIn("EXECUTED", result["lifecycle"])
 
     def test_provisional_and_quarantined_candidates_never_execute(self):
         marketplace = load("skill_marketplace_runtime")

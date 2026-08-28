@@ -15,7 +15,7 @@
         "properties": {
           "provider_id": {"type": "string", "minLength": 1},
           "type": {"enum": ["NATIVE", "HOST_LLM", "WEB", "EXTERNAL_SKILL", "TOOL"]},
-          "status": {"enum": ["AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED"]},
+          "status": {"enum": ["AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED", "HOST_AVAILABLE", "HOST_REQUEST_CAPABLE", "HOST_BEHAVIOR_QUALIFIED"]},
           "capabilities": {"type": "array", "minItems": 1, "items": {"type": "string"}},
           "input_contract": {"type": "object"},
           "output_contract": {"type": "object"},

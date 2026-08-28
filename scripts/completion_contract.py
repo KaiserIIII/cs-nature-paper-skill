@@ -109,13 +109,75 @@ def _e2e_check(path: Path | None, project: Path) -> dict[str, Any]:
     return _check("PASS" if not findings else "FAIL", findings, evaluation_class=value.get("evaluation_class"))
 
 
-def _literature(project: Path) -> dict[str, Any]:
+def literature_sufficiency(project: Path) -> dict[str, Any]:
     value = _read(project / "artifacts" / "literature.json", {})
-    findings = []
-    for field in ("sources", "retrieval_records", "verified_relations", "closest_work", "remaining_gap"):
-        if not value.get(field):
-            findings.append(f"literature output lacks {field}")
-    return _check("PASS" if not findings else "FAIL", findings)
+    if not isinstance(value, dict) or not value:
+        return _check("FAIL", ["literature output is missing"], novelty_status="CONDITIONAL")
+    claims = value.get("load_bearing_claims", [])
+    retrievals = value.get("retrieval_records", [])
+    relations = value.get("claim_relations", [])
+    if not isinstance(claims, list) or not isinstance(retrievals, list) or not isinstance(relations, list):
+        return _check("FAIL", ["literature sufficiency collections are invalid"], novelty_status="CONDITIONAL")
+    if not claims:
+        return _check(
+            "PASS",
+            [],
+            novelty_status="SCOPED",
+            literature_gate_status="SCOPED_PASS",
+            load_bearing_claims=0,
+        )
+
+    findings: list[str] = []
+    verified: list[str] = []
+    novelty_ids = {
+        str(item.get("claim_id"))
+        for item in claims
+        if isinstance(item, dict) and str(item.get("kind", "")).casefold() == "novelty"
+    }
+    for claim in claims:
+        if not isinstance(claim, dict) or not claim.get("claim_id"):
+            findings.append("load-bearing literature claim lacks claim_id")
+            continue
+        claim_id = str(claim["claim_id"])
+        exact = [
+            item for item in relations
+            if isinstance(item, dict)
+            and str(item.get("claim_id")) == claim_id
+            and item.get("verification_status") == "EXACT_REGION_VERIFIED"
+        ]
+        eligible = False
+        for relation in exact:
+            source_id = relation.get("source_id")
+            eligible = any(
+                isinstance(record, dict)
+                and record.get("retrieval_status") == "EXACT_REGION_VERIFIED"
+                and record.get("load_bearing_eligible") is True
+                and (
+                    (source_id and record.get("source_id") == source_id)
+                    or str(record.get("claim_id", "")) == claim_id
+                )
+                for record in retrievals
+            )
+            if eligible:
+                break
+        if eligible:
+            verified.append(claim_id)
+        else:
+            findings.append(f"load-bearing literature claim lacks full-text exact-region verification: {claim_id}")
+    unresolved_novelty = novelty_ids - set(verified)
+    novelty_status = "CONDITIONAL" if unresolved_novelty else ("VERIFIED" if novelty_ids else "SCOPED")
+    return _check(
+        "PASS" if not findings else "FAIL",
+        findings,
+        novelty_status=novelty_status,
+        literature_gate_status="PASS" if not findings else "CONDITIONAL",
+        load_bearing_claims=len(claims),
+        verified_claims=verified,
+    )
+
+
+def _literature(project: Path) -> dict[str, Any]:
+    return literature_sufficiency(project)
 
 
 def _experiment(project: Path) -> dict[str, Any]:

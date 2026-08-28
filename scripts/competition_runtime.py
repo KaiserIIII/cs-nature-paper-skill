@@ -40,6 +40,7 @@ import competition_executor  # noqa: E402
 import competition_problem  # noqa: E402
 import competition_quality  # noqa: E402
 import director_loop  # noqa: E402
+import host_provider_runtime  # noqa: E402
 
 
 class CompetitionError(RuntimeError):
@@ -1152,16 +1153,41 @@ def execute_next(
     now_utc: datetime | None = None,
 ) -> dict[str, Any]:
     """Run the highest-value eligible node through shared authorization and graph contracts."""
-    plan = schedule(project, job_estimates=job_estimates, critical_fix_nodes=critical_fix_nodes, now_utc=now_utc)
-    selected = plan.get("next_action")
-    if not selected:
-        return {"operation": "competition-execute-next", "status": "BLOCKED", "reason": "no overlay-eligible node", "plan": plan}
-    node_id = selected["node"]
-    authorization = selected.get("autonomy", {"status": "BLOCKED", "decision": "DENY"})
-    if authorization.get("status") != "AUTHORIZED":
-        return {"operation": "competition-execute-next", "status": "BLOCKED", "reason": authorization.get("reason"), "authorization": authorization, "plan": plan}
-    research_graph.transition(project, node_id, "RUNNING", "competition Director dispatch", actor, None)
+    _, graph_value = research_graph.load_graph(project)
+    running = [item for item in graph_value.get("nodes", []) if item.get("status") == "RUNNING"]
+    resuming_host = False
+    if running:
+        node_id = str(running[0].get("id"))
+        active = host_provider_runtime.active_for_node(project, node_id)
+        if not active:
+            return {"operation": "competition-execute-next", "status": "BLOCKED", "reason": "RUNNING node has no resumable host request", "node": node_id}
+        if active.get("status") != "ACCEPTED":
+            return {
+                "operation": "competition-execute-next", "status": "HOST_EXECUTION_REQUIRED",
+                "node": node_id, "request_path": active.get("request_path"),
+                "host_request_created": True, "ordinary_author_prompts": 0,
+            }
+        plan = {"control_mode": "HOST_HANDOFF_RESUME", "next_action": {"node": node_id}}
+        authorization = {"status": "AUTHORIZED", "decision": "AUTO", "reason": "resume independently checked host handoff"}
+        resuming_host = True
+    else:
+        plan = schedule(project, job_estimates=job_estimates, critical_fix_nodes=critical_fix_nodes, now_utc=now_utc)
+        selected = plan.get("next_action")
+        if not selected:
+            return {"operation": "competition-execute-next", "status": "BLOCKED", "reason": "no overlay-eligible node", "plan": plan}
+        node_id = selected["node"]
+        authorization = selected.get("autonomy", {"status": "BLOCKED", "decision": "DENY"})
+        if authorization.get("status") != "AUTHORIZED":
+            return {"operation": "competition-execute-next", "status": "BLOCKED", "reason": authorization.get("reason"), "authorization": authorization, "plan": plan}
+        research_graph.transition(project, node_id, "RUNNING", "competition Director dispatch", actor, None)
     execution = competition_executor.execute_node(project, node_id)
+    if execution.get("status") == "HOST_EXECUTION_REQUIRED":
+        return {
+            "operation": "competition-execute-next", "status": "HOST_EXECUTION_REQUIRED",
+            "node": node_id, "authorization": authorization, "execution": execution,
+            "request_path": execution.get("request_path"), "host_request_created": True,
+            "resuming_host": resuming_host, "plan": plan,
+        }
     if execution.get("status") != "PASS":
         research_graph.transition(project, node_id, "FAIL", "competition executor failed output contract", actor, None)
         recovery = director_loop.recovery_decision(project, node_id, f"competition:{node_id}:output-contract", previous_result="FAIL")

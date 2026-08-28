@@ -24,7 +24,12 @@
     "provider_runtime": "PASS",
     "skill_discovery_provider": "PASS",
     "generic_research_orchestration_e2e": "PASS",
-    "generic_competition_orchestration_e2e": "PASS"
+    "generic_competition_orchestration_e2e": "PASS",
+    "host_provider_handoff_e2e": "PASS",
+    "generic_host_research_e2e": "PASS",
+    "generic_host_competition_e2e": "PASS",
+    "capability_semantic_verification": "PASS",
+    "literature_sufficiency": "PASS"
   },
   "hosted_ci": {
     "run_id": null,
@@ -39,6 +44,7 @@
   "known_limitations": [
     "The repository manifest is intentionally unresolved and release-blocked; Hosted CI creates the exact-SHA resolved manifest only after all six matrix jobs pass.",
     "Model-backed end-to-end autonomous research behavior has not been independently validated.",
+    "Recorded host handoffs validate request, receive, checking, resume, and deterministic execution semantics; they do not evaluate a live host model.",
     "Live venue pages, paywalled sources, and external Skills require activation-time access, exact immutable pins, and verification.",
     "Deterministic generic and fixture E2Es demonstrate routing and artifact contracts; they do not establish a scientific result, universal generalization, model behavior, or venue outcome."
   ],

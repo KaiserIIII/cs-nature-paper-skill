@@ -261,29 +261,62 @@ def run(project: Path, *, max_iterations: int = 32, actor: str = "director", now
             session.update({"status": "READY_FOR_SUBMISSION", "current_node": None, "blocked_reason": None, "graph_hash": _graph_hash(project)})
             _persist(project, session)
             return {"operation": "director-run", "status": "READY_FOR_SUBMISSION", "session_id": session["session_id"], "iteration": session["iteration"], "completed": session["completed"], "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}
-        node_id = _next_node(project)
-        if node_id is None:
-            session.update({"status": "BLOCKED", "blocked_reason": "no executable node; dependency or graph state prevents progress", "last_decision": "BLOCKED", "graph_hash": _graph_hash(project)})
-            _persist(project, session)
-            return {"operation": "director-run", "status": "BLOCKED", "session_id": session["session_id"], "reason": session["blocked_reason"], "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}
-        authorization = _authorization_for(policy, node_id, actor, decision_time)
-        autonomy.append_audit(_audit_path(project), "node-authorization", {"session_id": session["session_id"], "node": node_id, "authorization": authorization.get("decision")}, actor=actor, decision=authorization["status"], utc=decision_time)
-        if authorization["status"] != "AUTHORIZED":
-            if authorization.get("decision") == "ASK_AUTHOR":
-                session["ordinary_author_prompts"] = int(session.get("ordinary_author_prompts", 0)) + 1
-            session.update({"status": "BLOCKED", "blocked_reason": authorization.get("reason"), "last_decision": authorization})
-            _persist(project, session)
-            return {"operation": "director-run", "status": "BLOCKED", "session_id": session["session_id"], "reason": authorization.get("reason"), "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}
-        session["current_node"] = node_id
-        session["iteration"] += 1
-        graph_runtime.transition(project, node_id, "RUNNING", "authorized executor dispatch", actor, None)
+        resuming_host = session.get("status") == "HOST_EXECUTION_REQUIRED" and bool(session.get("current_node"))
+        if resuming_host:
+            node_id = str(session["current_node"])
+            authorization = session.get("pending_authorization") or {
+                "status": "AUTHORIZED", "decision": "AUTO", "reason": "resume accepted host handoff",
+            }
+        else:
+            node_id = _next_node(project)
+            if node_id is None:
+                session.update({"status": "BLOCKED", "blocked_reason": "no executable node; dependency or graph state prevents progress", "last_decision": "BLOCKED", "graph_hash": _graph_hash(project)})
+                _persist(project, session)
+                return {"operation": "director-run", "status": "BLOCKED", "session_id": session["session_id"], "reason": session["blocked_reason"], "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}
+            authorization = _authorization_for(policy, node_id, actor, decision_time)
+            autonomy.append_audit(_audit_path(project), "node-authorization", {"session_id": session["session_id"], "node": node_id, "authorization": authorization.get("decision")}, actor=actor, decision=authorization["status"], utc=decision_time)
+            if authorization["status"] != "AUTHORIZED":
+                if authorization.get("decision") == "ASK_AUTHOR":
+                    session["ordinary_author_prompts"] = int(session.get("ordinary_author_prompts", 0)) + 1
+                session.update({"status": "BLOCKED", "blocked_reason": authorization.get("reason"), "last_decision": authorization})
+                _persist(project, session)
+                return {"operation": "director-run", "status": "BLOCKED", "session_id": session["session_id"], "reason": authorization.get("reason"), "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}
+            session["current_node"] = node_id
+            session["iteration"] += 1
+            graph_runtime.transition(project, node_id, "RUNNING", "authorized executor dispatch", actor, None)
         result = executor_runtime.execute_node(project, node_id)
+        if result.get("status") == "HOST_EXECUTION_REQUIRED":
+            session.update({
+                "status": "HOST_EXECUTION_REQUIRED",
+                "current_node": node_id,
+                "pending_authorization": authorization,
+                "pending_host_request": result.get("request_path"),
+                "blocked_reason": None,
+                "last_decision": {
+                    "node": node_id,
+                    "executor": "HOST_EXECUTION_REQUIRED",
+                    "request_path": result.get("request_path"),
+                },
+                "graph_hash": _graph_hash(project),
+            })
+            _persist(project, session)
+            return {
+                "operation": "director-run",
+                "status": "HOST_EXECUTION_REQUIRED",
+                "session_id": session["session_id"],
+                "node": node_id,
+                "request_path": result.get("request_path"),
+                "host_request_created": result.get("host_request_created", True),
+                "ordinary_author_prompts": session.get("ordinary_author_prompts", 0),
+            }
         if result.get("status") == "PASS":
             evidence = ",".join(result.get("evidence", []))
             graph_runtime.transition(project, node_id, "PASS", "executor output contract passed", actor, evidence)
             session.setdefault("completed", []).append(node_id)
             session["completed"] = list(dict.fromkeys(session["completed"]))
             session["last_decision"] = {"node": node_id, "authorization": authorization.get("decision"), "executor": "PASS", "artifacts": result.get("artifacts", []), "evidence": result.get("evidence", [])}
+            session.pop("pending_authorization", None)
+            session.pop("pending_host_request", None)
             session.setdefault("checkpoints", []).append({"iteration": session["iteration"], "utc": decision_time, "node": node_id, "status": "PASS", "artifacts": result.get("artifacts", [])})
         else:
             graph_runtime.transition(project, node_id, "FAIL", "executor output contract failed", actor, None)

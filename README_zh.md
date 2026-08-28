@@ -236,17 +236,31 @@ V3.2.0 明确区分四层，不能混为一谈：
   evidence、provenance、freshness 和依赖失效。
 - **Host Provider**：当前 Codex/Claude 类 host 可通过中立的 typed
   request/handoff 执行搜索、读取、编码、运行、写作和审查；独立 checker 接受
-  artifact 后 graph 才能 PASS。
+  artifact 后 graph 才能 PASS。请求会先进入 `HOST_EXECUTION_REQUIRED`，Python
+  不会生成 JSON 来冒充 host 已执行。
 - **External Skill Provider**：能力缺口可触发 catalog、已安装 Skill、公共
   marketplace 和 GitHub 搜索。候选必须静态审计、解析为 40 位 immutable SHA、
   隔离 materialize、qualification、无 secrets 执行、检查，最后才能接受。
 - **Model Behavior**：host/model 质量属于独立评测；没有真正隔离的 host-backed
   adapter 时必须诚实记录为 `NOT_RUN`。
 
+Host 可用性状态为 `HOST_AVAILABLE`、`HOST_REQUEST_CAPABLE` 和
+`HOST_BEHAVIOR_QUALIFIED`。CI 的 recorded handoff 只验证 lifecycle，不验证真实
+model。GitHub 搜索结果也不能自动继承请求能力；仓库内容、semantic audit 和经
+checker 的 behavior trial 只能得到 `CONFIRMED`、`PARTIAL`、`UNVERIFIED` 或
+`MISMATCH`，formal AUTO_HIRE 只接受 `CONFIRMED`。
+
 `scripts/research_executor.py` 与 `scripts/competition_executor.py` 现在只是
-Provider adapter。生产科研路径读取真实项目数据并执行输入派生代码；比赛路径
-根据问题结构路由，支持 forecasting+optimization、evaluation+clustering、
-simulation/ODE 等混合方法。旧科研示例与物流求解器只存在于显式 fixture provider。
+Provider adapter。`constant_mean`/`linear_trend` 与有限比赛方法族保留为透明的
+native baseline；native 不支持的任务会路由到 problem-specific host modeling/
+coding，再由 deterministic runtime 执行和检查。该架构支持 host/tool/Skill
+执行，但通用 model-backed 自主行为在单独评测前仍为 `NOT_RUN`。旧科研示例与
+物流求解器只存在于显式 fixture provider。
+
+文献检索明确区分 `METADATA_ONLY`、`FULLTEXT_RETRIEVED`、
+`EXACT_REGION_VERIFIED` 与 `UNAVAILABLE`。Metadata 只能用于发现和身份核验；
+承担创新性、closest-work、方法或重要事实主张的来源必须有全文和独立核验的
+精确区域。
 
 ## CUMCM 比赛覆盖层
 
@@ -354,6 +368,18 @@ python "$SkillRoot\scripts\method_router.py" route `
 验证、审查、交接、dashboard、隐私检查、安全压力用例、行为用例和发布
 验证运行时。对任一脚本执行 `--help` 可以查看准确接口。
 
+Director 因 host 工作暂停时，读取请求、接收真实 handoff，然后恢复同一会话：
+
+```powershell
+python "$SkillRoot\scripts\host_provider_runtime.py" pending $Project
+python "$SkillRoot\scripts\host_provider_runtime.py" receive $Project host-handoff.json `
+  --checker deterministic-output-checker
+python "$SkillRoot\scripts\director_loop.py" resume $Project
+```
+
+当前 host 通常应自动完成这套循环。详见
+[Host Provider contract](references/core/host-provider.md)。
+
 ## 验证状态
 
 `v3.1.1` 正式版通过了 57 个单元与集成测试；必要的
@@ -386,6 +412,9 @@ python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 python scripts/competition_orchestration_e2e.py
 python scripts/generic_research_orchestration_e2e.py
 python scripts/generic_competition_orchestration_e2e.py
+python scripts/host_provider_handoff_e2e.py
+python scripts/generic_host_research_e2e.py
+python scripts/generic_host_competition_e2e.py
 ```
 
 Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只验证 runtime
@@ -399,6 +428,10 @@ Competition orchestration E2E 是确定性的 runtime orchestration 测试，不
 `READY_FOR_SUBMISSION`。通用比赛 E2E 让同一组生产 Provider 处理三种不同
 结构。这些确定性测试证明路由与 artifact contract，不证明任意科研结论或
 host model 行为质量。
+Recorded Host E2E 另外覆盖 native 不支持的 classification 与 graph-network
+任务，验证真实 request/receive/check/resume，并实际执行 handoff 返回的代码。
+其行为标签是 `RECORDED_HANDOFF`，独立的 model behavior evaluation 仍为
+`NOT_RUN`。
 
 ## 这个项目不声称什么
 

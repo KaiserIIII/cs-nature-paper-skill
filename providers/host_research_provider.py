@@ -54,7 +54,9 @@ def execute(project: Path, node: str) -> dict[str, Any]:
         values = {
             "innovation": {
                 "question": brief.get("question"), "closest_work": literature.get("closest_work", []),
-                "novelty_status": "SCOPED", "remaining_uncertainty": literature.get("remaining_uncertainty", []),
+                "novelty_status": literature.get("novelty_status", "CONDITIONAL"),
+                "literature_gate_status": literature.get("literature_gate_status", "CONDITIONAL"),
+                "remaining_uncertainty": literature.get("remaining_uncertainty", []),
             },
             "prior_art_red_team": {
                 "attack": "The proposed contribution may be explained by the closest verified work.",

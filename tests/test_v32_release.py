@@ -43,6 +43,9 @@ class V32ReleaseTests(unittest.TestCase):
         self.assertIn("fetch-tags: true", workflow)
         self.assertIn("python scripts/full_paper_e2e.py --output .full-paper-e2e.json", workflow)
         self.assertIn(".full-paper-e2e.json", workflow)
+        self.assertIn("python scripts/host_provider_handoff_e2e.py --output .host-provider-handoff-e2e.json", workflow)
+        self.assertIn("python scripts/generic_host_research_e2e.py --output .generic-host-research-e2e.json", workflow)
+        self.assertIn("python scripts/generic_host_competition_e2e.py --output .generic-host-competition-e2e.json", workflow)
 
     def test_release_validator_checks_v32_e2e_result(self):
         spec = importlib.util.spec_from_file_location("validate_release", ROOT / "scripts" / "validate_release.py")

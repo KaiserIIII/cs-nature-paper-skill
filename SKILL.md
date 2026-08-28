@@ -65,7 +65,8 @@ support a formal claim. Read [references/core/control-loop.md](references/core/c
 and [references/core/evidence-provenance.md](references/core/evidence-provenance.md).
 
 The Provider layer supplies execution capacity without creating a second
-control plane. Read [references/core/providers.md](references/core/providers.md).
+control plane. Read [references/core/providers.md](references/core/providers.md)
+and, for a host request, [references/core/host-provider.md](references/core/host-provider.md).
 Resolve each graph node's capability through `scripts/provider_runtime.py`:
 qualified native providers first, then qualified installed Skills, then the
 current host/tool, then capability-driven AUTO_HIRE discovery. A provider may
@@ -80,6 +81,13 @@ record actions, uncertainties, tool calls, artifacts, and evidence inputs,
 invoke a distinct checker, register hashes and provenance, then resume the
 deterministic Director. Do not merely tell the author to run
 `director_loop.py`, and do not ask the author for ordinary host-capable work.
+Specifically, when the runtime returns `HOST_EXECUTION_REQUIRED`, read the
+persisted request, inspect its inputs and the existing repository, perform the
+capability with the current host tools, create real artifacts, write the typed
+handoff, run `host_provider_runtime.py receive` with a distinct checker, and
+resume the same Director session. The Python runtime must never synthesize a
+host answer. Leave the node `RUNNING` until the accepted handoff, deterministic
+execution, evidence registration, and checker complete.
 If the capability is genuinely missing, run `scripts/skill_discovery_provider.py`
 and `skill_marketplace_runtime.auto_hire_missing_capability`: discovery,
 static audit, immutable pin, isolated materialization, qualification,
@@ -262,8 +270,9 @@ marks a node `PASS` only after its artifact/evidence contract succeeds.
 - Validation/review: read `departments/validation.md`, `departments/review.md`,
   and `core/security.md`.
 - External skill request: read `core/skill-marketplace.md` before activation.
-- Provider request: read `core/providers.md`; perform a host-native handoff when
-  available, otherwise use capability-driven discovery. Never inherit secrets
+- Provider request: read `core/providers.md` and `core/host-provider.md`;
+  perform a host-native handoff when available, otherwise use capability-driven
+  discovery. Never inherit secrets
   into an external employee without explicit authorization.
 - Methods decision: run `scripts/method_router.py` and load only the selected
   bounded module; escalate high-risk methods to a qualified checker.
@@ -282,7 +291,12 @@ marks a node `PASS` only after its artifact/evidence contract succeeds.
   explicit fixture provider and must not be selected in production.
 - Literature: keep discovery, identity verification, and claim-support
   verification separate; snippets and metadata cannot support a load-bearing
-  claim. Use `scripts/literature_runtime.py` and the query log.
+  claim. Use `METADATA_ONLY`, `FULLTEXT_RETRIEVED`,
+  `EXACT_REGION_VERIFIED`, and `UNAVAILABLE`. Novelty, closest-work,
+  method, and important factual claims require materialized full text plus an
+  independently verified exact region; otherwise mark the relation
+  `BACKGROUND_ONLY` and novelty `CONDITIONAL`. Use
+  `scripts/literature_runtime.py` and the query log.
 - Experiment: plan from claim -> threat -> evidence -> experiment with
   `scripts/experiment_planner.py`; preserve discovery/pilot/formal labels and
   use `scripts/job_runtime.py` for recoverable long jobs.
@@ -292,7 +306,11 @@ marks a node `PASS` only after its artifact/evidence contract succeeds.
 - Host-specific behavior: read one adapter in `references/hosts/`.
 
 Resolution is not execution: a selected employee remains `RESOLVED` until the
-host runs it and a schema-valid handoff reaches `HANDOFF_RECEIVED`/`CHECKED`.
+host runs it and a schema-valid handoff reaches `HOST_HANDOFF_RECEIVED`, an
+independent checker passes, and the request becomes `ACCEPTED`.
+GitHub search hits do not acquire capabilities. Capability verification is
+`CONFIRMED`, `PARTIAL`, `UNVERIFIED`, or `MISMATCH`; formal AUTO_HIRE requires
+`CONFIRMED` plus static audit, behavior trial, output contract, and checker.
 `PROVISIONAL` providers are advisory-only; `SPECIALIST` providers need an
 exact pin and a passed relevant behavior trial before formal evidence work.
 

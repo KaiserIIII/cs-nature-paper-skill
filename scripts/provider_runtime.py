@@ -14,8 +14,12 @@ from typing import Any
 
 SKILL_VERSION = "3.2.0"
 PROVIDER_TYPES = {"NATIVE", "HOST_LLM", "WEB", "EXTERNAL_SKILL", "TOOL"}
-PROVIDER_STATUSES = {"AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED"}
-QUALIFIED = {"QUALIFIED", "DELEGATION_READY"}
+PROVIDER_STATUSES = {
+    "AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED",
+    "HOST_AVAILABLE", "HOST_REQUEST_CAPABLE", "HOST_BEHAVIOR_QUALIFIED",
+}
+QUALIFIED = {"QUALIFIED", "DELEGATION_READY", "HOST_BEHAVIOR_QUALIFIED"}
+HOST_REQUEST_READY = {"HOST_REQUEST_CAPABLE", "HOST_BEHAVIOR_QUALIFIED"}
 REQUEST_FIELDS = {
     "task_id", "capability", "purpose", "formal", "inputs", "constraints",
     "required_outputs", "forbidden_claims", "evidence_requirements", "budget", "permissions",
@@ -112,6 +116,20 @@ def _eligible(
     return item.get("qualification") in QUALIFIED or (not formal and item.get("status") == "AVAILABLE")
 
 
+def _host_request_eligible(
+    item: dict[str, Any], capability: str, permissions: set[str]
+) -> bool:
+    return (
+        validate_provider(item)["status"] == "PASS"
+        and item.get("type") == "HOST_LLM"
+        and capability in item.get("capabilities", [])
+        and item.get("status") not in {"UNAVAILABLE", "BLOCKED"}
+        and item.get("qualification") in HOST_REQUEST_READY
+        and set(item.get("permissions", [])).issubset(permissions)
+        and item.get("checker_required") is True
+    )
+
+
 def resolve_provider(
     capability: str,
     task: dict[str, Any],
@@ -142,9 +160,26 @@ def resolve_provider(
 
     if candidates:
         selected = sorted(candidates, key=priority)[0]
+        if selected["type"] == "HOST_LLM":
+            return {
+                "operation": "resolve-provider", "status": "HOST_EXECUTION_REQUIRED",
+                "capability": capability, "provider": selected, "formal": formal, "risk": risk,
+                "truth_authority": "DETERMINISTIC_CHECKER", "task": task,
+            }
         return {
             "operation": "resolve-provider", "status": "PASS", "capability": capability,
             "provider": selected, "formal": formal, "risk": risk,
+            "truth_authority": "DETERMINISTIC_CHECKER", "task": task,
+        }
+    host_candidates = [
+        item for item in available_providers
+        if _host_request_eligible(item, capability, allowed)
+    ]
+    if host_candidates:
+        selected = sorted(host_candidates, key=lambda item: str(item["provider_id"]))[0]
+        return {
+            "operation": "resolve-provider", "status": "HOST_EXECUTION_REQUIRED",
+            "capability": capability, "provider": selected, "formal": formal, "risk": risk,
             "truth_authority": "DETERMINISTIC_CHECKER", "task": task,
         }
     if "auto_hire" in allowed and risk in {"LOW", "MEDIUM"}:

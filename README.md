@@ -249,7 +249,9 @@ V3.2.0 separates four validation layers that must not be conflated:
   checkers, evidence, provenance, freshness, and dependency invalidation.
 - **Host Provider:** the current Codex/Claude-style host may search, read, code,
   execute, write, or review through a neutral typed request/handoff contract.
-  A separate invocation/checker must accept the artifact before graph PASS.
+  A request enters `HOST_EXECUTION_REQUIRED`; a separate invocation/checker must
+  receive and accept a real artifact before graph PASS. Python does not generate
+  a substitute host answer.
 - **External Skill Provider:** a capability vacancy can trigger catalog,
   installed-Skill, marketplace, and GitHub discovery. Candidates are statically
   audited, pinned to an exact 40-character commit, isolated, qualified, run
@@ -257,12 +259,25 @@ V3.2.0 separates four validation layers that must not be conflated:
 - **Model Behavior:** host/model quality is a separate evaluation. It remains
   `NOT_RUN` when no genuinely isolated host-backed adapter was executed.
 
+Host availability uses `HOST_AVAILABLE`, `HOST_REQUEST_CAPABLE`, and
+`HOST_BEHAVIOR_QUALIFIED`. Recorded CI handoffs validate the lifecycle, not a
+live model. GitHub discovery results likewise remain `MISMATCH`, `PARTIAL`, or
+`UNVERIFIED` unless repository content, a semantic audit, and a checked behavior
+trial establish `CONFIRMED`; formal AUTO_HIRE accepts only `CONFIRMED`.
+
 `scripts/research_executor.py` and `scripts/competition_executor.py` are now
-Provider adapters. The production research path reads actual project data and
-executes input-derived code. The competition path routes by problem structure
-and supports mixed forecasting/optimization, evaluation/clustering, and
-simulation/ODE workflows. Legacy research and logistics examples live only in
-explicit fixture providers.
+Provider adapters. `constant_mean`/`linear_trend` and the bounded competition
+method families remain transparent native baselines. Native-unsupported work
+routes to problem-specific host modeling/coding, followed by deterministic
+execution and checking. This architecture supports host/tool/Skill execution;
+general model-backed autonomous behavior remains `NOT_RUN` until separately
+evaluated. Legacy research and logistics examples live only in explicit fixture
+providers.
+
+Literature retrieval distinguishes `METADATA_ONLY`, `FULLTEXT_RETRIEVED`,
+`EXACT_REGION_VERIFIED`, and `UNAVAILABLE`. Metadata is useful for discovery and
+identity, but a load-bearing novelty, closest-work, method, or factual claim
+requires full text and an independently verified exact region.
 
 ## CUMCM competition overlay
 
@@ -382,6 +397,19 @@ validation, reviews, handoffs, dashboards, privacy checks, security pressure
 cases, behavior cases, and release validation. Run any script with `--help` to
 inspect its exact contract.
 
+When a Director pauses for host work, inspect and receive the real handoff, then
+resume the same session:
+
+```powershell
+python "$SkillRoot\scripts\host_provider_runtime.py" pending $Project
+python "$SkillRoot\scripts\host_provider_runtime.py" receive $Project host-handoff.json `
+  --checker deterministic-output-checker
+python "$SkillRoot\scripts\director_loop.py" resume $Project
+```
+
+The current host should normally perform this loop automatically. See
+[the Host Provider contract](references/core/host-provider.md).
+
 ## Validation status
 
 The `v3.1.1` release passed 57 unit and integration tests and the required
@@ -415,6 +443,9 @@ python scripts/competition_smoke_run.py --output .competition-smoke-result.json
 python scripts/competition_orchestration_e2e.py
 python scripts/generic_research_orchestration_e2e.py
 python scripts/generic_competition_orchestration_e2e.py
+python scripts/host_provider_handoff_e2e.py
+python scripts/generic_host_research_e2e.py
+python scripts/generic_host_competition_e2e.py
 ```
 
 The competition smoke uses a finite synthetic facility-selection fixture and
@@ -430,6 +461,10 @@ from the evidence state, reviews, repairs, and reaches `READY_FOR_SUBMISSION`.
 The generic competition E2E runs the same production providers on three
 different structures. These deterministic tests demonstrate routing and
 artifact contracts, not universal scientific validity or host-model quality.
+The recorded Host E2Es add native-unsupported classification and graph-network
+tasks, exercise real request/receive/check/resume transitions, and execute the
+returned code. Their model behavior label is `RECORDED_HANDOFF`; the separate
+model behavior evaluation remains `NOT_RUN`.
 
 ## What this project does not claim
 

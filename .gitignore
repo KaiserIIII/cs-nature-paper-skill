@@ -13,6 +13,9 @@ Thumbs.db
 .competition-orchestration-e2e.json
 .generic-research-orchestration-e2e.json
 .generic-competition-orchestration-e2e.json
+.host-provider-handoff-e2e.json
+.generic-host-research-e2e.json
+.generic-host-competition-e2e.json
 .director-orchestration-e2e.json
 .full-paper-e2e.json
 resolved_release_manifest.json

@@ -87,9 +87,16 @@ class SkillDiscoveryProviderTests(unittest.TestCase):
         value = {
             "id": "stats-worker", "repo": "example/stats-worker", "repo_url": "https://github.com/example/stats-worker.git",
             "exact_ref": "a" * 40, "license": "MIT", "capabilities": ["statistical-analysis"],
-            "files": {"SKILL.md": "---\nname: stats-worker\ndescription: Analyze data.\n---\n", "LICENSE": "MIT License"},
+            "files": {
+                "SKILL.md": "---\nname: stats-worker\ndescription: Perform statistical analysis on supplied data.\n---\n",
+                "tests/test_worker.py": "def test_statistical_analysis_contract(): pass\n",
+                "worker.py": "def statistical_analysis(data): return data\n",
+                "LICENSE": "MIT License",
+            },
             "dependencies": [], "credentials": False, "network_runtime": False, "external_writes": False,
             "install_hooks": False, "system_writes": False, "tests": True, "maintainer_activity": "ACTIVE",
+            "semantic_audit": {"status": "CONFIRMED", "actor": "recorded-host-audit", "evidence": ["SKILL.md", "tests/test_worker.py", "worker.py"]},
+            "behavior_trial": {"status": "PASS", "checker": "deterministic-output-checker", "output_contract": "PASS"},
         }
         value.update(changes)
         return value

@@ -130,6 +130,78 @@ def _deduplicate(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return output
 
 
+def _capability_tokens(capability: str) -> list[str]:
+    stop = {"and", "or", "the", "a", "an", "skill", "provider"}
+    return [
+        token for token in re.findall(r"[a-z0-9]+", capability.casefold().replace("_", "-"))
+        if len(token) > 1 and token not in stop
+    ]
+
+
+def verify_capability(candidate: dict[str, Any], capability: str) -> dict[str, Any]:
+    """Verify capability from content plus an explicit semantic audit and behavior trial."""
+    files = dict(candidate.get("files") or {})
+    source_value = candidate.get("source_path")
+    if source_value and Path(str(source_value)).is_dir():
+        files.update(_source_files(Path(str(source_value))))
+    relevant = {
+        path: content
+        for path, content in files.items()
+        if Path(path).name.casefold() in {
+            "skill.md", "readme.md", "pyproject.toml", "package.json", "setup.cfg", "setup.py",
+        }
+        or path.casefold().startswith(("tests/", "test/"))
+        or Path(path).suffix.casefold() in {".py", ".js", ".ts"}
+    }
+    joined = "\n".join(f"{path}\n{content}" for path, content in relevant.items()).casefold()
+    tokens = _capability_tokens(capability)
+    matched = [token for token in tokens if token in joined]
+    if not matched:
+        status = "MISMATCH"
+        findings = ["repository content does not substantiate the requested capability"]
+    elif len(matched) < len(tokens):
+        status = "PARTIAL"
+        findings = ["repository content only partially matches the requested capability"]
+    else:
+        semantic = candidate.get("semantic_audit")
+        trial = candidate.get("behavior_trial")
+        semantic_ok = (
+            isinstance(semantic, dict)
+            and semantic.get("status") == "CONFIRMED"
+            and bool(semantic.get("actor"))
+            and isinstance(semantic.get("evidence"), list)
+            and bool(semantic.get("evidence"))
+        )
+        trial_ok = (
+            isinstance(trial, dict)
+            and trial.get("status") == "PASS"
+            and trial.get("output_contract") == "PASS"
+            and bool(trial.get("checker"))
+        )
+        if semantic_ok and trial_ok:
+            status = "CONFIRMED"
+            findings = []
+        else:
+            status = "UNVERIFIED"
+            findings = []
+            if not semantic_ok:
+                findings.append("host semantic audit is unavailable or incomplete")
+            if not trial_ok:
+                findings.append("checked behavior trial is unavailable or incomplete")
+    return {
+        "operation": "capability-verification",
+        "status": status,
+        "requested_capability": capability,
+        "prefilter_tokens": tokens,
+        "matched_tokens": matched,
+        "files_inspected": sorted(relevant),
+        "semantic_audit": candidate.get("semantic_audit"),
+        "behavior_trial": candidate.get("behavior_trial"),
+        "formal_eligible": status == "CONFIRMED",
+        "findings": findings,
+    }
+
+
 def discover_capability(
     capability: str,
     *,
@@ -153,10 +225,11 @@ def discover_capability(
                 continue
             for candidate in found:
                 value = dict(candidate)
-                value.setdefault("capabilities", []).append(capability)
-                value["capabilities"] = sorted(set(value["capabilities"]))
                 candidates.append(value)
     candidates = _deduplicate(candidates)
+    for candidate in candidates:
+        candidate["requested_capability"] = capability
+        candidate["capability_verification"] = verify_capability(candidate, capability)
     return {
         "operation": "skill-discovery", "status": "PASS" if candidates else "UNAVAILABLE",
         "capability": capability, "queries": used, "candidates": candidates,
@@ -234,6 +307,11 @@ def static_audit(candidate: dict[str, Any]) -> dict[str, Any]:
         risk = "LOW"
     authorization = {"LOW": "AUTO", "MEDIUM": "AUTO_WITH_AUDIT", "HIGH": "ASK_AUTHOR", "CRITICAL": "DENY"}[risk]
     status = "PASS" if not findings and risk != "CRITICAL" else "FAIL"
+    capability = str(candidate.get("requested_capability", "")).strip()
+    capability_verification = (
+        verify_capability(candidate, capability) if capability
+        else candidate.get("capability_verification")
+    )
     return {
         "operation": "skill-static-audit", "status": status, "candidate_id": candidate.get("id"),
         "repo": candidate.get("repo"), "exact_commit": exact_ref, "license": license_name,
@@ -242,6 +320,7 @@ def static_audit(candidate: dict[str, Any]) -> dict[str, Any]:
         "install_hooks": flags["install_hooks"], "system_writes": flags["system_writes"],
         "tests": bool(candidate.get("tests")), "maintainer_activity": candidate.get("maintainer_activity"),
         "capabilities": list(candidate.get("capabilities", [])), "files_audited": sorted(files), "skill_files": sorted(skill_files),
+        "capability_verification": capability_verification,
         "risk_indicators": sorted(set(indicators)), "risk": risk, "authorization": authorization,
         "findings": findings, "installer_executed": False,
     }

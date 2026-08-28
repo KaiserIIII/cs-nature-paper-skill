@@ -21,7 +21,7 @@
     {
       "provider_id": "host-native",
       "type": "HOST_LLM",
-      "status": "AVAILABLE",
+      "status": "HOST_REQUEST_CAPABLE",
       "capabilities": ["research-question-structuring", "novelty-analysis", "feasibility-analysis", "code-generation", "statistical-analysis", "evidence-bound-writing", "adversarial-review"],
       "input_contract": {"type": "object", "contract": "host-request"},
       "output_contract": {"type": "object", "contract": "host-handoff"},
@@ -31,7 +31,7 @@
       "cost_class": "FREE",
       "formal_eligible": false,
       "checker_required": true,
-      "qualification": "PROVISIONAL",
+      "qualification": "HOST_REQUEST_CAPABLE",
       "failure_modes": ["host unavailable", "typed handoff missing", "checker failure"]
     },
     {

@@ -11,7 +11,11 @@ from typing import Any
 import provider_support as support
 
 
-PROVIDER_ID = "competition-coding-provider"
+PROVIDER_ID = "native-competition-baseline"
+NATIVE_FAMILIES = {
+    "prediction", "time-series", "optimization", "evaluation",
+    "classification-clustering", "simulation", "differential-equations",
+}
 
 
 PROGRAM = r'''#!/usr/bin/env python3
@@ -101,7 +105,71 @@ def _selected(project: Path) -> Path:
     return path
 
 
+def native_available(project: Path) -> bool:
+    families = set(map(str, _state(project).get("method_families", [])))
+    return bool(families) and families.issubset(NATIVE_FAMILIES)
+
+
+def _host_contract(project: Path) -> dict[str, Any]:
+    return support.read_json(support.state_dir(project) / "competition_host_code_contract.json", {})
+
+
+def _host_command(project: Path, output: Path, contract: dict[str, Any]) -> tuple[list[str], Path, list[Path]]:
+    commands = contract.get("commands", [])
+    if not isinstance(commands, list) or not commands or not isinstance(commands[0], dict):
+        raise ValueError("accepted competition host code has no deterministic command")
+    raw = commands[0].get("argv")
+    if not isinstance(raw, list) or len(raw) < 2 or not all(isinstance(item, str) for item in raw):
+        raise ValueError("competition host command argv must be a list of strings")
+    output_relative = support.relative(project, output)
+    command = [sys.executable if item == "{python}" else output_relative if item == "{output}" else item for item in raw]
+    cwd = (project / str(commands[0].get("cwd", "."))).resolve()
+    if cwd != project.resolve() and project.resolve() not in cwd.parents:
+        raise ValueError("competition host command cwd escapes the project")
+    declared = commands[0].get("expected_outputs", contract.get("expected_outputs", []))
+    if not isinstance(declared, list) or not declared:
+        raise ValueError("competition host command must declare expected outputs")
+    outputs = []
+    for relative in declared:
+        relative = output_relative if relative == "{output}" else str(relative)
+        path = (project / relative).resolve()
+        if project.resolve() not in path.parents:
+            raise ValueError("competition host expected output escapes the project")
+        outputs.append(path)
+    return command, cwd, outputs
+
+
 def _run(project: Path, output: Path) -> tuple[dict[str, Any], Path]:
+    host_contract = _host_contract(project)
+    if host_contract:
+        command, cwd, expected = _host_command(project, output, host_contract)
+        for path in expected:
+            if path.exists():
+                path.unlink()
+        completed = subprocess.run(command, cwd=str(cwd), capture_output=True, text=True, check=False)
+        produced = [path for path in expected if path.is_file() and path.stat().st_size > 0]
+        expected_set = {path.resolve() for path in expected}
+        inputs = []
+        for token in command[1:]:
+            candidate = (cwd / token).resolve() if not Path(token).is_absolute() else Path(token).resolve()
+            if candidate.is_file() and candidate not in expected_set and project.resolve() in candidate.parents:
+                inputs.append(candidate)
+        record = {
+            "status": "PASS" if completed.returncode == 0 and len(produced) == len(expected) else "FAIL",
+            "command": command, "cwd": str(cwd), "exit_code": completed.returncode,
+            "input_hashes": {support.relative(project, path): support.digest(path) for path in inputs},
+            "outputs": [
+                {"path": support.relative(project, path), "sha256": support.digest(path), "produced_by_command": True}
+                for path in produced
+            ],
+            "environment": {"python": sys.version.split()[0], "network": False},
+            "output_sha256": support.digest(produced[0]) if produced else "", "stderr": completed.stderr[-2000:],
+            "stdout": completed.stdout[-2000:],
+            "host_task_id": host_contract.get("task_id"), "host_provider_id": host_contract.get("provider_id"),
+        }
+        record_path = project / "logs" / ("formal_execution.json" if output.name == "formal_solution.json" else "pilot_execution.json")
+        support.write(record_path, record)
+        return record, record_path
     program = project / "src" / "solve_competition.py"
     plan = project / "config" / "model_plan.json"
     source = _selected(project)
@@ -124,6 +192,8 @@ def _run(project: Path, output: Path) -> tuple[dict[str, Any], Path]:
 def execute(project: Path, node: str) -> dict[str, Any]:
     state = _state(project)
     if node == "minimal_viable_model":
+        if not native_available(project):
+            return {"status": "UNAVAILABLE", "findings": ["native competition baselines do not cover the selected family"]}
         program = support.write(project / "src" / "solve_competition.py", PROGRAM)
         plan = support.write(project / "config" / "model_plan.json", {"families": state.get("method_families", []), "questions": state.get("modeling_plan", []), "baseline_first": True})
         py_compile.compile(str(program), doraise=True)

@@ -52,6 +52,12 @@ jobs:
         run: python scripts/generic_research_orchestration_e2e.py --output .generic-research-orchestration-e2e.json
       - name: Generic competition Provider orchestration E2E
         run: python scripts/generic_competition_orchestration_e2e.py --output .generic-competition-orchestration-e2e.json
+      - name: Recorded Host Provider handoff lifecycle E2E
+        run: python scripts/host_provider_handoff_e2e.py --output .host-provider-handoff-e2e.json
+      - name: Native-unsupported recorded host research E2E
+        run: python scripts/generic_host_research_e2e.py --output .generic-host-research-e2e.json
+      - name: Native-unsupported recorded host competition E2E
+        run: python scripts/generic_host_competition_e2e.py --output .generic-host-competition-e2e.json
       - name: Validate v3.2 completion contract
         run: python scripts/validate_release.py --v32-e2e .full-paper-e2e.json
       - name: Graph rebuild and E2E artifact checks
@@ -69,6 +75,9 @@ jobs:
             .director-orchestration-e2e.json
             .generic-research-orchestration-e2e.json
             .generic-competition-orchestration-e2e.json
+            .host-provider-handoff-e2e.json
+            .generic-host-research-e2e.json
+            .generic-host-competition-e2e.json
           include-hidden-files: true
           if-no-files-found: error
       - name: Quick skill validation when available

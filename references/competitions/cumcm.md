@@ -325,6 +325,17 @@ If no category matches, return `UNRESOLVED`. Do not guess. Distinguish exact,
 heuristic, and metaheuristic optimization. Use an exact formulation when it
 fits the scale and time budget.
 
+Prediction, optimization, evaluation, classification/clustering, simulation,
+and differential-equation implementations are bounded native baselines. If the
+question is unresolved or selects a family outside those baselines, keep the
+node `RUNNING` and request a problem-specific Host Modeling plan. The accepted
+plan must define each question's formulation, variables, parameters,
+assumptions, objective, constraints, baseline, primary model, upgrade
+condition, validation plan, and implementation plan. Then request actual host
+solver code and pass it to deterministic pilot/formal execution. Do not assume
+that arbitrary production problems contain `series`, `alternatives`, `records`,
+or `dynamics`; those fields belong only to compatible bounded baselines.
+
 The model-selection rule is:
 
 ```text
