@@ -1,13 +1,13 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V3.2: student-first, evidence-bound maximum-autonomy Research OS for research papers and CUMCM competitions, with executable Director orchestration, provenance tracking, deterministic contest timing, and no fabricated science or unauthorized release."
+description: "CS Nature Paper V3.2.1: student-first, evidence-bound maximum-autonomy Research OS for research papers and CUMCM competitions, with executable Director orchestration, provenance tracking, deterministic contest timing, and no fabricated science or unauthorized release."
 metadata:
-  version: "3.2.0"
+  version: "3.2.1"
   architecture: "research-control-plane + execution-plane + capability-runtime + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V3.2.0 - Maximum Autonomy Research OS
+# CS Nature Paper V3.2.1 - Maximum Autonomy Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
@@ -34,6 +34,12 @@ Infer the narrowest useful operating mode from the request:
 | `competition` | execute an already selected competition problem | runtime dashboard and highest-ROI executable action |
 | `competition-autopilot` | run supplied problems through the full competition lifecycle | automatic qualitative selection, executable baseline, and continuous Director run |
 | `competition-review` | red-team a contest paper and submission package | severity-ordered findings and score radar |
+
+When a project is run as a formal `full`/`full-paper` workflow, declares a
+submission target, or sets `submission_targeted`, the executor automatically
+treats the core scientific nodes (analysis, figures, writing, review, and
+revision) as load-bearing. A manual `load_bearing_nodes` declaration is not
+required for those workflows.
 
 Do not ask a questionnaire when low-risk orientation work can answer it. Give a
 recommended default and a plain-language explanation. Ask the author only for

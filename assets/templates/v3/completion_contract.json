@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "3.2.0",
+  "skill_version": "3.2.1",
   "created_utc": "",
   "required_checks": ["policy", "audit", "graph", "graph_rebuild", "argument", "feasibility", "protocol", "claims", "evidence", "literature_sufficiency", "experiment_completeness", "figure_traceability", "manuscript_complete", "review_resolution", "risk_resolution", "reproducibility", "artifact_package", "director_orchestration_e2e", "e2e"],
   "status": "PENDING",

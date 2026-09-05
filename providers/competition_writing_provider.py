@@ -93,7 +93,7 @@ def execute(project: Path, node: str) -> dict[str, Any]:
             "alternative": "report no robustness conclusion", "residual_risk": "behavior outside the executed interval remains unknown",
         }
         review = {
-            "schema_version": 4, "skill_version": "3.2.0", "competition": state.get("competition"), "findings": [finding],
+            "schema_version": 4, "skill_version": "3.2.1", "competition": state.get("competition"), "findings": [finding],
             "score_radar": {"problem_understanding": 8, "model_appropriateness": 8, "mathematical_rigor": 8, "implementation": 9, "validation": 8, "innovation": 6, "visualization": 8, "writing": 7, "reproducibility": 9, "overall_coherence": 8},
             "current_strongest_point": "Structure-routed executable evidence", "current_weakest_point": "Sensitivity boundary wording",
             "largest_award_level_blocker": "Bounded sensitivity scope is not explicit in the conclusion",

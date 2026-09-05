@@ -41,7 +41,7 @@ class CompletionContractTests(unittest.TestCase):
         result = completion_contract.evaluate(self.project)
         self.assertEqual(result["status"], "FAIL")
         self.assertIn("graph", result["checks"])
-        self.assertNotEqual(result["release_disposition"], "V3.2.0 RELEASE CANDIDATE READY")
+        self.assertNotEqual(result["release_disposition"], "V3.2.1 RELEASE CANDIDATE READY")
         self.assertTrue(result["critical_failures"])
 
     def test_completion_rejects_stale_or_wrong_e2e_class(self):

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 MAIN_SEQUENCE = (
     "orientation",
     "brief",

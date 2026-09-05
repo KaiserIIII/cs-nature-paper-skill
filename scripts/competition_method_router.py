@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "assets" / "registry" / "competition_method_router.json"
 

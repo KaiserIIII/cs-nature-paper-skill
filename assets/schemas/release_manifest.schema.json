@@ -3,7 +3,7 @@
   "type": "object",
   "required": ["source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations", "release_disposition"],
   "properties": {
-    "source_version": {"enum": ["3.2.0"]},
+    "source_version": {"enum": ["3.2.1"]},
     "source_commit": {"type": "string", "minLength": 1},
     "source_commit_mode": {"enum": ["publisher-injected", "resolved"]},
     "source_branch": {"enum": ["v3.2", "main"]},

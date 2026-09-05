@@ -1,4 +1,4 @@
-# CS Nature Paper V3.2.0
+# CS Nature Paper V3.2.1
 
 An executable, student-first, evidence-bound research operating system for
 computer science.
@@ -19,9 +19,14 @@ or automatic publisher. Its job is to keep research questions, protocols,
 experiments, claims, evidence, figures, writing, and review connected by explicit
 records instead of allowing polished prose to outrun the evidence.
 
+Formal `full`/`full-paper` and submission-targeted workflows automatically mark
+analysis, figures, writing, review, and revision as load-bearing. This removes
+the need for a separate project configuration list before specialist routing
+can enforce the formal evidence gate.
+
 The `v3.1.1` tag remains the historical stable release at commit
 `081aa693b907d8cc07104d1b8251d46301094ef7`. This branch adds the
-`v3.2` maximum-autonomy release candidate from baseline
+`v3.2.1` maximum-autonomy release candidate from baseline
 `6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4`.
 
 ## How it works
@@ -243,7 +248,7 @@ only after artifacts and evidence pass their contracts. Project completion is
 
 ## Provider-driven execution
 
-V3.2.0 separates four validation layers that must not be conflated:
+V3.2.1 separates four validation layers that must not be conflated:
 
 - **Deterministic runtime:** graph, authorization, commands, artifact hashes,
   checkers, evidence, provenance, freshness, and dependency invalidation.

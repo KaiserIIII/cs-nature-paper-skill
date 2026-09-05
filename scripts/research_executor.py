@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = ROOT / "providers"
 for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):
@@ -21,6 +21,7 @@ for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):
 import provider_runtime  # noqa: E402
 import provider_support as support  # noqa: E402
 import host_provider_runtime  # noqa: E402
+import skill_discovery_provider  # noqa: E402
 import host_research_provider  # noqa: E402
 import literature_provider  # noqa: E402
 import coding_provider  # noqa: E402
@@ -65,18 +66,73 @@ FORMAL_NODES = {"implementation", "formal_experiment", "analysis", "figures", "w
 LOAD_BEARING_NODES = {
     "analysis", "figures", "writing", "review", "revision",
 }
+FULL_PAPER_WORKFLOW_VALUES = {"full", "full-paper", "fullpaper"}
+SUBMISSION_TARGETED_WORKFLOW_VALUES = {
+    "submission", "submission-targeted", "submission-target", "submissiontargeted",
+}
 
 
-def _is_load_bearing(project: Path, node: str) -> bool:
-    """Require an explicit project declaration before specialist escalation."""
+def _normalise_workflow_value(value: Any) -> str:
+    return str(value or "").strip().lower().replace("_", "-").replace(" ", "-")
+
+
+def _workflow_documents(project: Path) -> list[dict[str, Any]]:
+    """Read workflow descriptors without requiring a user load-bearing list."""
+    paths = (
+        project / "inputs" / "research_brief.json",
+        support.state_dir(project) / "project.json",
+        support.state_dir(project) / "research_contract.json",
+    )
+    documents: list[dict[str, Any]] = []
+    for path in paths:
+        value = support.read_json(path, {})
+        if not isinstance(value, dict):
+            continue
+        documents.append(value)
+        # research_contract keeps workflow and venue fields under `project`;
+        # inspect that nested record using the same detection rules.
+        for key in ("project", "submission", "venue"):
+            nested = value.get(key)
+            if isinstance(nested, dict):
+                documents.append(nested)
+    return documents
+
+
+def _is_formal_full_paper_workflow(project: Path) -> bool:
+    """Return whether the project explicitly requests a formal paper workflow."""
+    for document in _workflow_documents(project):
+        if any(document.get(key) is True for key in ("formal_workflow", "submission_targeted", "submission_target")):
+            return True
+        if any(_normalise_workflow_value(document.get(key)) in {"true", "yes", "formal"} for key in ("formal_workflow", "submission_targeted", "submission_target")):
+            return True
+        if any(str(document.get(key, "")).strip() for key in ("target_venue", "target_journal", "target_track")):
+            return True
+        for key in ("workflow", "workflow_mode", "pipeline", "purpose", "mode", "automation_mode"):
+            value = _normalise_workflow_value(document.get(key))
+            if value in FULL_PAPER_WORKFLOW_VALUES | SUBMISSION_TARGETED_WORKFLOW_VALUES:
+                return True
+    return False
+
+
+def load_bearing_nodes(project: Path) -> set[str]:
+    """Resolve load-bearing nodes, auto-promoting core nodes for formal papers."""
+    project = project.resolve()
     brief = support.read_json(project / "inputs" / "research_brief.json", {})
     contract = support.read_json(support.state_dir(project) / "research_contract.json", {})
     declared = brief.get("load_bearing_nodes", contract.get("load_bearing_nodes", []))
     if declared is True:
-        return node in LOAD_BEARING_NODES
-    if isinstance(declared, list):
-        return node in declared
-    return False
+        resolved = set(LOAD_BEARING_NODES)
+    elif isinstance(declared, list):
+        resolved = {str(node) for node in declared}
+    else:
+        resolved = set()
+    if _is_formal_full_paper_workflow(project):
+        resolved.update(LOAD_BEARING_NODES)
+    return resolved
+
+
+def _is_load_bearing(project: Path, node: str) -> bool:
+    return node in load_bearing_nodes(project)
 
 
 def _recorded_host_context(project: Path) -> bool:
@@ -103,6 +159,71 @@ def _fixture_mode(project: Path) -> bool:
     brief = support.read_json(project / "inputs" / "research_brief.json", {})
     mode = support.read_json(support.state_dir(project) / "provider_mode.json", {})
     return brief.get("provider_mode") == "fixture" or mode.get("mode") == "fixture"
+
+
+def _discovery_key(node: str, capability: str) -> str:
+    return f"{node}:{capability}"
+
+
+def _specialist_discovery(project: Path, node: str, capability: str) -> dict[str, Any]:
+    """Perform and persist one specialist discovery attempt for a node."""
+    path = support.state_dir(project) / "specialist_discovery.json"
+    ledger = support.read_json(path, {})
+    attempts = ledger.setdefault("attempts", {})
+    key = _discovery_key(node, capability)
+    existing = attempts.get(key)
+    if isinstance(existing, dict) and existing.get("attempted") is True:
+        return dict(existing.get("result") or {}) | {
+            "attempted": False,
+            "attempt_count": existing.get("attempt_count", 1),
+        }
+
+    registry = support.read_json(support.state_dir(project) / "employee_registry.json", {})
+    installed = registry.get("employees", []) if isinstance(registry, dict) else []
+    policy = support.read_json(support.state_dir(project) / "autonomy_policy.json", {})
+    permissions = policy.get("permissions", {}) if isinstance(policy, dict) else {}
+    try:
+        # Discovery is metadata-only, but it is a real catalog/backend call
+        # when network permission is available.  The current host remains the
+        # fallback after this one required attempt; AUTO_HIRE still owns audit,
+        # materialization, qualification, execution, and checking.
+        kwargs = {"installed": installed if isinstance(installed, list) else []}
+        if not bool(permissions.get("network", False)):
+            kwargs["backends"] = []
+        result = skill_discovery_provider.discover_capability(capability, **kwargs)
+    except Exception as exc:  # discovery failure is recorded, never hidden
+        result = {
+            "operation": "skill-discovery",
+            "status": "UNAVAILABLE",
+            "capability": capability,
+            "candidates": [],
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    if not isinstance(result, dict):
+        result = {
+            "operation": "skill-discovery",
+            "status": "UNAVAILABLE",
+            "capability": capability,
+            "candidates": [],
+            "error": "discovery provider returned a non-object result",
+        }
+    attempt_count = int(existing.get("attempt_count", 0)) + 1 if isinstance(existing, dict) else 1
+    attempts[key] = {
+        "attempted": True,
+        "attempt_count": attempt_count,
+        "result": result,
+        "created_utc": support.utc_now(),
+    }
+    ledger.update({"schema_version": 1, "skill_version": SKILL_VERSION})
+    support.write(path, ledger)
+    return dict(result) | {"attempted": True, "attempt_count": attempt_count}
+
+
+def _discovery_attempted(project: Path, node: str, capability: str) -> bool:
+    value = support.read_json(support.state_dir(project) / "specialist_discovery.json", {})
+    attempts = value.get("attempts", {}) if isinstance(value, dict) else {}
+    record = attempts.get(_discovery_key(node, capability)) if isinstance(attempts, dict) else None
+    return isinstance(record, dict) and record.get("attempted") is True
 
 
 def _registry(project: Path) -> list[dict[str, Any]]:
@@ -262,11 +383,13 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
         "node": node,
         "project": project.name,
         "load_bearing": load_bearing,
+        "discovery_attempted": _discovery_attempted(project, node, capability),
         "purpose": brief.get("question", ""),
         "description": brief.get("description", ""),
         "method": " ".join(map(str, brief.get("method_candidates", []))),
     }
     formal = (node in FORMAL_NODES and (node not in LOAD_BEARING_NODES or load_bearing)) and not recorded_host
+    specialist_discovery = None
     registry = _registry(project)
     route = provider_runtime.resolve_provider(
         capability,
@@ -276,17 +399,27 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
         permissions,
         registry,
     )
-    # A specialist discovery attempt is optional recovery work.  When the
-    # registry already advertises a request-capable host fallback, proceed to
-    # that lifecycle instead of allowing the director to retry the same weak
-    # native route until its recovery budget is exhausted.
-    if route.get("status") == "SPECIALIST_DISCOVERY" and route.get("host_fallback") == "HOST_EXECUTION_REQUIRED":
-        host = next((item for item in registry if item.get("provider_id") == "host-research-provider"), None)
-        if host is not None:
-            route = route | {
-                "status": "HOST_EXECUTION_REQUIRED", "provider": host,
-                "handoff_required": True, "checker_required": True, "evidence_required": True,
-            }
+    if route.get("status") == "SPECIALIST_DISCOVERY":
+        specialist_discovery = _specialist_discovery(project, node, capability)
+        task["discovery_attempted"] = True
+        # A discovery result is metadata only. Resolve again so an existing
+        # request-capable Host becomes the explicit fallback after discovery.
+        route = provider_runtime.resolve_provider(
+            capability,
+            task,
+            formal,
+            "LOW",
+            permissions,
+            registry,
+        ) | {
+            "specialist_discovery": specialist_discovery,
+            "discovery_attempted": True,
+        }
+    if specialist_discovery is not None:
+        route = route | {
+            "specialist_discovery": specialist_discovery,
+            "discovery_attempted": True,
+        }
     if route["status"] == "HOST_EXECUTION_REQUIRED" and route.get("provider", {}).get("provider_id") == "host-coding-provider":
         selected = route["provider"]
         result = host_coding_provider.request_or_consume(project, node)
@@ -294,6 +427,7 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
             return result | {
                 "operation": "execute-node", "node": node, "capability": capability,
                 "provider_route": route, "host_request_created": True,
+                "specialist_discovery": specialist_discovery,
             }
     elif route["status"] == "HOST_EXECUTION_REQUIRED" and route.get("provider", {}).get("provider_id") == "host-research-provider":
         selected = route["provider"]
@@ -302,6 +436,7 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
             return result | {
                 "operation": "execute-node", "node": node, "capability": capability,
                 "provider_route": route, "host_request_created": True,
+                "specialist_discovery": specialist_discovery,
             }
     elif route["status"] != "PASS":
         return {"operation": "execute-node", "node": node, "status": route["status"], "findings": [f"provider route: {route['status']}"], "provider_route": route}
@@ -326,5 +461,5 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
     return result | {
         "operation": "execute-node", "node": node, "status": "PASS", "evidence": evidence,
         "actions": result.get("actions_taken", []), "output_validation": check, "checker": handoff_check,
-        "provider_route": route,
+        "provider_route": route, "specialist_discovery": specialist_discovery,
     }

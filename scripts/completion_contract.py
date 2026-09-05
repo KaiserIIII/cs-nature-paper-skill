@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 REQUIRED = (
     "policy", "audit", "graph", "graph_rebuild", "argument", "feasibility", "protocol", "claims", "evidence",
     "literature_sufficiency", "experiment_completeness", "figure_traceability", "manuscript_complete",

@@ -17,9 +17,100 @@ def load(name):
 
 
 router = load("skill_router")
+research_executor = load("research_executor")
+research_state = load("research_state")
 
 
 class SpecialistRoutingHotfixTests(unittest.TestCase):
+    def test_active_runtime_metadata_is_unified_at_321(self):
+        self.assertEqual(research_executor.SKILL_VERSION, "3.2.1")
+        provider_runtime = load("provider_runtime")
+        self.assertEqual(provider_runtime.SKILL_VERSION, "3.2.1")
+        manifest = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["source_version"], "3.2.1")
+
+    def test_active_v32_metadata_files_are_321(self):
+        paths = (
+            ROOT / "SKILL.md",
+            ROOT / "README.md",
+            ROOT / "README_zh.md",
+            ROOT / "agents" / "openai.yaml",
+            ROOT / "assets" / "schemas" / "release_manifest.schema.json",
+            ROOT / "assets" / "schemas" / "provider_registry.schema.json",
+            ROOT / "assets" / "templates" / "v3" / "autonomy_policy.json",
+            ROOT / "assets" / "templates" / "v3" / "completion_contract.json",
+            ROOT / "assets" / "templates" / "v3" / "director_session.json",
+            ROOT / "assets" / "templates" / "v3" / "provider_registry.json",
+        )
+        for path in paths:
+            self.assertIn("3.2.1", path.read_text(encoding="utf-8"), str(path))
+
+    def test_full_paper_workflow_auto_marks_core_scientific_nodes_load_bearing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "paper"
+            project.mkdir()
+            research_state.init_state(project, "empirical", "full", "systems")
+            brief_path = project / "inputs" / "research_brief.json"
+            brief_path.parent.mkdir(parents=True, exist_ok=True)
+            brief_path.write_text(json.dumps({"workflow": "full-paper"}), encoding="utf-8")
+
+            self.assertEqual(research_executor.load_bearing_nodes(project), set(research_executor.LOAD_BEARING_NODES))
+            for node in research_executor.LOAD_BEARING_NODES:
+                self.assertTrue(research_executor._is_load_bearing(project, node), node)
+
+    def test_full_mode_auto_marks_core_nodes_without_brief_configuration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "paper"
+            project.mkdir()
+            research_state.init_state(project, "empirical", "full", "systems")
+
+            self.assertEqual(research_executor.load_bearing_nodes(project), set(research_executor.LOAD_BEARING_NODES))
+
+    def test_submission_targeted_workflow_auto_marks_core_scientific_nodes_without_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "paper"
+            project.mkdir()
+            research_state.init_state(project, "empirical", "copilot", "systems")
+            brief_path = project / "inputs" / "research_brief.json"
+            brief_path.parent.mkdir(parents=True, exist_ok=True)
+            brief_path.write_text(json.dumps({"submission_targeted": True}), encoding="utf-8")
+
+            self.assertEqual(research_executor.load_bearing_nodes(project), set(research_executor.LOAD_BEARING_NODES))
+
+    def test_target_venue_is_a_submission_target_signal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "paper"
+            project.mkdir()
+            research_state.init_state(project, "empirical", "write", "systems")
+            brief_path = project / "inputs" / "research_brief.json"
+            brief_path.parent.mkdir(parents=True, exist_ok=True)
+            brief_path.write_text(json.dumps({"target_venue": "Journal of Systems"}), encoding="utf-8")
+
+            self.assertEqual(research_executor.load_bearing_nodes(project), set(research_executor.LOAD_BEARING_NODES))
+
+    def test_nested_contract_submission_target_is_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "paper"
+            project.mkdir()
+            research_state.init_state(project, "empirical", "copilot", "systems")
+            contract_path = project / ".research-state" / "research_contract.json"
+            contract = json.loads(contract_path.read_text(encoding="utf-8"))
+            contract["project"]["target_venue"] = "Journal of Systems"
+            contract_path.write_text(json.dumps(contract), encoding="utf-8")
+
+            self.assertEqual(research_executor.load_bearing_nodes(project), set(research_executor.LOAD_BEARING_NODES))
+
+    def test_exploratory_workflow_does_not_auto_mark_core_nodes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "paper"
+            project.mkdir()
+            research_state.init_state(project, "empirical", "copilot", "systems")
+            brief_path = project / "inputs" / "research_brief.json"
+            brief_path.parent.mkdir(parents=True, exist_ok=True)
+            brief_path.write_text(json.dumps({"workflow": "exploratory"}), encoding="utf-8")
+
+            self.assertEqual(research_executor.load_bearing_nodes(project), set())
+
     def test_baseline_writing_cannot_staff_load_bearing_work(self):
         result = router.resolve("evidence-bound-writing", purpose="formal", load_bearing=True, criticality="high")
         self.assertTrue(result["specialist_required"])

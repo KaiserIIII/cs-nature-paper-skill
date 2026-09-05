@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 POLICY_SCHEMA_VERSION = 1
 RISK_LEVELS = ("LOW", "MEDIUM", "HIGH", "CRITICAL")
 RISK_ORDER = {value: index for index, value in enumerate(RISK_LEVELS)}
@@ -127,7 +127,7 @@ def _policy_findings(policy: Any) -> list[str]:
     if policy.get("schema_version") != POLICY_SCHEMA_VERSION:
         findings.append("policy.schema_version must be 1")
     if policy.get("skill_version") != SKILL_VERSION:
-        findings.append("policy.skill_version must be 3.2.0")
+        findings.append("policy.skill_version must be 3.2.1")
     if policy.get("mode") != "maximum-autonomy":
         findings.append("policy.mode must be maximum-autonomy")
     if policy.get("risk_cap") not in RISK_LEVELS:

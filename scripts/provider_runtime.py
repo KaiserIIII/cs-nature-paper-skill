@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 PROVIDER_TYPES = {"NATIVE", "HOST_LLM", "WEB", "EXTERNAL_SKILL", "TOOL"}
 PROVIDER_STATUSES = {
     "AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED",
@@ -239,7 +239,11 @@ def resolve_provider(
         item for item in available_providers
         if _host_request_eligible(item, capability, allowed)
     ]
-    if specialist_required and not task.get("discovery_attempted") and "auto_hire" in allowed:
+    # A request-capable Host must not suppress the required specialist
+    # discovery attempt.  Discovery is metadata-only and does not require
+    # installation permission; AUTO_HIRE permission is still checked later
+    # before any materialization or execution.
+    if specialist_required and not task.get("discovery_attempted") and ("auto_hire" in allowed or host_candidates):
         return {
             "operation": "resolve-provider", "status": "SPECIALIST_DISCOVERY", "capability": capability,
             "formal": formal, "risk": risk, "specialist_required": True, "discovery_required": True,

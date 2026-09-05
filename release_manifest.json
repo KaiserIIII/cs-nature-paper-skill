@@ -1,5 +1,5 @@
 {
-  "source_version": "3.2.0",
+  "source_version": "3.2.1",
   "source_commit": "release-process-injected",
   "source_commit_mode": "publisher-injected",
   "source_branch": "v3.2",
@@ -48,5 +48,5 @@
     "Live venue pages, paywalled sources, and external Skills require activation-time access, exact immutable pins, and verification.",
     "Deterministic generic and fixture E2Es demonstrate routing and artifact contracts; they do not establish a scientific result, universal generalization, model behavior, or venue outcome."
   ],
-  "release_disposition": "V3.2.0 RELEASE BLOCKED; exact-SHA Hosted CI evidence has not yet been injected"
+  "release_disposition": "V3.2.1 RELEASE BLOCKED; exact-SHA Hosted CI evidence has not yet been injected"
 }

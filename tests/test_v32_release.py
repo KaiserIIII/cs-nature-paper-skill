@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 class V32ReleaseTests(unittest.TestCase):
     def test_release_manifest_declares_v3_2_and_candidate_disposition(self):
         value = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(value["source_version"], "3.2.0")
-        self.assertIn("V3.2.0 RELEASE BLOCKED", value["release_disposition"])
+        self.assertEqual(value["source_version"], "3.2.1")
+        self.assertIn("V3.2.1 RELEASE BLOCKED", value["release_disposition"])
         self.assertIsInstance(value["hosted_ci"], dict)
         self.assertIsNone(value["hosted_ci"]["run_id"])
 
@@ -65,7 +65,7 @@ class V32ReleaseTests(unittest.TestCase):
         spec.loader.exec_module(module)
         sha = "a" * 40
         base = {
-            "source_version": "3.2.0",
+            "source_version": "3.2.1",
             "source_commit": sha,
             "source_commit_mode": "resolved",
             "generated_at": "2026-08-28T00:00:00Z",
@@ -81,7 +81,7 @@ class V32ReleaseTests(unittest.TestCase):
             "model_behavior_eval": "NOT_RUN",
             "e2e_status": "PASS",
             "known_limitations": [],
-            "release_disposition": "V3.2.0 RELEASE READY",
+            "release_disposition": "V3.2.1 RELEASE READY",
         }
         cases = (
             ({**base, "source_version": "3.1.1"}, "HOSTED_CI_WRONG_VERSION"),

@@ -19,6 +19,7 @@ for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):
 import provider_runtime  # noqa: E402
 import provider_support as support  # noqa: E402
 import host_provider_runtime  # noqa: E402
+import skill_discovery_provider  # noqa: E402
 import competition_modeling_provider  # noqa: E402
 import competition_coding_provider  # noqa: E402
 import competition_analysis_provider  # noqa: E402
@@ -26,7 +27,7 @@ import competition_writing_provider  # noqa: E402
 import competition_host_provider  # noqa: E402
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 NODE_PROVIDER = {
     "contest_intake": ("competition-modeling-provider", "competition-intake"),
     "problem_decomposition": ("competition-modeling-provider", "question-decomposition"),
@@ -68,6 +69,71 @@ def _specialist_required(project: Path, node_id: str) -> bool:
 
 def _fixture_mode(project: Path) -> bool:
     return _input(project).get("provider_mode") == "fixture"
+
+
+def _discovery_key(node: str, capability: str) -> str:
+    return f"{node}:{capability}"
+
+
+def _specialist_discovery(project: Path, node: str, capability: str) -> dict[str, Any]:
+    """Perform and persist one specialist discovery attempt for a node."""
+    path = support.state_dir(project) / "specialist_discovery.json"
+    ledger = support.read_json(path, {})
+    attempts = ledger.setdefault("attempts", {})
+    key = _discovery_key(node, capability)
+    existing = attempts.get(key)
+    if isinstance(existing, dict) and existing.get("attempted") is True:
+        return dict(existing.get("result") or {}) | {
+            "attempted": False,
+            "attempt_count": existing.get("attempt_count", 1),
+        }
+
+    registry = support.read_json(support.state_dir(project) / "employee_registry.json", {})
+    installed = registry.get("employees", []) if isinstance(registry, dict) else []
+    policy = support.read_json(support.state_dir(project) / "autonomy_policy.json", {})
+    permissions = policy.get("permissions", {}) if isinstance(policy, dict) else {}
+    try:
+        # Discovery is metadata-only, but it is a real catalog/backend call
+        # when network permission is available.  The current host remains the
+        # fallback after this one required attempt; AUTO_HIRE still owns audit,
+        # materialization, qualification, execution, and checking.
+        kwargs = {"installed": installed if isinstance(installed, list) else []}
+        if not bool(permissions.get("network", False)):
+            kwargs["backends"] = []
+        result = skill_discovery_provider.discover_capability(capability, **kwargs)
+    except Exception as exc:  # discovery failure is recorded, never hidden
+        result = {
+            "operation": "skill-discovery",
+            "status": "UNAVAILABLE",
+            "capability": capability,
+            "candidates": [],
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    if not isinstance(result, dict):
+        result = {
+            "operation": "skill-discovery",
+            "status": "UNAVAILABLE",
+            "capability": capability,
+            "candidates": [],
+            "error": "discovery provider returned a non-object result",
+        }
+    attempt_count = int(existing.get("attempt_count", 0)) + 1 if isinstance(existing, dict) else 1
+    attempts[key] = {
+        "attempted": True,
+        "attempt_count": attempt_count,
+        "result": result,
+        "created_utc": support.utc_now(),
+    }
+    ledger.update({"schema_version": 1, "skill_version": SKILL_VERSION})
+    support.write(path, ledger)
+    return dict(result) | {"attempted": True, "attempt_count": attempt_count}
+
+
+def _discovery_attempted(project: Path, node: str, capability: str) -> bool:
+    value = support.read_json(support.state_dir(project) / "specialist_discovery.json", {})
+    attempts = value.get("attempts", {}) if isinstance(value, dict) else {}
+    record = attempts.get(_discovery_key(node, capability)) if isinstance(attempts, dict) else None
+    return isinstance(record, dict) and record.get("attempted") is True
 
 
 def _recorded_host_context(project: Path) -> bool:
@@ -191,21 +257,45 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
     permissions = policy.get("permissions", {"local_read": True, "local_write": True, "execute": True})
     recorded_host = _recorded_host_context(project)
     specialist_required = _specialist_required(project, node_id) and not recorded_host
+    discovery_attempted = _discovery_attempted(project, node_id, capability)
+    specialist_discovery = None
     route = provider_runtime.resolve_provider(
         capability,
-        {"node": node_id, "specialist_required": specialist_required, "load_bearing": specialist_required},
+        {
+            "node": node_id,
+            "specialist_required": specialist_required,
+            "load_bearing": specialist_required,
+            "discovery_attempted": discovery_attempted,
+        },
         node_id in FORMAL_NODES and (node_id not in SPECIALIST_NODES or specialist_required) and not recorded_host,
         "LOW",
         permissions,
         registry,
     )
-    if route.get("status") == "SPECIALIST_DISCOVERY" and route.get("host_fallback") == "HOST_EXECUTION_REQUIRED":
-        host = next((item for item in registry if item.get("provider_id") == "host-competition-specialist"), None)
-        if host is not None:
-            route = route | {
-                "status": "HOST_EXECUTION_REQUIRED", "provider": host,
-                "handoff_required": True, "checker_required": True, "evidence_required": True,
-            }
+    if route.get("status") == "SPECIALIST_DISCOVERY":
+        specialist_discovery = _specialist_discovery(project, node_id, capability)
+        discovery_attempted = True
+        route = provider_runtime.resolve_provider(
+            capability,
+            {
+                "node": node_id,
+                "specialist_required": specialist_required,
+                "load_bearing": specialist_required,
+                "discovery_attempted": discovery_attempted,
+            },
+            node_id in FORMAL_NODES and (node_id not in SPECIALIST_NODES or specialist_required) and not recorded_host,
+            "LOW",
+            permissions,
+            registry,
+        ) | {
+            "specialist_discovery": specialist_discovery,
+            "discovery_attempted": True,
+        }
+    if specialist_discovery is not None:
+        route = route | {
+            "specialist_discovery": specialist_discovery,
+            "discovery_attempted": True,
+        }
     if route.get("status") == "HOST_EXECUTION_REQUIRED":
         selected = route.get("provider", {})
         selected_id = str(selected.get("provider_id") or "")
@@ -216,6 +306,7 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
                     "operation": "competition-execute-node", "node": node_id,
                     "capability": capability, "provider_route": route,
                     "host_request_created": True, "host_handoff_required": True,
+                    "specialist_discovery": specialist_discovery,
                 }
             expected_provider = selected_id
             # An accepted specialist handoff is checked and then consumed by
@@ -228,6 +319,7 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
                 return result | {
                     "operation": "competition-execute-node", "node": node_id,
                     "provider_route": route, "host_request_created": True,
+                    "specialist_discovery": specialist_discovery,
                 }
             expected_provider = selected_id or expected_provider
     elif route.get("status") != "PASS":
@@ -252,4 +344,4 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
         return result | {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": check["findings"], "checker": check, "provider_route": route}
     evidence, summary = _register(project, node_id, result)
     artifacts = [support.relative(project, summary)] + list(result["artifacts"])
-    return result | {"operation": "competition-execute-node", "status": "PASS", "node": node_id, "artifacts": artifacts, "evidence": evidence, "checker": {"status": "PASS", "producer": expected_provider, "checker": "deterministic-output-checker"}, "provider_route": route}
+    return result | {"operation": "competition-execute-node", "status": "PASS", "node": node_id, "artifacts": artifacts, "evidence": evidence, "checker": {"status": "PASS", "producer": expected_provider, "checker": "deterministic-output-checker"}, "provider_route": route, "specialist_discovery": specialist_discovery}

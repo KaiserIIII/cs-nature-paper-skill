@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 LEGACY_SKILL_VERSION = "3.1.1"
 V32_TEMPLATE_NAMES = {"autonomy_policy.json", "completion_contract.json", "director_session.json", "provider_registry.json"}
 ROOT = Path(__file__).resolve().parents[1]
@@ -150,7 +150,7 @@ def validate_release_manifest_value(
         hosted = value.get("hosted_ci")
         if not isinstance(hosted, dict) or any(hosted.get(field) is not None for field in ("run_id", "workflow", "branch", "head_sha", "conclusion")) or hosted.get("matrix") != {}:
             findings.append("STALE_RELEASE_MANIFEST: unresolved repository manifest must not contain Hosted CI success evidence")
-        if "V3.2.0 RELEASE BLOCKED" not in str(value.get("release_disposition", "")):
+        if "V3.2.1 RELEASE BLOCKED" not in str(value.get("release_disposition", "")):
             findings.append("RELEASE_DISPOSITION_INVALID: unresolved manifest must be blocked")
         return findings
     if mode != "resolved" or not re.fullmatch(r"[0-9a-f]{40}", source_commit):
@@ -164,8 +164,8 @@ def validate_release_manifest_value(
     if generated is not None and commit_time is not None and generated < commit_time:
         findings.append("STALE_RELEASE_MANIFEST: generated_at predates source commit")
     tag = value.get("tag")
-    if tag not in {None, "v3.2.0"}:
-        findings.append("TAG_INCONSISTENT: release tag must be absent or v3.2.0")
+    if tag not in {None, "v3.2.1"}:
+        findings.append("TAG_INCONSISTENT: release tag must be absent or v3.2.1")
     hosted = value.get("hosted_ci")
     if not isinstance(hosted, dict):
         findings.append("HOSTED_CI_NOT_RUN: hosted_ci must be an object")
@@ -187,7 +187,7 @@ def validate_release_manifest_value(
     if missing or (isinstance(matrix, dict) and set(matrix) != set(REQUIRED_CI_MATRIX)):
         findings.append("HOSTED_CI_MATRIX_INCOMPLETE: " + ", ".join(missing or sorted(set(matrix) ^ set(REQUIRED_CI_MATRIX))))
     final_rc = branch == "hotfix/v321-specialist-routing-final" or hosted.get("branch") == "hotfix/v321-specialist-routing-final"
-    ready_disposition = "CORRECT-BASE V3.2.1 RC" if final_rc else "V3.2.0 RELEASE READY"
+    ready_disposition = "CORRECT-BASE V3.2.1 RC" if final_rc else "V3.2.1 RELEASE READY"
     if require_hosted_ci and findings:
         if str(value.get("release_disposition")) == ready_disposition:
             findings.append("RELEASE_DISPOSITION_INVALID: manifest claims READY despite release-integrity findings")

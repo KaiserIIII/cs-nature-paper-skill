@@ -17,7 +17,7 @@ from typing import Any
 import sys
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 IMMUTABLE_REF = re.compile(r"^[0-9a-f]{40}$")
 SAFE_LICENSES = {"MIT", "BSD-2-CLAUSE", "BSD-3-CLAUSE", "APACHE-2.0", "ISC"}
 AUDIT_FILES = (
@@ -54,7 +54,7 @@ class GitHubPublicBackend:
     def _get(self, url: str) -> Any:
         request = urllib.request.Request(
             url,
-            headers={"Accept": "application/vnd.github+json", "User-Agent": "cs-nature-paper-provider/3.2.0"},
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "cs-nature-paper-provider/3.2.1"},
         )
         with urllib.request.urlopen(request, timeout=self.timeout) as response:  # nosec B310: explicit public GitHub adapter
             return json.loads(response.read().decode("utf-8"))
@@ -109,7 +109,7 @@ class GitHubPublicBackend:
         files = {}
         for path in selected[:40]:
             raw = f"https://raw.githubusercontent.com/{repo}/{exact_ref}/{urllib.parse.quote(path)}"
-            request = urllib.request.Request(raw, headers={"User-Agent": "cs-nature-paper-provider/3.2.0"})
+            request = urllib.request.Request(raw, headers={"User-Agent": "cs-nature-paper-provider/3.2.1"})
             try:
                 with urllib.request.urlopen(request, timeout=self.timeout) as response:  # nosec B310: pinned public GitHub content
                     files[path] = response.read(200_001).decode("utf-8", errors="replace")
@@ -216,7 +216,10 @@ def discover_capability(
         if capability in item.get("capabilities", [])
     ]
     used = []
-    for backend in backends or [GitHubPublicBackend()]:
+    # ``None`` means use the default public catalog; an explicit empty list
+    # is an intentional offline mode and must not fall through to GitHub.
+    selected_backends = [GitHubPublicBackend()] if backends is None else list(backends)
+    for backend in selected_backends:
         for query in queries:
             used.append(query)
             try:

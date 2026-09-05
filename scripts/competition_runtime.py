@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 ROOT = Path(__file__).resolve().parents[1]
 CLOCK_TEMPLATE = ROOT / "assets" / "templates" / "competition" / "competition_clock.json"
 CUMCM_PROFILE = ROOT / "assets" / "competition" / "cumcm_profile.json"

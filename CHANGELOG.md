@@ -11,6 +11,10 @@
   weak native provider exists; matching formally qualified specialists remain
   preferred, while Host execution exposes handoff, checker, and evidence
   requirements.
+- Formal `full`/`full-paper` and submission-targeted workflows automatically
+  promote core scientific nodes to load-bearing without a manual node list.
+- Active V3.2 runtime, schema, template, provider, and release metadata is
+  aligned on `3.2.1`; the historical V3.1.1 compatibility surface is retained.
 - Added task-aware routing for specialized statistics and eight regression
   tests covering routing, fail-closed AUTO_HIRE, and legacy evidence behavior.
 

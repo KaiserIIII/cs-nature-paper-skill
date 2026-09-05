@@ -62,7 +62,7 @@ def handoff(
     value = {
         "status": "PASS",
         "provider_id": provider_id,
-        "provider_version": "3.2.0",
+        "provider_version": "3.2.1",
         "node": node,
         "formal": formal,
         "artifacts": [relative(project, path) for path in artifacts],

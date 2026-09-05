@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 SCRIPT_DIR = str(Path(__file__).resolve().parents[1] / "scripts")
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)

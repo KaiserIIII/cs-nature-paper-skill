@@ -5,7 +5,7 @@
   "required": ["schema_version", "skill_version", "providers"],
   "properties": {
     "schema_version": {"const": 1},
-    "skill_version": {"const": "3.2.0"},
+    "skill_version": {"const": "3.2.1"},
     "providers": {
       "type": "array",
       "items": {

@@ -1,4 +1,4 @@
-# CS Nature Paper V3.2.0
+# CS Nature Paper V3.2.1
 
 面向计算机科学研究、以学生为中心、受证据约束的可执行科研操作系统。
 
@@ -16,9 +16,13 @@ CS Nature Paper 是一个 Agent Skill，帮助你把研究想法、代码库、�
 研究问题、协议、实验、主张、证据、图表、写作与审查始终通过明确记录
 相互连接，避免论文文字跑到真实证据前面。
 
+正式 `full`/`full-paper` 或面向投稿的工作流会自动将 analysis、figures、
+writing、review、revision 标记为 load-bearing，无需用户另外配置节点列表，
+即可强制执行 specialist 正式证据门禁。
+
 `v3.1.1` tag 仍是历史稳定版本，对应提交：
 `081aa693b907d8cc07104d1b8251d46301094ef7`。当前 `v3.2` 分支从精确基线
-`6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4` 开发最大自治 release candidate。
+`6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4` 开发 V3.2.1 最大自治 release candidate。
 
 ## 系统如何工作
 
@@ -230,7 +234,7 @@ Maximum autonomy 使用 `scripts/autonomy.py` 作为统一 policy/authorize 边�
 
 ## Provider 驱动执行
 
-V3.2.0 明确区分四层，不能混为一谈：
+V3.2.1 明确区分四层，不能混为一谈：
 
 - **Deterministic Runtime**：科研图、授权、真实命令、artifact hash、checker、
   evidence、provenance、freshness 和依赖失效。

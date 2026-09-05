@@ -31,7 +31,7 @@ def _crossref(question: str) -> list[dict[str, Any]]:
     url = "https://api.crossref.org/works?rows=5&query=" + urllib.parse.quote(question)
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "cs-nature-paper-provider/3.2.0 (mailto:noreply@example.invalid)"},
+        headers={"User-Agent": "cs-nature-paper-provider/3.2.1 (mailto:noreply@example.invalid)"},
     )
     with urllib.request.urlopen(request, timeout=15) as response:  # nosec B310: fixed Crossref endpoint
         payload = json.loads(response.read().decode("utf-8"))
@@ -112,7 +112,7 @@ def _retrieve_open_text(project: Path, source: dict[str, Any], index: int) -> di
         return source
     destination = support.state_dir(project) / "literature_full_text" / f"source-{index}.txt"
     destination.parent.mkdir(parents=True, exist_ok=True)
-    request = urllib.request.Request(str(url), headers={"User-Agent": "cs-nature-paper-provider/3.2.0"})
+    request = urllib.request.Request(str(url), headers={"User-Agent": "cs-nature-paper-provider/3.2.1"})
     try:
         with urllib.request.urlopen(request, timeout=20) as response:  # nosec B310: explicit HTTPS open-access URL
             body = response.read(_MAX_FULL_TEXT + 1)

@@ -39,7 +39,7 @@ def resolve(
         raise ValueError("source commit must be a 40-character hexadecimal SHA")
     commit = commit.lower()
     value.update({
-        "source_version": "3.2.0",
+        "source_version": "3.2.1",
         "source_commit": commit,
         "source_commit_mode": "resolved",
         "source_branch": branch or value.get("source_branch", "v3.2"),
@@ -60,10 +60,10 @@ def resolve(
         if branch == "hotfix/v321-specialist-routing-final":
             value["release_disposition"] = "CORRECT-BASE V3.2.1 RC" if ready else "CORRECT-BASE V3.2.1 RC BLOCKED"
         else:
-            value["release_disposition"] = "V3.2.0 RELEASE READY" if ready else "V3.2.0 RELEASE BLOCKED"
+            value["release_disposition"] = "V3.2.1 RELEASE READY" if ready else "V3.2.1 RELEASE BLOCKED"
     else:
         value["hosted_ci"] = {"run_id": None, "workflow": None, "branch": None, "head_sha": None, "conclusion": None, "matrix": {}}
-        value["release_disposition"] = "V3.2.0 RELEASE BLOCKED; Hosted CI binding is incomplete"
+        value["release_disposition"] = "V3.2.1 RELEASE BLOCKED; Hosted CI binding is incomplete"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     return value

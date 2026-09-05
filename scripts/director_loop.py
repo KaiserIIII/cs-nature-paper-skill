@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.0"
+SKILL_VERSION = "3.2.1"
 GLOBAL_RECOVERY_BUDGET = 20
 NODE_RECOVERY_BUDGETS = {"implementation": 5, "formal_experiment": 4, "analysis": 3}
 IDENTICAL_FAILURE_LIMIT = 3
@@ -183,7 +183,7 @@ def resolve_capability(
     payload: dict[str, Any] | None = None,
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    # V3.2.0 provider-driven executor exposes capabilities through the node
+    # V3.2.1 provider-driven executor exposes capabilities through the node
     # registry rather than the legacy EXECUTORS mapping.
     native = {
         capability
