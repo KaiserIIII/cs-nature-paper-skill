@@ -152,13 +152,20 @@ def _record(skill: dict[str, Any], capability_doc: dict[str, Any], context: dict
     gaps = _permission_gaps(capability_doc.get("required_permissions", []), skill)
     formal_ok, formal_reasons = _formal_eligibility(skill, capability_doc, context)
     eligible = not gaps and (formal_ok if context["purpose"] == "formal" or context["load_bearing"] else True)
+    quality = _quality(skill, capability=capability_doc.get("id", ""))
+    if str(skill.get("skill_id", "")).startswith("cs-nature-paper-native") and (
+        context["purpose"] == "formal" or context["load_bearing"]
+    ) and quality not in {"SPECIALIST", "FORMAL_QUALIFIED"}:
+        formal_ok = False
+        eligible = False
+        formal_reasons.append(f"native provider quality {quality} cannot staff load-bearing scientific work")
     reasons = list(formal_reasons)
     if gaps:
         reasons.append("missing permissions: " + ", ".join(gaps))
     return {
         "skill_id": skill.get("skill_id"), "exact_ref": skill.get("exact_ref"),
         "runtime_status": skill.get("runtime_status"), "permission_gaps": gaps,
-        "provider_quality": _quality(skill, capability=capability_doc.get("id", "")),
+        "provider_quality": quality,
         "behavior_qualified": _behavior_qualified(skill), "formal_eligible": formal_ok,
         "eligible": eligible, "eligibility_reasons": reasons,
         "risk": skill.get("known_risks", []),
