@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.2.1 - 2026-09-05
+
+### Fixed
+
+- Added explicit provider quality levels and conservative quality mapping for
+  deterministic native writing, review, innovation, statistics, and figure
+  helpers.
+- Load-bearing specialist tasks now trigger specialist discovery even when a
+  weak native provider exists; matching formally qualified specialists remain
+  preferred, while Host execution exposes handoff, checker, and evidence
+  requirements.
+- Added task-aware routing for specialized statistics and eight regression
+  tests covering routing, fail-closed AUTO_HIRE, and legacy evidence behavior.
+
 ## 3.2.0 - 2026-08-28
 
 ### Added

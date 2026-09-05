@@ -10,9 +10,39 @@ from pathlib import Path
 from typing import Any
 
 SKILL_VERSION = "3.1.1"
+HOTFIX_VERSION = "3.2.1"
 FLOATING_REFS = {"", "head", "latest", "main", "master", "trunk"}
 ACTIVE = {"APPROVED", "SPECIALIST", "PROVISIONAL"}
 COST_ORDER = {"low": 0, "medium": 1, "high": 2, "unknown": 3}
+QUALITY_LEVELS = ("SCAFFOLD", "BASELINE", "GENERAL", "SPECIALIST", "FORMAL_QUALIFIED")
+
+# Native tools are intentionally conservative.  A deterministic contract or
+# manuscript generator is useful infrastructure, but its existence must not
+# suppress discovery of a scientific specialist for load-bearing work.
+NATIVE_QUALITY = {
+    "evidence-bound-writing": "BASELINE",
+    "adversarial-review": "BASELINE",
+    "gap-analysis": "BASELINE",
+    "prior-art-adversary": "BASELINE",
+    "statistical-modeling": "BASELINE",
+    "scientific-figure-audit": "BASELINE",
+    "deterministic-rendering": "GENERAL",
+    "literature-discovery": "GENERAL",
+    "bibliographic-verification": "GENERAL",
+}
+SPECIALIST_CAPABILITIES = {
+    "evidence-bound-writing", "adversarial-review", "gap-analysis",
+    "prior-art-adversary", "causal-design", "statistical-modeling",
+    "ml-evaluation", "systems-benchmarking", "scientific-figure-audit",
+}
+SPECIALIST_TASK_TERMS = {
+    "mixed effects", "bayesian", "causal inference", "survival analysis",
+    "multiple testing", "power analysis", "clustered data", "hierarchical data",
+    "conformal", "risk control", "distribution shift", "selective prediction",
+    "novelty", "closest work", "prior art", "theory", "formal proof",
+    "publication-quality", "journal writing", "domain review", "method review",
+    "statistics review",
+}
 
 
 class RouterError(RuntimeError):
@@ -60,6 +90,29 @@ def _behavior_qualified(skill: dict[str, Any]) -> bool:
     return any(str(item).upper() in {"PASS", "PASSED", "BEHAVIOR_QUALIFIED", "FORMAL_QUALIFIED"} for item in trials)
 
 
+def _quality(skill: dict[str, Any], *, native: bool = False, capability: str = "") -> str:
+    if str(skill.get("skill_id", "")).startswith("cs-nature-paper-native"):
+        return NATIVE_QUALITY.get(capability, "GENERAL")
+    value = str(skill.get("provider_quality", skill.get("quality_level", ""))).upper()
+    if value in QUALITY_LEVELS:
+        return value
+    if native:
+        return NATIVE_QUALITY.get(capability, "GENERAL")
+    if skill.get("runtime_status") == "SPECIALIST":
+        return "SPECIALIST"
+    if skill.get("runtime_status") == "APPROVED":
+        return "GENERAL"
+    return "BASELINE"
+
+
+def _specialist_task(capability: str, task: str | None, *, load_bearing: bool, purpose: str, criticality: str) -> bool:
+    text = (task or "").lower()
+    explicit = any(term in text for term in SPECIALIST_TASK_TERMS)
+    return explicit or (load_bearing and capability in SPECIALIST_CAPABILITIES) or (
+        purpose == "formal" and criticality in {"high", "critical"} and capability in SPECIALIST_CAPABILITIES
+    )
+
+
 def _permission_gaps(required: list[str], skill: dict[str, Any]) -> list[str]:
     permissions = skill.get("permissions") if isinstance(skill.get("permissions"), dict) else {}
     gaps: list[str] = []
@@ -105,6 +158,7 @@ def _record(skill: dict[str, Any], capability_doc: dict[str, Any], context: dict
     return {
         "skill_id": skill.get("skill_id"), "exact_ref": skill.get("exact_ref"),
         "runtime_status": skill.get("runtime_status"), "permission_gaps": gaps,
+        "provider_quality": _quality(skill, capability=capability_doc.get("id", "")),
         "behavior_qualified": _behavior_qualified(skill), "formal_eligible": formal_ok,
         "eligible": eligible, "eligibility_reasons": reasons,
         "risk": skill.get("known_risks", []),
@@ -113,7 +167,8 @@ def _record(skill: dict[str, Any], capability_doc: dict[str, Any], context: dict
 
 def resolve(capability: str, *, project: Path | None = None, registry_dir: Path = REGISTRY_DIR,
             purpose: str = "advisory", load_bearing: bool = False,
-            criticality: str = "low", host: str | None = None) -> dict[str, Any]:
+            criticality: str = "low", host: str | None = None,
+            task: str | None = None) -> dict[str, Any]:
     if purpose not in {"advisory", "exploratory", "formal"}:
         raise RouterError("purpose must be advisory, exploratory, or formal")
     if criticality not in {"low", "medium", "high", "critical"}:
@@ -122,11 +177,12 @@ def resolve(capability: str, *, project: Path | None = None, registry_dir: Path 
     capability_doc = next((item for item in capabilities["capabilities"] if item.get("id") == capability), None)
     if capability_doc is None:
         raise RouterError(f"unknown capability: {capability}")
-    context = {"purpose": purpose, "load_bearing": bool(load_bearing), "criticality": criticality}
+    context = {"purpose": purpose, "load_bearing": bool(load_bearing), "criticality": criticality, "task": task or ""}
     candidates = [item for item in catalog["skills"] if capability in item.get("capabilities", []) and item.get("runtime_status") in ACTIVE]
     records = [_record(skill, capability_doc, context) for skill in candidates]
     records.sort(key=lambda item: (
         0 if item["eligible"] else 1,
+        -(QUALITY_LEVELS.index(item["provider_quality"]) if item["provider_quality"] in QUALITY_LEVELS else 0),
         0 if item["runtime_status"] == "APPROVED" else 1 if item["runtime_status"] == "SPECIALIST" else 2,
         COST_ORDER.get(str(next((s.get("context_cost") for s in candidates if s.get("skill_id") == item["skill_id"]), "unknown")).lower(), 3),
         item["skill_id"] or "",
@@ -135,29 +191,49 @@ def resolve(capability: str, *, project: Path | None = None, registry_dir: Path 
     if purpose == "formal" or load_bearing:
         selected = [item for item in selected if item["runtime_status"] != "PROVISIONAL"]
     native = capability_doc.get("possible_native_tools", [])
+    native_quality = str(capability_doc.get("native_provider_quality", NATIVE_QUALITY.get(capability, "GENERAL"))).upper()
+    if native_quality not in QUALITY_LEVELS:
+        native_quality = NATIVE_QUALITY.get(capability, "GENERAL")
+    specialist_required = _specialist_task(capability, task, load_bearing=bool(load_bearing), purpose=purpose, criticality=criticality)
+    formal_eligible = bool(native) and native_quality == "FORMAL_QUALIFIED" and not specialist_required
     critical_only_provisional = bool(records) and not selected and all(item["runtime_status"] == "PROVISIONAL" for item in records)
-    if selected:
+    if selected and (not specialist_required or any(item["provider_quality"] in {"SPECIALIST", "FORMAL_QUALIFIED"} for item in selected)):
         status = "PASS"
+    elif specialist_required:
+        status = "CONDITIONAL"
     elif native:
         status = "CONDITIONAL"
     elif critical_only_provisional or purpose == "formal" or load_bearing:
         status = "CONDITIONAL"
     else:
         status = "FAIL"
+    selected_specialist = bool(selected and any(item["provider_quality"] in {"SPECIALIST", "FORMAL_QUALIFIED"} for item in selected))
+    routable_selected = selected if not specialist_required else [item for item in selected if item["provider_quality"] in {"SPECIALIST", "FORMAL_QUALIFIED"}]
+    execution_mode = "INSTALLED_SPECIALIST" if selected_specialist else (
+        "SPECIALIST_DISCOVERY" if specialist_required else ("NATIVE" if native else "UNRESOLVED")
+    )
     return {
-        "operation": "resolve", "status": status, "capability": capability,
+        "operation": "resolve", "hotfix_version": HOTFIX_VERSION, "status": status, "capability": capability,
         "task_context": context, "native_coverage": "AVAILABLE" if native else "NONE",
-        "candidate_employees": records, "selected": selected[:1],
+        "candidate_employees": records, "selected": routable_selected[:1],
         "checker": capability_doc.get("checker_requirement", ""),
         "permissions_required": capability_doc.get("required_permissions", []),
         "risk": capability_doc.get("scientific_risk"), "specialist_triggers": capability_doc.get("specialist_triggers", []),
+        "provider_quality": (routable_selected[0]["provider_quality"] if routable_selected else native_quality), "native_provider_quality": native_quality,
+        "specialist_required": specialist_required, "formal_eligible": formal_eligible or selected_specialist,
+        "discovery_required": specialist_required and not selected_specialist,
+        "execution_mode": execution_mode,
+        "host_fallback": "HOST_EXECUTION_REQUIRED" if specialist_required and not selected_specialist else None,
+        "handoff_required": bool(specialist_required and not selected_specialist),
+        "checker_required": bool(capability_doc.get("checker_requirement")),
+        "evidence_required": bool(specialist_required or load_bearing),
         "execution_state": "RESOLVED", "rejected": [item for item in records if not item["eligible"]],
     }
 
 
 def team(task: str, capabilities: list[str], *, project: Path | None = None, registry_dir: Path = REGISTRY_DIR,
          purpose: str = "advisory", load_bearing: bool = False, criticality: str = "low") -> dict[str, Any]:
-    resolved = [resolve(capability, project=project, registry_dir=registry_dir, purpose=purpose, load_bearing=load_bearing, criticality=criticality) for capability in capabilities]
+    resolved = [resolve(capability, project=project, registry_dir=registry_dir, purpose=purpose, load_bearing=load_bearing, criticality=criticality, task=task) for capability in capabilities]
     failures = [item for item in resolved if item["status"] == "FAIL"]
     selected: dict[str, dict[str, Any]] = {}
     for item in resolved:
@@ -209,7 +285,7 @@ def _parser() -> argparse.ArgumentParser:
         if name in {"inventory", "resolve", "team"}: p.add_argument("--project", type=Path)
         if name in {"resolve", "explain"}: p.add_argument("--capability", required=True)
         if name == "resolve":
-            p.add_argument("--purpose", choices=["advisory", "exploratory", "formal"], default="advisory"); p.add_argument("--load-bearing", action="store_true"); p.add_argument("--criticality", choices=["low", "medium", "high", "critical"], default="low")
+            p.add_argument("--purpose", choices=["advisory", "exploratory", "formal"], default="advisory"); p.add_argument("--load-bearing", action="store_true"); p.add_argument("--criticality", choices=["low", "medium", "high", "critical"], default="low"); p.add_argument("--task", default="")
         if name == "team":
             p.add_argument("task"); p.add_argument("--capability", action="append", dest="capabilities", required=True); p.add_argument("--purpose", choices=["advisory", "exploratory", "formal"], default="advisory"); p.add_argument("--load-bearing", action="store_true"); p.add_argument("--criticality", choices=["low", "medium", "high", "critical"], default="low")
         if name == "validate-plan": p.add_argument("plan", type=Path)
@@ -220,7 +296,7 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         if args.command == "inventory": result = inventory(project=args.project, registry_dir=args.registry_dir)
-        elif args.command == "resolve": result = resolve(args.capability, project=args.project, registry_dir=args.registry_dir, purpose=args.purpose, load_bearing=args.load_bearing, criticality=args.criticality)
+        elif args.command == "resolve": result = resolve(args.capability, project=args.project, registry_dir=args.registry_dir, purpose=args.purpose, load_bearing=args.load_bearing, criticality=args.criticality, task=args.task)
         elif args.command == "team": result = team(args.task, args.capabilities, project=args.project, registry_dir=args.registry_dir, purpose=args.purpose, load_bearing=args.load_bearing, criticality=args.criticality)
         elif args.command == "validate-plan": result = validate_plan(args.plan, registry_dir=args.registry_dir)
         else: result = explain(args.capability, registry_dir=args.registry_dir)
