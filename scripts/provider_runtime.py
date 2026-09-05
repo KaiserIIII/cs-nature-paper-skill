@@ -20,6 +20,15 @@ PROVIDER_STATUSES = {
 }
 QUALIFIED = {"QUALIFIED", "DELEGATION_READY", "HOST_BEHAVIOR_QUALIFIED"}
 HOST_REQUEST_READY = {"HOST_REQUEST_CAPABLE", "HOST_BEHAVIOR_QUALIFIED"}
+QUALITY_LEVELS = ("SCAFFOLD", "BASELINE", "GENERAL", "SPECIALIST", "FORMAL_QUALIFIED")
+SPECIALIST_CAPABILITIES = {"novelty-analysis", "closest-work-analysis", "feasibility-analysis", "statistical-analysis", "scientific-visualization", "evidence-bound-writing", "evidence-bound-revision", "adversarial-review"}
+SPECIALIST_TERMS = {
+    "mixed effect", "mixed-effects", "bayesian", "causal inference", "survival",
+    "multiple testing", "power analysis", "clustered", "hierarchical", "conformal",
+    "risk control", "risk-controlled", "distribution shift", "selective prediction",
+    "novelty", "closest work", "prior art", "formal proof", "publication-quality",
+    "journal writing", "domain review", "method review", "statistics review",
+}
 REQUEST_FIELDS = {
     "task_id", "capability", "purpose", "formal", "inputs", "constraints",
     "required_outputs", "forbidden_claims", "evidence_requirements", "budget", "permissions",
@@ -54,8 +63,14 @@ def provider(
     output_contract: dict[str, Any] | None = None,
     failure_modes: list[str] | None = None,
     installed: bool | None = None,
+    quality_level: str | None = None,
 ) -> dict[str, Any]:
     """Build a complete registry record; callers may persist the returned object."""
+    # formal_eligible is an execution gate, not evidence that a provider is a
+    # specialist.  Quality is explicit and conservative by default.
+    inferred_quality = quality_level or ("SPECIALIST" if provider_type == "EXTERNAL_SKILL" else "GENERAL")
+    if inferred_quality not in QUALITY_LEVELS:
+        raise ValueError(f"unknown provider quality level: {inferred_quality}")
     return {
         "provider_id": provider_id,
         "type": provider_type,
@@ -72,6 +87,7 @@ def provider(
         "qualification": qualification,
         "failure_modes": list(failure_modes or []),
         "installed": provider_type == "EXTERNAL_SKILL" if installed is None else bool(installed),
+        "quality_level": inferred_quality,
     }
 
 
@@ -93,7 +109,50 @@ def validate_provider(value: Any) -> dict[str, Any]:
         findings.append("unknown provider status")
     if not isinstance(value.get("capabilities"), list) or not value.get("capabilities"):
         findings.append("capabilities must be a non-empty list")
+    if value.get("quality_level") is not None and value.get("quality_level") not in QUALITY_LEVELS:
+        findings.append("quality_level must be one of " + ", ".join(QUALITY_LEVELS))
     return {"status": "PASS" if not findings else "FAIL", "findings": findings}
+
+
+def specialist_requirement(capability: str, task: dict[str, Any] | None = None, formal: bool = False) -> bool:
+    """Determine whether a task needs a specialist-quality provider."""
+    task = task or {}
+    if task.get("specialist_required") is True:
+        return True
+    text = " ".join(str(task.get(key, "")) for key in ("task", "description", "purpose", "node", "method", "methods")).lower()
+    if any(term in text for term in SPECIALIST_TERMS):
+        return capability in SPECIALIST_CAPABILITIES or capability in {"statistical-analysis", "evidence-bound-writing"}
+    # A formal node is not automatically load-bearing. Callers mark the
+    # invocations whose conclusions require specialist scrutiny.
+    if formal and task.get("load_bearing", True) and capability in SPECIALIST_CAPABILITIES and capability != "statistical-analysis":
+        return True
+    return bool(formal and capability == "statistical-analysis" and task.get("load_bearing", False))
+
+
+def _confirmed_specialist(item: dict[str, Any], capability: str) -> bool:
+    """Require exact capability, pin, semantic verification, and trial evidence."""
+    if item.get("type") != "EXTERNAL_SKILL":
+        return item.get("quality_level") == "FORMAL_QUALIFIED" and item.get("formal_eligible") is True
+    if item.get("installed") is not True:
+        return False
+    exact_ref = str(item.get("exact_ref", ""))
+    if not __import__("re").fullmatch(r"[0-9a-f]{40}", exact_ref):
+        return False
+    if item.get("quality_level") not in {"SPECIALIST", "FORMAL_QUALIFIED"}:
+        return False
+    if item.get("formal_eligible") is not True or item.get("qualification") not in QUALIFIED or item.get("checker_required") is not True:
+        return False
+    verification = item.get("capability_verification")
+    static = item.get("static_audit")
+    if not isinstance(verification, dict) or verification.get("status") != "CONFIRMED" or verification.get("requested_capability") != capability or verification.get("formal_eligible") is not True:
+        return False
+    semantic = verification.get("semantic_audit") or {}
+    trial = verification.get("behavior_trial") or {}
+    if semantic.get("status") != "CONFIRMED" or not semantic.get("actor") or not semantic.get("evidence"):
+        return False
+    if trial.get("status") != "PASS" or trial.get("output_contract") != "PASS" or not trial.get("checker"):
+        return False
+    return isinstance(static, dict) and static.get("status") == "PASS" and static.get("exact_commit") == exact_ref
 
 
 def _eligible(
@@ -143,9 +202,12 @@ def resolve_provider(
         allowed = {key for key, enabled in permissions.items() if enabled is True}
     else:
         allowed = set(permissions)
+    specialist_required = specialist_requirement(capability, task, formal)
     candidates = [
         item for item in available_providers if _eligible(item, capability, formal, allowed)
     ]
+    if specialist_required:
+        candidates = [item for item in candidates if _confirmed_specialist(item, capability)]
 
     def priority(item: dict[str, Any]) -> tuple[int, str]:
         if item["type"] == "NATIVE":
@@ -164,33 +226,45 @@ def resolve_provider(
             return {
                 "operation": "resolve-provider", "status": "HOST_EXECUTION_REQUIRED",
                 "capability": capability, "provider": selected, "formal": formal, "risk": risk,
-                "truth_authority": "DETERMINISTIC_CHECKER", "task": task,
+                "truth_authority": "DETERMINISTIC_CHECKER", "task": task, "specialist_required": specialist_required,
+                "discovery_required": False, "handoff_required": True, "checker_required": True,
             }
         return {
             "operation": "resolve-provider", "status": "PASS", "capability": capability,
             "provider": selected, "formal": formal, "risk": risk,
-            "truth_authority": "DETERMINISTIC_CHECKER", "task": task,
+            "truth_authority": "DETERMINISTIC_CHECKER", "task": task, "specialist_required": specialist_required,
+            "discovery_required": False,
         }
     host_candidates = [
         item for item in available_providers
         if _host_request_eligible(item, capability, allowed)
     ]
+    if specialist_required and not task.get("discovery_attempted") and "auto_hire" in allowed:
+        return {
+            "operation": "resolve-provider", "status": "SPECIALIST_DISCOVERY", "capability": capability,
+            "formal": formal, "risk": risk, "specialist_required": True, "discovery_required": True,
+            "host_fallback": "HOST_EXECUTION_REQUIRED" if host_candidates else None,
+            "truth_authority": "DETERMINISTIC_CHECKER", "next": "skill_discovery_provider",
+        }
     if host_candidates:
         selected = sorted(host_candidates, key=lambda item: str(item["provider_id"]))[0]
         return {
             "operation": "resolve-provider", "status": "HOST_EXECUTION_REQUIRED",
             "capability": capability, "provider": selected, "formal": formal, "risk": risk,
-            "truth_authority": "DETERMINISTIC_CHECKER", "task": task,
+            "truth_authority": "DETERMINISTIC_CHECKER", "task": task, "specialist_required": specialist_required,
+            "discovery_required": False, "handoff_required": True, "checker_required": True, "evidence_required": True,
         }
     if "auto_hire" in allowed and risk in {"LOW", "MEDIUM"}:
         return {
             "operation": "resolve-provider", "status": "AUTO_HIRE", "capability": capability,
             "formal": formal, "risk": risk, "next": "skill_discovery_provider",
+            "specialist_required": specialist_required, "discovery_required": True,
         }
     return {
         "operation": "resolve-provider", "status": "FALLBACK", "capability": capability,
         "formal": formal, "risk": risk,
         "recovery": ["RETRY", "REPAIR_INPUT", "ALTERNATE_PROVIDER", "AUTO_HIRE", "SIMPLIFY", "REDUCE_SCOPE", "ASK_AUTHOR"],
+        "specialist_required": specialist_required, "discovery_required": False,
     }
 
 

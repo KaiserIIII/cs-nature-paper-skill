@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import sys
 from pathlib import Path
 from typing import Any
 
 import provider_support as support
+
+SCRIPT_DIR = str(Path(__file__).resolve().parents[1] / "scripts")
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+import host_provider_runtime  # noqa: E402
 
 
 PROVIDER_ID = "host-research"
@@ -126,3 +133,85 @@ def request_host_capability(project: Path, node: str, capability: str, inputs: l
         "budget": {"money": 0}, "permissions": {"external_write": False, "publish": False},
     }
     return support.write(support.state_dir(project) / "host_requests" / f"{node}.json", request)
+
+
+def _request_inputs(project: Path) -> list[str]:
+    """Expose only project artifacts as host inputs; state remains local audit data."""
+    return [
+        support.relative(project, path)
+        for path in sorted(project.rglob("*"))
+        if path.is_file() and ".research-state" not in path.parts
+    ][:500]
+
+
+def request(project: Path, node: str, capability: str) -> dict[str, Any]:
+    inputs = _request_inputs(project)
+    task_id = f"{project.name}:{node}:{hashlib.sha256(json.dumps(inputs).encode('utf-8')).hexdigest()[:12]}"
+    value = {
+        "task_id": task_id,
+        "node": node,
+        "capability": capability,
+        "formal": True,
+        "inputs": inputs,
+        "constraints": [
+            "use observed project evidence only",
+            "do not transition the research graph",
+            "return a typed artifact with explicit uncertainties",
+        ],
+        "required_outputs": ["typed artifact", "claims", "uncertainties", "actions_taken"],
+        "evidence_requirements": ["artifact hash", "tool or command record", "independent checker"],
+        "forbidden_claims": ["unsupported scientific truth", "fabricated execution", "fabricated source"],
+        "permissions": {"local_read": True, "local_write": True, "execute": False, "network": False, "external_write": False},
+        "budget": {"money": 0},
+    }
+    return host_provider_runtime.create_request(project, value) | {"host_request": value, "capability": capability}
+
+
+def consume(project: Path, node: str, active: dict[str, Any]) -> dict[str, Any] | None:
+    if active.get("status") != "ACCEPTED" or not isinstance(active.get("handoff"), dict):
+        return None
+    handoff = active["handoff"]
+    artifacts = []
+    for relative in handoff.get("artifacts", []):
+        path = (project / str(relative)).resolve()
+        try:
+            path.relative_to(project.resolve())
+        except ValueError:
+            continue
+        if path.is_file() and path.stat().st_size > 0:
+            artifacts.append(path)
+    if not artifacts:
+        return {"status": "FAIL", "findings": ["accepted host handoff has no observed artifact"]}
+    return support.handoff(
+        project,
+        str(handoff.get("provider_id") or PROVIDER_ID),
+        node,
+        artifacts,
+        formal=True,
+        actions=list(handoff.get("actions_taken", [])),
+        claims=list(handoff.get("claims", [])),
+        uncertainties=list(handoff.get("uncertainties", [])),
+        tool_calls=list(handoff.get("tool_calls", [])),
+        extra={
+            "host_request_created": True,
+            "host_handoff_received": True,
+            "host_lifecycle": active.get("lifecycle", []),
+            "model_behavior": "RECORDED_HANDOFF" if str(handoff.get("provider_id", "")).startswith("recorded-") else "HOST_HANDOFF",
+        },
+    )
+
+
+def request_or_consume(project: Path, node: str, capability: str) -> dict[str, Any]:
+    active = host_provider_runtime.active_for_node(project, node)
+    if active and active.get("status") == "ACCEPTED":
+        result = consume(project, node, active)
+        if result is not None:
+            return result
+    if active:
+        return active | {
+            "operation": "host-research-provider",
+            "status": "HOST_EXECUTION_REQUIRED",
+            "host_request_created": True,
+            "capability": capability,
+        }
+    return request(project, node, capability) | {"operation": "host-research-provider"}

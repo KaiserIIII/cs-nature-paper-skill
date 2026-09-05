@@ -205,3 +205,66 @@ def request_or_consume(project: Path, node: str, capability: str) -> dict[str, A
             "host_request_created": True, "capability": capability,
         }
     return request(project, node, capability) | {"operation": "competition-host-provider", "capability": capability}
+
+
+def request_specialist(project: Path, node: str, capability: str) -> dict[str, Any]:
+    """Create or consume a generic scientific specialist handoff.
+
+    Specialist outputs are deliberately opaque to this adapter: the independent
+    host lifecycle checker validates the typed artifact and the competition
+    runtime remains the sole authority allowed to advance the graph.
+    """
+    active = host_provider_runtime.active_for_node(project, node)
+    if active and active.get("status") == "ACCEPTED" and isinstance(active.get("handoff"), dict):
+        handoff = active["handoff"]
+        artifacts = _artifacts(project, handoff)
+        if not artifacts:
+            return {"status": "FAIL", "findings": ["accepted specialist handoff has no observed artifact"]}
+        return support.handoff(
+            project,
+            str(handoff.get("provider_id") or PROVIDER_ID),
+            node,
+            artifacts,
+            formal=True,
+            actions=list(handoff.get("actions_taken", [])),
+            claims=list(handoff.get("claims", [])),
+            uncertainties=list(handoff.get("uncertainties", [])),
+            tool_calls=list(handoff.get("tool_calls", [])),
+            extra={
+                "host_request_created": True,
+                "host_handoff_received": True,
+                "host_lifecycle": active.get("lifecycle", []),
+                "model_behavior": "RECORDED_HANDOFF" if str(handoff.get("provider_id", "")).startswith("recorded-") else "HOST_HANDOFF",
+            },
+        )
+    if active:
+        return active | {
+            "operation": "competition-host-specialist",
+            "status": "HOST_EXECUTION_REQUIRED",
+            "host_request_created": True,
+            "capability": capability,
+        }
+    context = _context(project, node, capability)
+    task_id = _task_id(project, node, context)
+    value = {
+        "task_id": task_id,
+        "node": node,
+        "capability": capability,
+        "formal": True,
+        "inputs": [item["path"] for item in context["data_inventory"]],
+        "constraints": [
+            "use supplied contest evidence only",
+            "return typed artifacts and explicit uncertainties",
+            "do not transition the graph or claim optimality without evidence",
+        ],
+        "required_outputs": ["typed artifact", "claims", "uncertainties", "actions_taken"],
+        "evidence_requirements": ["artifact hash", "independent checker"],
+        "forbidden_claims": ["unverified optimum", "fabricated execution", "unsupported scientific validity"],
+        "permissions": {"local_read": True, "local_write": True, "execute": False, "network": False, "external_write": False},
+        "budget": context["resource_budget"],
+    }
+    return host_provider_runtime.create_request(project, value) | {
+        "operation": "competition-host-specialist",
+        "capability": capability,
+        "host_request": value,
+    }

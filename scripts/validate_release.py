@@ -174,7 +174,7 @@ def validate_release_manifest_value(
         findings.append(f"HOSTED_CI_WRONG_SHA: expected {source_commit}, got {hosted.get('head_sha')}")
     branch = hosted.get("branch")
     allowed_branch = expected_branch or value.get("source_branch")
-    if branch != allowed_branch or branch not in {"v3.2", "main", "feat/cumcm-v32-final", "feat/v32-provider-final"}:
+    if branch != allowed_branch or branch not in {"v3.2", "main", "feat/cumcm-v32-final", "feat/v32-provider-final", "hotfix/v321-specialist-routing-final"}:
         findings.append(f"HOSTED_CI_WRONG_BRANCH: expected {allowed_branch}, got {branch}")
     if hosted.get("workflow") != expected_workflow:
         findings.append(f"HOSTED_CI_WRONG_WORKFLOW: expected {expected_workflow}, got {hosted.get('workflow')}")
@@ -186,10 +186,12 @@ def validate_release_manifest_value(
     missing = [name for name in REQUIRED_CI_MATRIX if not isinstance(matrix, dict) or matrix.get(name) != "PASS"]
     if missing or (isinstance(matrix, dict) and set(matrix) != set(REQUIRED_CI_MATRIX)):
         findings.append("HOSTED_CI_MATRIX_INCOMPLETE: " + ", ".join(missing or sorted(set(matrix) ^ set(REQUIRED_CI_MATRIX))))
+    final_rc = branch == "hotfix/v321-specialist-routing-final" or hosted.get("branch") == "hotfix/v321-specialist-routing-final"
+    ready_disposition = "CORRECT-BASE V3.2.1 RC" if final_rc else "V3.2.0 RELEASE READY"
     if require_hosted_ci and findings:
-        if str(value.get("release_disposition")) == "V3.2.0 RELEASE READY":
+        if str(value.get("release_disposition")) == ready_disposition:
             findings.append("RELEASE_DISPOSITION_INVALID: manifest claims READY despite release-integrity findings")
-    elif require_hosted_ci and value.get("release_disposition") != "V3.2.0 RELEASE READY":
+    elif require_hosted_ci and value.get("release_disposition") != ready_disposition:
         findings.append("RELEASE_DISPOSITION_INVALID: exact-SHA successful manifest must be RELEASE READY")
     return findings
 

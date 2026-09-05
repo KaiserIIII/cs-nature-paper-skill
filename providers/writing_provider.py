@@ -10,6 +10,8 @@ import provider_support as support
 
 
 PROVIDER_ID = "writing-provider"
+_REPRODUCIBILITY_IDS = {"RF-001"}
+_REPRODUCIBILITY_ROLES = {"reproducibility"}
 
 
 def _authoritative(project: Path) -> dict[str, Any]:
@@ -62,7 +64,15 @@ def execute(project: Path, node: str) -> dict[str, Any]:
     review_path = project / "artifacts" / "review_findings.json"
     review = support.read_json(review_path, {})
     actions = []
-    if "## Reproducibility" not in text:
+    review_findings = review.get("findings", []) if isinstance(review, dict) else []
+    reproducibility_findings = [
+        finding for finding in review_findings
+        if isinstance(finding, dict)
+        and (finding.get("id") in _REPRODUCIBILITY_IDS or finding.get("role") in _REPRODUCIBILITY_ROLES)
+        and finding.get("status") not in {"RESOLVED", "RESIDUAL_RISK_DOCUMENTED"}
+    ]
+    reproducibility_fix_applied = False
+    if "## Reproducibility" not in text and reproducibility_findings:
         text += (
             "\n## Reproducibility\n\n"
             "Run the command recorded in artifacts/formal_execution.json with the frozen protocol and declared input. "
@@ -70,11 +80,26 @@ def execute(project: Path, node: str) -> dict[str, Any]:
         )
         support.write(manuscript, text)
         actions.append("added reproducibility section")
-    for finding in review.get("findings", []):
-        if finding.get("status") != "RESOLVED":
+        reproducibility_fix_applied = True
+    for finding in review_findings:
+        is_reproducibility = (
+            isinstance(finding, dict)
+            and (finding.get("id") in _REPRODUCIBILITY_IDS or finding.get("role") in _REPRODUCIBILITY_ROLES)
+        )
+        if is_reproducibility and reproducibility_fix_applied:
             finding["status"] = "RESOLVED"
-            finding["resolution"] = "smallest sufficient evidence-bound revision applied"
+            finding["resolution"] = "reproducibility section added and tied to the execution record"
     support.write(review_path, review)
     revised = project / "artifacts" / "revised_manuscript.md"
     shutil.copy2(manuscript, revised)
-    return support.handoff(project, PROVIDER_ID, node, [revised, review_path], actions=actions)
+    unresolved_scientific = [
+        finding for finding in review_findings
+        if isinstance(finding, dict)
+        and finding.get("role") in {"method", "statistics", "novelty", "writing", "domain"}
+        and finding.get("status") not in {"RESOLVED", "RESIDUAL_RISK_DOCUMENTED"}
+    ]
+    review_requires_scientific = bool(review.get("scientific_review_required")) if isinstance(review, dict) else False
+    return support.handoff(project, PROVIDER_ID, node, [revised, review_path], actions=actions, extra={
+        "scientific_review_required": bool(unresolved_scientific) or review_requires_scientific,
+        "unresolved_scientific_findings": len(unresolved_scientific),
+    })

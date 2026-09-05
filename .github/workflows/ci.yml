@@ -2,7 +2,7 @@ name: cs-nature-paper-v3.2
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final, feat/v32-provider-final]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final, feat/v32-provider-final, hotfix/v321-specialist-routing-final]
   pull_request:
   workflow_dispatch:
 

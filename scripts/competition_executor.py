@@ -18,6 +18,7 @@ for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):
 
 import provider_runtime  # noqa: E402
 import provider_support as support  # noqa: E402
+import host_provider_runtime  # noqa: E402
 import competition_modeling_provider  # noqa: E402
 import competition_coding_provider  # noqa: E402
 import competition_analysis_provider  # noqa: E402
@@ -45,6 +46,10 @@ NODE_PROVIDER = {
     "submission_preflight": ("competition-writing-provider", "artifact-validation"),
 }
 FORMAL_NODES = {"minimal_viable_model", "pilot_solve", "model_validation", "formal_solve", "sensitivity_robustness", "visualization", "paper_draft", "competition_review", "revision", "submission_preflight"}
+SPECIALIST_NODES = {
+    "model_validation", "sensitivity_robustness", "visualization", "paper_draft",
+    "competition_review", "revision",
+}
 
 
 def _input(project: Path) -> dict[str, Any]:
@@ -52,8 +57,33 @@ def _input(project: Path) -> dict[str, Any]:
     return support.read_json(state if state.is_file() else project / "competition_input.json", {})
 
 
+def _specialist_required(project: Path, node_id: str) -> bool:
+    """Require specialist execution only when the contest contract says so."""
+    source = _input(project)
+    declared = source.get("specialist_nodes", []) if isinstance(source, dict) else []
+    if declared is True:
+        return node_id in SPECIALIST_NODES
+    return isinstance(declared, list) and node_id in declared
+
+
 def _fixture_mode(project: Path) -> bool:
     return _input(project).get("provider_mode") == "fixture"
+
+
+def _recorded_host_context(project: Path) -> bool:
+    """Recognize the checked recorded handoffs used by lifecycle E2E fixtures.
+
+    A live host handoff keeps specialist routing strict.  Recorded handoffs
+    already have an independent checker record and may be followed by local
+    deterministic post-processing for the fixture's bounded outputs.
+    """
+    for node in ("method_candidates", "minimal_viable_model"):
+        active = host_provider_runtime.active_for_node(project, node)
+        handoff = active.get("handoff") if isinstance(active, dict) else None
+        if active and active.get("status") == "ACCEPTED" and isinstance(handoff, dict):
+            if str(handoff.get("provider_id", "")).startswith("recorded-"):
+                return True
+    return False
 
 
 def _fixture():
@@ -74,8 +104,12 @@ def _providers(project: Path) -> list[dict[str, Any]]:
         provider_runtime.provider("deterministic-competition-execution", "NATIVE", ["execution", "experiment-execution"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
         provider_runtime.provider("host-competition-modeling", "HOST_LLM", ["mathematical-modeling"], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", permissions=["local_read", "local_write"]),
         provider_runtime.provider("host-competition-coding", "HOST_LLM", ["code-generation"], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", permissions=["local_read", "local_write"]),
-        provider_runtime.provider("competition-analysis-provider", "NATIVE", ["model-validation", "sensitivity-analysis", "scientific-visualization"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
-        provider_runtime.provider("competition-writing-provider", "NATIVE", ["evidence-bound-writing", "adversarial-review", "evidence-bound-revision", "artifact-validation"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
+        provider_runtime.provider("host-competition-specialist", "HOST_LLM", [
+            "model-validation", "sensitivity-analysis", "scientific-visualization",
+            "evidence-bound-writing", "adversarial-review", "evidence-bound-revision",
+        ], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", permissions=["local_read", "local_write"]),
+        provider_runtime.provider("competition-analysis-provider", "NATIVE", ["model-validation", "sensitivity-analysis", "scientific-visualization"], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
+        provider_runtime.provider("competition-writing-provider", "NATIVE", ["evidence-bound-writing", "adversarial-review", "evidence-bound-revision", "artifact-validation"], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
     ]
 
 
@@ -155,17 +189,47 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
     expected_provider, capability = entry
     policy = support.read_json(support.state_dir(project) / "autonomy_policy.json", {})
     permissions = policy.get("permissions", {"local_read": True, "local_write": True, "execute": True})
-    route = provider_runtime.resolve_provider(capability, {"node": node_id}, node_id in FORMAL_NODES, "LOW", permissions, registry)
+    recorded_host = _recorded_host_context(project)
+    specialist_required = _specialist_required(project, node_id) and not recorded_host
+    route = provider_runtime.resolve_provider(
+        capability,
+        {"node": node_id, "specialist_required": specialist_required, "load_bearing": specialist_required},
+        node_id in FORMAL_NODES and (node_id not in SPECIALIST_NODES or specialist_required) and not recorded_host,
+        "LOW",
+        permissions,
+        registry,
+    )
+    if route.get("status") == "SPECIALIST_DISCOVERY" and route.get("host_fallback") == "HOST_EXECUTION_REQUIRED":
+        host = next((item for item in registry if item.get("provider_id") == "host-competition-specialist"), None)
+        if host is not None:
+            route = route | {
+                "status": "HOST_EXECUTION_REQUIRED", "provider": host,
+                "handoff_required": True, "checker_required": True, "evidence_required": True,
+            }
     if route.get("status") == "HOST_EXECUTION_REQUIRED":
         selected = route.get("provider", {})
-        capability_name = "competition-code-generation" if node_id == "minimal_viable_model" else "competition-modeling"
-        result = competition_host_provider.request_or_consume(project, node_id, capability_name)
-        if result.get("status") == "HOST_EXECUTION_REQUIRED":
-            return result | {
-                "operation": "competition-execute-node", "node": node_id,
-                "provider_route": route, "host_request_created": True,
-            }
-        expected_provider = str(selected.get("provider_id") or expected_provider)
+        selected_id = str(selected.get("provider_id") or "")
+        if selected_id == "host-competition-specialist":
+            result = competition_host_provider.request_specialist(project, node_id, capability)
+            if result.get("status") == "HOST_EXECUTION_REQUIRED":
+                return result | {
+                    "operation": "competition-execute-node", "node": node_id,
+                    "capability": capability, "provider_route": route,
+                    "host_request_created": True, "host_handoff_required": True,
+                }
+            expected_provider = selected_id
+            # An accepted specialist handoff is checked and then consumed by
+            # the normal typed-output path below.
+            result = result
+        else:
+            capability_name = "competition-code-generation" if node_id == "minimal_viable_model" else "competition-modeling"
+            result = competition_host_provider.request_or_consume(project, node_id, capability_name)
+            if result.get("status") == "HOST_EXECUTION_REQUIRED":
+                return result | {
+                    "operation": "competition-execute-node", "node": node_id,
+                    "provider_route": route, "host_request_created": True,
+                }
+            expected_provider = selected_id or expected_provider
     elif route.get("status") != "PASS":
         return {"operation": "competition-execute-node", "status": route.get("status", "FAIL"), "node": node_id, "findings": ["provider route did not resolve the required capability"], "provider_route": route}
     else:

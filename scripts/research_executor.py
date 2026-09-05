@@ -20,6 +20,7 @@ for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):
 
 import provider_runtime  # noqa: E402
 import provider_support as support  # noqa: E402
+import host_provider_runtime  # noqa: E402
 import host_research_provider  # noqa: E402
 import literature_provider  # noqa: E402
 import coding_provider  # noqa: E402
@@ -58,6 +59,34 @@ NODE_CAPABILITIES = {
     "author_handoff": ["artifact-validation"],
 }
 FORMAL_NODES = {"implementation", "formal_experiment", "analysis", "figures", "writing", "validation", "review", "revision", "artifact_package"}
+# These nodes carry claims or decisions that cannot be discharged by the
+# deterministic baseline providers.  They must be specialist-backed or remain
+# explicitly blocked behind the host handoff lifecycle.
+LOAD_BEARING_NODES = {
+    "analysis", "figures", "writing", "review", "revision",
+}
+
+
+def _is_load_bearing(project: Path, node: str) -> bool:
+    """Require an explicit project declaration before specialist escalation."""
+    brief = support.read_json(project / "inputs" / "research_brief.json", {})
+    contract = support.read_json(support.state_dir(project) / "research_contract.json", {})
+    declared = brief.get("load_bearing_nodes", contract.get("load_bearing_nodes", []))
+    if declared is True:
+        return node in LOAD_BEARING_NODES
+    if isinstance(declared, list):
+        return node in declared
+    return False
+
+
+def _recorded_host_context(project: Path) -> bool:
+    """Allow deterministic post-processing only for checked E2E handoffs."""
+    active = host_provider_runtime.active_for_node(project, "implementation")
+    handoff = active.get("handoff") if isinstance(active, dict) else None
+    return bool(
+        active and active.get("status") == "ACCEPTED" and isinstance(handoff, dict)
+        and str(handoff.get("provider_id", "")).startswith("recorded-")
+    )
 
 
 def _load_fixture():
@@ -82,7 +111,7 @@ def _registry(project: Path) -> list[dict[str, Any]]:
         provider_runtime.provider("research-runtime-provider", "NATIVE", [
             "project-orientation", "research-question-structuring", "novelty-analysis", "closest-work-analysis",
             "feasibility-analysis", "experimental-design", "artifact-validation",
-        ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
+        ], qualification="QUALIFIED", formal_eligible=True, quality_level="BASELINE", permissions=["local_read", "local_write"]),
         provider_runtime.provider("literature-provider", "WEB", [
             "literature-discovery", "literature-retrieval", "literature-verification",
         ], qualification="QUALIFIED", formal_eligible=False, permissions=["local_read"]),
@@ -98,13 +127,18 @@ def _registry(project: Path) -> list[dict[str, Any]]:
         provider_runtime.provider("host-coding-provider", "HOST_LLM", [
             "software-implementation",
         ], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", formal_eligible=False, permissions=["local_read", "local_write"]),
+        provider_runtime.provider("host-research-provider", "HOST_LLM", [
+            "novelty-analysis", "closest-work-analysis", "feasibility-analysis",
+            "statistical-analysis", "scientific-visualization", "evidence-bound-writing",
+            "evidence-bound-revision", "adversarial-review",
+        ], status="HOST_REQUEST_CAPABLE", qualification="HOST_REQUEST_CAPABLE", formal_eligible=False, permissions=["local_read", "local_write"]),
         provider_runtime.provider("analysis-provider", "NATIVE", [
             "statistical-analysis", "scientific-visualization",
-        ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
+        ], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
         provider_runtime.provider("writing-provider", "NATIVE", [
             "evidence-bound-writing", "evidence-bound-revision",
-        ], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
-        provider_runtime.provider("review-provider", "NATIVE", ["adversarial-review"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
+        ], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
+        provider_runtime.provider("review-provider", "NATIVE", ["adversarial-review"], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
     ]
     state_path = support.state_dir(project) / "provider_registry.json"
     state_path.parent.mkdir(parents=True, exist_ok=True)
@@ -218,10 +252,52 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
         return _load_fixture().execute_node(project, node)
     permissions = _permissions(project)
     capability = NODE_CAPABILITIES[node][0]
-    route = provider_runtime.resolve_provider(capability, {"node": node, "project": project.name}, node in FORMAL_NODES, "LOW", permissions, _registry(project))
+    recorded_host = _recorded_host_context(project)
+    # Scientific escalation is opt-in for ordinary deterministic examples,
+    # while an explicit load-bearing declaration (or a specialist-triggering
+    # method in the project brief) still routes through the Host lifecycle.
+    load_bearing = _is_load_bearing(project, node) and not recorded_host
+    brief = support.read_json(project / "inputs" / "research_brief.json", {})
+    task = {
+        "node": node,
+        "project": project.name,
+        "load_bearing": load_bearing,
+        "purpose": brief.get("question", ""),
+        "description": brief.get("description", ""),
+        "method": " ".join(map(str, brief.get("method_candidates", []))),
+    }
+    formal = (node in FORMAL_NODES and (node not in LOAD_BEARING_NODES or load_bearing)) and not recorded_host
+    registry = _registry(project)
+    route = provider_runtime.resolve_provider(
+        capability,
+        task,
+        formal,
+        "LOW",
+        permissions,
+        registry,
+    )
+    # A specialist discovery attempt is optional recovery work.  When the
+    # registry already advertises a request-capable host fallback, proceed to
+    # that lifecycle instead of allowing the director to retry the same weak
+    # native route until its recovery budget is exhausted.
+    if route.get("status") == "SPECIALIST_DISCOVERY" and route.get("host_fallback") == "HOST_EXECUTION_REQUIRED":
+        host = next((item for item in registry if item.get("provider_id") == "host-research-provider"), None)
+        if host is not None:
+            route = route | {
+                "status": "HOST_EXECUTION_REQUIRED", "provider": host,
+                "handoff_required": True, "checker_required": True, "evidence_required": True,
+            }
     if route["status"] == "HOST_EXECUTION_REQUIRED" and route.get("provider", {}).get("provider_id") == "host-coding-provider":
         selected = route["provider"]
         result = host_coding_provider.request_or_consume(project, node)
+        if result.get("status") == "HOST_EXECUTION_REQUIRED":
+            return result | {
+                "operation": "execute-node", "node": node, "capability": capability,
+                "provider_route": route, "host_request_created": True,
+            }
+    elif route["status"] == "HOST_EXECUTION_REQUIRED" and route.get("provider", {}).get("provider_id") == "host-research-provider":
+        selected = route["provider"]
+        result = host_research_provider.request_or_consume(project, node, capability)
         if result.get("status") == "HOST_EXECUTION_REQUIRED":
             return result | {
                 "operation": "execute-node", "node": node, "capability": capability,

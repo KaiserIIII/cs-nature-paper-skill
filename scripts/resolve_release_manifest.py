@@ -57,7 +57,10 @@ def resolve(
             "matrix": {name: matrix_status for name in REQUIRED_CI_MATRIX},
         }
         ready = conclusion == "success" and matrix_status == "PASS"
-        value["release_disposition"] = "V3.2.0 RELEASE READY" if ready else "V3.2.0 RELEASE BLOCKED"
+        if branch == "hotfix/v321-specialist-routing-final":
+            value["release_disposition"] = "CORRECT-BASE V3.2.1 RC" if ready else "CORRECT-BASE V3.2.1 RC BLOCKED"
+        else:
+            value["release_disposition"] = "V3.2.0 RELEASE READY" if ready else "V3.2.0 RELEASE BLOCKED"
     else:
         value["hosted_ci"] = {"run_id": None, "workflow": None, "branch": None, "head_sha": None, "conclusion": None, "matrix": {}}
         value["release_disposition"] = "V3.2.0 RELEASE BLOCKED; Hosted CI binding is incomplete"

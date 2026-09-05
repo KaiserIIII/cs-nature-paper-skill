@@ -183,7 +183,13 @@ def resolve_capability(
     payload: dict[str, Any] | None = None,
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    native = set(executor_runtime.EXECUTORS)
+    # V3.2.0 provider-driven executor exposes capabilities through the node
+    # registry rather than the legacy EXECUTORS mapping.
+    native = {
+        capability
+        for capabilities in getattr(executor_runtime, "NODE_CAPABILITIES", {}).values()
+        for capability in capabilities
+    }
     registry = _read(_state(project) / "employee_registry.json", {})
     installed = registry.get("employees", []) if isinstance(registry, dict) else []
     vacancy = marketplace_runtime.capability_vacancy(capability, native, installed)
