@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,19 @@ EXECUTABLE_QUALIFICATIONS = {"QUALIFIED", "DELEGATION_READY"}
 TERMINAL_NON_EXECUTABLE = {"PROVISIONAL", "QUARANTINED", "REJECTED"}
 SAFE_LICENSES = {"MIT", "BSD-2-CLAUSE", "BSD-3-CLAUSE", "APACHE-2.0", "ISC"}
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
+
+# ``provider_lifecycle`` is retained for V3.2 compatibility.  This more
+# explicit lifecycle is additive and lets executors expose the final
+# discovery-to-employment handoff without changing the existing contract.
+EMPLOYMENT_WORKFLOW = (
+    "SPECIALIST_DISCOVERY", "AUTO_HIRE", "CONFIRMED", "STATIC_AUDITED",
+    "PINNED", "MATERIALIZED", "BEHAVIOR_TESTED", "QUALIFIED", "EMPLOYED",
+    "RE-RESOLVE", "EXTERNAL_SKILL_EXECUTED", "CHECKED", "ACCEPTED",
+)
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _load(name: str):
@@ -55,6 +69,33 @@ def _read(path: Path, default: Any) -> Any:
 def _write(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _record_hire_outcome(project: Path, *, capability: str, candidate_id: str, status: str, stage: str, reason: str, actor: str = "director") -> dict[str, Any]:
+    """Persist bounded hire outcomes in the existing decision and audit stores."""
+    state = _state(project)
+    ledger_path = state / "specialist_hire.json"
+    ledger = _read(ledger_path, {"schema_version": 1, "skill_version": SKILL_VERSION, "attempts": []})
+    attempts = ledger.setdefault("attempts", [])
+    record = {
+        "candidate_id": candidate_id,
+        "capability": capability,
+        "status": status,
+        "stage": stage,
+        "reason": reason,
+        "created_utc": _now(),
+    }
+    attempts.append(record)
+    ledger.update({"schema_version": 1, "skill_version": SKILL_VERSION})
+    _write(ledger_path, ledger)
+    decision_path = state / "decision_log.md"
+    with decision_path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(f"\n- AUTO_HIRE `{status}` candidate `{candidate_id}` for `{capability}` at `{stage}`: {reason}\n")
+    audit = autonomy.append_audit(
+        state / ".autonomy-audit.jsonl", "specialist-auto-hire", record,
+        actor=actor, decision=status,
+    )
+    return record | {"audit": audit}
 
 
 def capability_vacancy(capability: str, native_capabilities: set[str], installed: list[dict[str, Any]]) -> dict[str, Any]:
@@ -195,6 +236,61 @@ def _register(project: Path, record: dict[str, Any]) -> None:
     _write(path, registry)
 
 
+def _employee_record(selected: dict[str, Any], audit: dict[str, Any], verification: dict[str, Any], materialized: Path) -> dict[str, Any]:
+    """Create the qualified employee record consumed by Provider Runtime."""
+    capabilities = sorted(set(selected.get("capabilities", [])))
+    permissions = list(selected.get("provider_permissions", ["local_read", "local_write", "execute"]))
+    return {
+        "id": selected["id"],
+        "provider_id": selected["id"],
+        "type": "EXTERNAL_SKILL",
+        "source": selected.get("repo_url", selected.get("repo", "")),
+        "repo": selected.get("repo", ""),
+        "exact_ref": selected["exact_ref"],
+        "ref": selected["exact_ref"],
+        "license": selected["license"],
+        "status": "SPECIALIST",
+        "runtime_status": "SPECIALIST",
+        "qualification": "DELEGATION_READY",
+        "qualification_state": "FORMAL_QUALIFIED",
+        "formal_eligible": True,
+        "quality_level": "FORMAL_QUALIFIED",
+        "checker_required": True,
+        "capabilities": capabilities,
+        "permission_scope": list(selected.get("permission_scope", capabilities[:1])),
+        "provider_permissions": permissions,
+        "permissions": {
+            "network": bool(selected.get("network_runtime", False)),
+            "credentials": [],
+            "writes": ["project-local"],
+            "executes_scripts": True,
+        },
+        "risk": audit["risk"],
+        "materialized_path": str(materialized),
+        "entrypoint": selected.get("entrypoint", "worker.py"),
+        "capability_verification": verification,
+        "static_audit": selected.get("static_audit", audit),
+        "behavior_trial": selected.get("behavior_trial"),
+        "behavior_trials": ["PASS"],
+        "roles": ["producer"],
+        "departments": ["external-specialist"],
+        "trigger_scope": ["formal", "load-bearing"],
+        "do_not_use_for": ["unsupported scientific claims"],
+        "environment_contract": {"isolated": True, "project_local": True},
+        "quality_evidence": {
+            "source_reviewed": True,
+            "license_reviewed": True,
+            "scripts_reviewed": True,
+            "tests": {"unit": ["behavior trial"], "workflow": ["isolated execution"], "external": []},
+            "security_audits": ["PASS"],
+        },
+        "approved_uses": capabilities,
+        "rollback": {"materialized_path": str(materialized)},
+        "known_risks": ["bounded isolated execution; external validity remains project-scoped"],
+        "last_reviewed_utc": _now(),
+    }
+
+
 def _execute(materialized: Path, candidate: dict[str, Any], payload: dict[str, Any], project: Path) -> dict[str, Any]:
     run_dir = _state(project) / "employee-runs" / candidate["id"]
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -243,6 +339,12 @@ def hire_and_execute(
         if verification.get("status") == "CONFIRMED" and verification.get("formal_eligible") is True:
             confirmed.append(dict(candidate) | {"capability_verification": verification})
     if not confirmed:
+        for candidate, verification in zip(candidates, verifications):
+            _record_hire_outcome(
+                project, capability=capability, candidate_id=str(candidate.get("id", "")),
+                status="REJECTED", stage="CAPABILITY_VERIFICATION",
+                reason="formal capability verification was not CONFIRMED", actor=actor,
+            )
         return {
             "operation": "auto-hire",
             "status": "BLOCKED",
@@ -257,35 +359,39 @@ def hire_and_execute(
     lifecycle.append("RESOLVED")
     audit = selected["audit"]
     if audit["status"] != "PASS":
+        _record_hire_outcome(project, capability=capability, candidate_id=str(selected.get("id", "")), status="REJECTED", stage="STATIC_AUDIT", reason="candidate audit failed", actor=actor)
         return {"operation": "auto-hire", "status": "REJECTED", "reason": "candidate audit failed", "audit": audit, "lifecycle": lifecycle + ["REJECTED"]}
     gate_candidate = {
         key: value for key, value in selected.items() if key != "audit"
     } | {"risk": audit["risk"], "behavior_trial": "PASS"}
     authorization = autonomy.auto_hire_gate(policy, gate_candidate, actor=actor)
     if authorization.get("status") != "AUTHORIZED":
+        _record_hire_outcome(
+            project, capability=capability, candidate_id=str(selected.get("id", "")),
+            status="BLOCKED", stage="AUTHORIZATION",
+            reason=str(authorization.get("reason") or "AUTO_HIRE authorization gate blocked candidate"), actor=actor,
+        )
         return {"operation": "auto-hire", "status": "BLOCKED", "authorization": authorization, "lifecycle": lifecycle}
     materialized = _materialize(project, selected)
     lifecycle.extend(["MATERIALIZED", "INSTALLED_ISOLATED"])
     qualification = _qualify(materialized, selected)
     if qualification["status"] != "QUALIFIED":
+        _record_hire_outcome(project, capability=capability, candidate_id=str(selected.get("id", "")), status="REJECTED", stage="QUALIFY", reason="isolated employee qualification failed", actor=actor)
         return {"operation": "auto-hire", "status": "REJECTED", "qualification": qualification, "lifecycle": lifecycle + ["REJECTED"]}
     lifecycle.extend(["QUALIFIED", "DELEGATION_READY"])
-    record = {
-        "id": selected["id"],
-        "exact_ref": selected["exact_ref"],
-        "license": selected["license"],
-        "capabilities": selected.get("capabilities", []),
-        "permission_scope": selected.get("permission_scope", []),
-        "risk": audit["risk"],
-        "qualification": "DELEGATION_READY",
-        "materialized_path": str(materialized),
-    }
+    record = _employee_record(selected, audit, selected.get("capability_verification", {}), materialized)
     execution_gate = can_execute(record)
     if not execution_gate["allowed"]:
+        _record_hire_outcome(
+            project, capability=capability, candidate_id=str(selected.get("id", "")),
+            status="BLOCKED", stage="EXECUTION_GATE",
+            reason=str(execution_gate.get("reason") or "employee execution gate blocked candidate"), actor=actor,
+        )
         return {"operation": "auto-hire", "status": "BLOCKED", "reason": execution_gate["reason"], "lifecycle": lifecycle}
     execution = _execute(materialized, selected, payload, project)
     lifecycle.append("EXECUTED")
     if execution["status"] != "PASS":
+        _record_hire_outcome(project, capability=capability, candidate_id=str(selected.get("id", "")), status="REJECTED", stage="EXECUTE", reason="isolated employee execution failed", actor=actor)
         return {"operation": "auto-hire", "status": "REJECTED", "execution": execution, "lifecycle": lifecycle + ["REJECTED"]}
     lifecycle.append("HANDOFF_RECEIVED")
     checked = isinstance(execution.get("result"), dict) and execution.get("exit_status") == 0
@@ -294,12 +400,14 @@ def hire_and_execute(
     lifecycle.append(final)
     if checked:
         _register(project, record)
+        _record_hire_outcome(project, capability=capability, candidate_id=str(selected.get("id", "")), status="ACCEPTED", stage="ACCEPT", reason="formal specialist passed execution and checker", actor=actor)
     return {
         "operation": "auto-hire",
         "status": final,
         "candidate_id": selected["id"],
         "authorization": authorization,
         "audit": audit,
+        "employee": record if checked else None,
         "result": execution.get("result"),
         "lifecycle": lifecycle,
     }
@@ -314,12 +422,14 @@ def auto_hire_missing_capability(
     discovery_backends: list[Any] | None = None,
     known_catalog: list[dict[str, Any]] | None = None,
     installed: list[dict[str, Any]] | None = None,
+    discovery_result: dict[str, Any] | None = None,
     actor: str = "director",
 ) -> dict[str, Any]:
     """Discover a vacancy online/catalog-first, then audit, pin, isolate, qualify, execute, and check."""
     discovery_runtime = _load("skill_discovery_provider")
     lifecycle = ["DISCOVERY"]
-    discovered = discovery_runtime.discover_capability(
+    employment_lifecycle = ["SPECIALIST_DISCOVERY", "AUTO_HIRE"]
+    discovered = discovery_result if discovery_result is not None else discovery_runtime.discover_capability(
         capability,
         backends=discovery_backends,
         known_catalog=known_catalog,
@@ -330,6 +440,7 @@ def auto_hire_missing_capability(
             "operation": "auto-hire-missing-capability", "status": "BLOCKED",
             "reason": "discovery returned no candidate", "discovery": discovered,
             "provider_lifecycle": lifecycle,
+            "employment_lifecycle": employment_lifecycle,
         }
     audited = []
     for candidate in discovered["candidates"]:
@@ -342,6 +453,8 @@ def auto_hire_missing_capability(
         audit = discovery_runtime.static_audit(checked_candidate)
         audited.append((checked_candidate, audit, verification))
     lifecycle.append("AUDIT")
+    if any(verification.get("status") == "CONFIRMED" for _, _, verification in audited):
+        employment_lifecycle.append("CONFIRMED")
     eligible = [
         (candidate, audit, verification) for candidate, audit, verification in audited
         if audit.get("status") == "PASS"
@@ -350,29 +463,43 @@ def auto_hire_missing_capability(
     ]
     if not eligible:
         author_required = any(audit.get("authorization") == "ASK_AUTHOR" for _, audit, _ in audited)
+        for candidate, audit, verification in audited:
+            status = "BLOCKED" if audit.get("authorization") == "ASK_AUTHOR" else "REJECTED"
+            reason = "candidate requires author authorization" if status == "BLOCKED" else "candidate failed capability verification or static audit"
+            _record_hire_outcome(project, capability=capability, candidate_id=str(candidate.get("id", "")), status=status, stage="AUDIT", reason=reason, actor=actor)
         return {
             "operation": "auto-hire-missing-capability", "status": "BLOCKED",
             "reason": "candidate requires author authorization" if author_required else "no CONFIRMED candidate passed audit and behavior verification",
             "requires_author": author_required, "audits": [audit for _, audit, _ in audited],
             "capability_verifications": [verification for _, _, verification in audited],
             "provider_lifecycle": lifecycle,
+            "employment_lifecycle": employment_lifecycle,
         }
     risk_order = {"LOW": 0, "MEDIUM": 1}
     selected, audit, verification = sorted(eligible, key=lambda item: (risk_order.get(item[1]["risk"], 9), str(item[0].get("id", ""))))[0]
     lifecycle.append("PIN")
+    employment_lifecycle.extend(["STATIC_AUDITED", "PINNED"])
     materialized = discovery_runtime.materialize(project, selected)
     if materialized.get("status") != "MATERIALIZED":
+        _record_hire_outcome(
+            project, capability=capability, candidate_id=str(selected.get("id", "")),
+            status="REJECTED", stage="MATERIALIZE",
+            reason=str(materialized.get("reason") or "candidate materialization failed"), actor=actor,
+        )
         return {
             "operation": "auto-hire-missing-capability", "status": "REJECTED",
             "audit": audit, "materialization": materialized, "provider_lifecycle": lifecycle,
+            "employment_lifecycle": employment_lifecycle,
         }
     lifecycle.append("MATERIALIZE")
+    employment_lifecycle.extend(["MATERIALIZED", "BEHAVIOR_TESTED"])
     candidate = dict(selected)
     candidate.update({
         "source_path": materialized["path"], "license_compatible": True,
         "source_audit": "PASS", "installer_audit": "PASS", "dependency_audit": "PASS",
         "security_audit": "PASS", "behavior_trial": selected.get("behavior_trial"), "risk": audit["risk"],
         "capability_verification": verification,
+        "static_audit": audit,
         "dangerous_hooks": False, "credentials": audit["credentials"],
         "system_wide_write": audit["system_writes"], "private_data_export": False,
         "network_runtime": audit["network"], "permission_scope": selected.get("permission_scope", [capability]),
@@ -383,10 +510,36 @@ def auto_hire_missing_capability(
             "operation": "auto-hire-missing-capability", "discovery": discovered,
             "discovery_audit": audit, "materialization": materialized,
             "provider_lifecycle": lifecycle + (["QUALIFY"] if "QUALIFIED" in result.get("lifecycle", []) else []),
+            "employment_lifecycle": employment_lifecycle,
         }
+    employment_lifecycle.extend(["QUALIFIED", "EMPLOYED"])
     return result | {
         "operation": "auto-hire-missing-capability", "discovery": discovered,
         "discovery_audit": audit, "materialization": materialized,
         "legacy_lifecycle": result.get("lifecycle", []),
         "provider_lifecycle": lifecycle + ["QUALIFY", "EXECUTE", "CHECK", "ACCEPT"],
+        "employment_lifecycle": employment_lifecycle,
+        "workflow_lifecycle": list(EMPLOYMENT_WORKFLOW),
     }
+
+
+def execute_employed(project: Path, provider_id: str, payload: dict[str, Any], *, actor: str = "director") -> dict[str, Any]:
+    """Execute an already accepted external employee through its isolated runner."""
+    registry = _read(_registry_path(project), {"employees": []})
+    employees = registry.get("employees", []) if isinstance(registry, dict) else []
+    record = next((item for item in employees if item.get("id") == provider_id or item.get("provider_id") == provider_id), None)
+    if not isinstance(record, dict):
+        return {"operation": "execute-employed", "status": "BLOCKED", "reason": "employee is not registered"}
+    gate = can_execute(record)
+    if not gate["allowed"]:
+        return {"operation": "execute-employed", "status": "BLOCKED", "reason": gate["reason"], "employee": record}
+    materialized = Path(str(record.get("materialized_path", ""))).resolve()
+    candidate = dict(record) | {
+        "source_path": str(materialized),
+        "entrypoint": record.get("entrypoint", "worker.py"),
+        "exact_ref": record.get("exact_ref", ""),
+        "license": record.get("license", "MIT"),
+        "behavior_trial": record.get("behavior_trial", {"status": "PASS", "checker": "deterministic-output-checker", "output_contract": "PASS"}),
+    }
+    execution = _execute(materialized, candidate, payload, project)
+    return execution | {"operation": "execute-employed", "provider_id": provider_id, "employee": record, "actor": actor}

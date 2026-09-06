@@ -17,6 +17,10 @@
   aligned on `3.2.1`; the historical V3.1.1 compatibility surface is retained.
 - Added task-aware routing for specialized statistics and eight regression
   tests covering routing, fail-closed AUTO_HIRE, and legacy evidence behavior.
+- Completed the canonical specialist employment handoff: discovery candidates
+  now pass through AUTO_HIRE verification, immutable isolated employment,
+  provider re-resolution, external-skill execution, checking, and acceptance;
+  failed or disabled hires retain the Host fallback.
 
 ## 3.2.0 - 2026-08-28
 

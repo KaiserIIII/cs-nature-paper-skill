@@ -20,6 +20,7 @@ import provider_runtime  # noqa: E402
 import provider_support as support  # noqa: E402
 import host_provider_runtime  # noqa: E402
 import skill_discovery_provider  # noqa: E402
+import skill_marketplace_runtime as marketplace_runtime  # noqa: E402
 import competition_modeling_provider  # noqa: E402
 import competition_coding_provider  # noqa: E402
 import competition_analysis_provider  # noqa: E402
@@ -164,7 +165,7 @@ def _fixture():
 
 def _providers(project: Path) -> list[dict[str, Any]]:
     native_status = "QUALIFIED" if competition_coding_provider.native_available(project) else "UNAVAILABLE"
-    return [
+    records = [
         provider_runtime.provider("competition-modeling-provider", "NATIVE", ["competition-intake", "question-decomposition", "problem-selection", "mathematical-modeling"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write"]),
         provider_runtime.provider("native-competition-baseline", "NATIVE", ["code-generation"], status=native_status, qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
         provider_runtime.provider("deterministic-competition-execution", "NATIVE", ["execution", "experiment-execution"], qualification="QUALIFIED", formal_eligible=True, permissions=["local_read", "local_write", "execute"]),
@@ -177,6 +178,30 @@ def _providers(project: Path) -> list[dict[str, Any]]:
         provider_runtime.provider("competition-analysis-provider", "NATIVE", ["model-validation", "sensitivity-analysis", "scientific-visualization"], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
         provider_runtime.provider("competition-writing-provider", "NATIVE", ["evidence-bound-writing", "adversarial-review", "evidence-bound-revision", "artifact-validation"], qualification="QUALIFIED", formal_eligible=False, quality_level="BASELINE", permissions=["local_read", "local_write"]),
     ]
+    employee_registry = support.read_json(support.state_dir(project) / "employee_registry.json", {})
+    employees = employee_registry.get("employees", []) if isinstance(employee_registry, dict) else []
+    for employee in employees:
+        if not isinstance(employee, dict) or employee.get("status") != "SPECIALIST":
+            continue
+        capabilities = employee.get("capabilities", [])
+        if not isinstance(capabilities, list) or employee.get("qualification_state") != "FORMAL_QUALIFIED":
+            continue
+        external = provider_runtime.provider(
+            str(employee.get("provider_id") or employee.get("id")), "EXTERNAL_SKILL", capabilities,
+            status="AVAILABLE", qualification=str(employee.get("qualification") or "DELEGATION_READY"),
+            formal_eligible=True, permissions=employee.get("provider_permissions", ["local_read", "local_write", "execute"]),
+            installed=True, quality_level="FORMAL_QUALIFIED",
+        )
+        external.update({
+            "exact_ref": employee.get("exact_ref"),
+            "capability_verification": employee.get("capability_verification"),
+            "static_audit": employee.get("static_audit"),
+            "behavior_trial": employee.get("behavior_trial"),
+            "materialized_path": employee.get("materialized_path"),
+            "entrypoint": employee.get("entrypoint", "worker.py"),
+        })
+        records.append(external)
+    return records
 
 
 def _invoke(project: Path, provider_id: str, node: str) -> dict[str, Any]:
@@ -187,6 +212,26 @@ def _invoke(project: Path, provider_id: str, node: str) -> dict[str, Any]:
     if provider_id == "competition-analysis-provider":
         return competition_analysis_provider.execute(project, node)
     return competition_writing_provider.execute(project, node)
+
+
+def _execute_external(project: Path, provider: dict[str, Any], node: str, task: dict[str, Any]) -> dict[str, Any]:
+    execution = marketplace_runtime.execute_employed(project, str(provider["provider_id"]), task)
+    if execution.get("status") != "PASS":
+        return {
+            "status": "FAIL", "provider_id": provider["provider_id"], "artifacts": [],
+            "claims": [], "uncertainties": [execution.get("reason", "external employee execution failed")],
+            "actions_taken": ["external specialist execution rejected"], "tool_calls": [], "handoff": {},
+            "external_execution": execution,
+        }
+    raw = execution.get("result")
+    artifact = project / "artifacts" / "external-specialists" / f"{node}.json"
+    support.write(artifact, raw if isinstance(raw, dict) else {"value": raw})
+    return support.handoff(
+        project, str(provider["provider_id"]), node, [artifact], formal=True,
+        actions=["execute accepted external specialist in isolated materialization"],
+        tool_calls=[{"operation": "skill_marketplace_runtime.execute_employed", "provider_id": provider["provider_id"]}],
+        extra={"result": raw, "external_execution": execution},
+    )
 
 
 def _validate(project: Path, result: dict[str, Any]) -> dict[str, Any]:
@@ -259,6 +304,8 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
     specialist_required = _specialist_required(project, node_id) and not recorded_host
     discovery_attempted = _discovery_attempted(project, node_id, capability)
     specialist_discovery = None
+    specialist_hire = None
+    employment_lifecycle: list[str] = []
     route = provider_runtime.resolve_provider(
         capability,
         {
@@ -275,6 +322,29 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
     if route.get("status") == "SPECIALIST_DISCOVERY":
         specialist_discovery = _specialist_discovery(project, node_id, capability)
         discovery_attempted = True
+        employment_lifecycle = ["SPECIALIST_DISCOVERY", "AUTO_HIRE"]
+        if specialist_discovery.get("status") == "PASS" and specialist_discovery.get("candidates"):
+            if permissions.get("auto_hire") is True:
+                policy = support.read_json(support.state_dir(project) / "autonomy_policy.json", {})
+                specialist_hire = marketplace_runtime.auto_hire_missing_capability(
+                    project, capability, {"node": node_id, "project": project.name},
+                    policy=policy, discovery_result=specialist_discovery, discovery_backends=[],
+                )
+                if specialist_hire.get("status") == "ACCEPTED":
+                    registry = _providers(project)
+                    employment_lifecycle = list(specialist_hire.get("employment_lifecycle", employment_lifecycle))
+            else:
+                specialist_hire = {
+                    "operation": "auto-hire-missing-capability", "status": "BLOCKED",
+                    "reason": "AUTO_HIRE is disabled by autonomy policy", "provider_lifecycle": ["DISCOVERY"],
+                    "employment_lifecycle": employment_lifecycle,
+                }
+        else:
+            specialist_hire = {
+                "operation": "auto-hire-missing-capability", "status": "BLOCKED",
+                "reason": "discovery returned no candidate", "provider_lifecycle": ["DISCOVERY"],
+                "employment_lifecycle": employment_lifecycle,
+            }
         route = provider_runtime.resolve_provider(
             capability,
             {
@@ -290,12 +360,17 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
         ) | {
             "specialist_discovery": specialist_discovery,
             "discovery_attempted": True,
+            "specialist_hire": specialist_hire,
         }
+        if specialist_hire and specialist_hire.get("status") == "ACCEPTED":
+            employment_lifecycle = list(specialist_hire.get("employment_lifecycle", employment_lifecycle)) + ["RE-RESOLVE"]
     if specialist_discovery is not None:
         route = route | {
             "specialist_discovery": specialist_discovery,
             "discovery_attempted": True,
         }
+    if specialist_hire and specialist_hire.get("employment_lifecycle") and not employment_lifecycle:
+        employment_lifecycle = list(specialist_hire["employment_lifecycle"])
     if route.get("status") == "HOST_EXECUTION_REQUIRED":
         selected = route.get("provider", {})
         selected_id = str(selected.get("provider_id") or "")
@@ -307,6 +382,8 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
                     "capability": capability, "provider_route": route,
                     "host_request_created": True, "host_handoff_required": True,
                     "specialist_discovery": specialist_discovery,
+                    "specialist_hire": specialist_hire,
+                    "employment_lifecycle": employment_lifecycle,
                 }
             expected_provider = selected_id
             # An accepted specialist handoff is checked and then consumed by
@@ -320,28 +397,45 @@ def execute_node(project: Path, node_id: str) -> dict[str, Any]:
                     "operation": "competition-execute-node", "node": node_id,
                     "provider_route": route, "host_request_created": True,
                     "specialist_discovery": specialist_discovery,
+                    "specialist_hire": specialist_hire,
+                    "employment_lifecycle": employment_lifecycle,
                 }
             expected_provider = selected_id or expected_provider
     elif route.get("status") != "PASS":
-        return {"operation": "competition-execute-node", "status": route.get("status", "FAIL"), "node": node_id, "findings": ["provider route did not resolve the required capability"], "provider_route": route}
+        return {"operation": "competition-execute-node", "status": route.get("status", "FAIL"), "node": node_id, "findings": ["provider route did not resolve the required capability"], "provider_route": route, "specialist_discovery": specialist_discovery, "specialist_hire": specialist_hire, "employment_lifecycle": employment_lifecycle}
     else:
         selected = route["provider"]
         expected_provider = selected["provider_id"]
         try:
-            result = _invoke(project, expected_provider, node_id)
+            result = _execute_external(project, selected, node_id, {"node": node_id, "project": project.name}) if selected.get("type") == "EXTERNAL_SKILL" else _invoke(project, expected_provider, node_id)
+            if selected.get("type") == "EXTERNAL_SKILL":
+                if "RE-RESOLVE" not in employment_lifecycle:
+                    employment_lifecycle.append("RE-RESOLVE")
+                employment_lifecycle.append("EXTERNAL_SKILL_EXECUTED")
         except Exception as exc:
-            return {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": [f"{type(exc).__name__}: {exc}"]}
+            return {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": [f"{type(exc).__name__}: {exc}"], "provider_route": route, "specialist_hire": specialist_hire, "employment_lifecycle": employment_lifecycle}
         if node_id == "method_candidates" and result.get("status") != "PASS":
             result = competition_host_provider.request_or_consume(project, node_id, "competition-modeling")
             if result.get("status") == "HOST_EXECUTION_REQUIRED":
                 return result | {
                     "operation": "competition-execute-node", "node": node_id,
                     "provider_route": route, "host_request_created": True,
+                    "employment_lifecycle": employment_lifecycle,
                 }
             expected_provider = "host-competition-modeling"
     check = _validate(project, result)
     if check["status"] != "PASS":
-        return result | {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": check["findings"], "checker": check, "provider_route": route}
+        return result | {"operation": "competition-execute-node", "status": "FAIL", "node": node_id, "findings": check["findings"], "checker": check, "provider_route": route, "specialist_discovery": specialist_discovery, "specialist_hire": specialist_hire, "employment_lifecycle": employment_lifecycle}
     evidence, summary = _register(project, node_id, result)
     artifacts = [support.relative(project, summary)] + list(result["artifacts"])
-    return result | {"operation": "competition-execute-node", "status": "PASS", "node": node_id, "artifacts": artifacts, "evidence": evidence, "checker": {"status": "PASS", "producer": expected_provider, "checker": "deterministic-output-checker"}, "provider_route": route, "specialist_discovery": specialist_discovery}
+    if selected.get("type") == "EXTERNAL_SKILL":
+        if "RE-RESOLVE" not in employment_lifecycle:
+            employment_lifecycle.append("RE-RESOLVE")
+        if "EXTERNAL_SKILL_EXECUTED" not in employment_lifecycle:
+            employment_lifecycle.append("EXTERNAL_SKILL_EXECUTED")
+        employment_lifecycle.extend(["CHECKED", "ACCEPTED"])
+        if specialist_hire is not None:
+            specialist_hire = dict(specialist_hire)
+            specialist_hire["employment_lifecycle"] = employment_lifecycle
+            specialist_hire["workflow_lifecycle"] = list(marketplace_runtime.EMPLOYMENT_WORKFLOW)
+    return result | {"operation": "competition-execute-node", "status": "PASS", "node": node_id, "artifacts": artifacts, "evidence": evidence, "checker": {"status": "PASS", "producer": expected_provider, "checker": "deterministic-output-checker"}, "provider_route": route, "specialist_discovery": specialist_discovery, "specialist_hire": specialist_hire, "employment_lifecycle": employment_lifecycle}
