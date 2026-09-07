@@ -1,5 +1,7 @@
+import hashlib
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,6 +31,40 @@ class V4VendorRuntimeTests(unittest.TestCase):
         self.assertTrue(result["all_exact_shas_pinned"])
         self.assertTrue(result["all_vendored_files_present"])
         self.assertTrue(result["all_licenses_redistributable"])
+        manifest = json.loads(vendor_runtime.MANIFEST.read_text(encoding="utf-8"))
+        index = subprocess.check_output(
+            ["git", "ls-files", "-s", "-z", "--", "vendor/research-skills"],
+            cwd=ROOT,
+        )
+        tracked = {}
+        for entry in index.rstrip(b"\0").split(b"\0"):
+            metadata, raw_path = entry.split(b"\t", 1)
+            _, object_id, stage = metadata.split()
+            if stage == b"0":
+                tracked[raw_path.decode("utf-8")] = object_id.decode("ascii")
+        ordered = list(tracked.items())
+        batch = subprocess.check_output(
+            ["git", "cat-file", "--batch"],
+            cwd=ROOT,
+            input="".join(f"{object_id}\n" for _, object_id in ordered).encode("ascii"),
+        )
+        blobs = {}
+        offset = 0
+        for repository_path, _ in ordered:
+            header_end = batch.index(b"\n", offset)
+            size = int(batch[offset:header_end].rsplit(b" ", 1)[1])
+            content_start = header_end + 1
+            blobs[repository_path] = batch[content_start:content_start + size]
+            offset = content_start + size + 1
+        for skill in manifest["skills"]:
+            for record in skill["vendored_files"]:
+                repository_path = Path("vendor", "research-skills", record["path"]).as_posix()
+                self.assertIn(repository_path, blobs, f"manifest file is not tracked: {repository_path}")
+                self.assertEqual(
+                    hashlib.sha256(blobs[repository_path]).hexdigest(),
+                    record["sha256"],
+                    f"manifest hash differs from Git index: {repository_path}",
+                )
 
     def test_manifest_records_required_audit_fields(self):
         manifest = json.loads(

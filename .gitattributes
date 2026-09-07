@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Preserve the audited upstream bytes for this CRLF-authored vendored file.
+vendor/research-skills/research-engineering-suite/agents/openai.yaml -text whitespace=cr-at-eol
