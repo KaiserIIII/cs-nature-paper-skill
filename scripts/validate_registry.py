@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.1.1"
+SKILL_VERSION = "4.0.0"
 REGISTRY = Path(__file__).resolve().parents[1] / "assets" / "registry"
 FLOATING = {"", "head", "latest", "main", "master", "trunk"}
 CAP_FIELDS = ("id", "name", "department", "description", "input_types", "output_types", "scientific_risk", "required_permissions", "checker_requirement", "possible_native_tools", "specialist_triggers")

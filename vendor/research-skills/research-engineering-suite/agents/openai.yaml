@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Engineering Suite"
+  short_description: "Research, writing, coding, and debug loop"
+  default_prompt: "Use $research-engineering-suite to plan and execute a scientific task that combines research, writing, coding, debugging, and verification."

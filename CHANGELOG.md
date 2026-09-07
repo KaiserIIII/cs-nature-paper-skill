@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.0.0 - 2026-09-07
+
+### Added
+
+- Vendored 29 complete research Skills from seven MIT-licensed repositories at
+  immutable 40-character commits, with file hashes, notices, security audits,
+  behavior trials, capability mappings, and assigned specialists.
+- Added a fourteen-role publication-grade internal team and offline Skill
+  loader that preserves control-plane, evidence, protocol, and checker authority.
+- Added built-in-first provider decisions and `QUALITY_UPGRADE_DISCOVERY` with
+  explicit internal/external comparison and automatic built-in fallback.
+- Added independent Scientific Validity, Evidence Sufficiency, Publication
+  Sufficiency, Reviewer Completeness, Research Depth, Research Expansion, and
+  Submission Readiness gates.
+- Added the `ccta_tta` field regression, which preserves bounded scientific
+  validity while requiring research expansion for missing breadth and depth.
+
+### Changed
+
+- Formal full-paper and submission-targeted completion now fails closed when
+  publication depth or reviewer coverage is insufficient.
+- Active runtime, registry, template, schema, and release metadata now declares
+  V4.0.0 while legacy state remains readable.
+
 ## 3.2.1 - 2026-09-05
 
 ### Fixed

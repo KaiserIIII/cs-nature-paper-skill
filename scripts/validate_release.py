@@ -12,9 +12,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 LEGACY_SKILL_VERSION = "3.1.1"
-V32_TEMPLATE_NAMES = {"autonomy_policy.json", "completion_contract.json", "director_session.json", "provider_registry.json"}
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_CI_MATRIX = (
     "ubuntu-latest / Python 3.10",
@@ -24,7 +23,17 @@ REQUIRED_CI_MATRIX = (
     "windows-latest / Python 3.11",
     "windows-latest / Python 3.12",
 )
-EXPECTED_WORKFLOW = "cs-nature-paper-v3.2"
+EXPECTED_WORKFLOW = "cs-nature-paper-v4"
+BENCHMARK_SUITE_RELATIVE = "assets/evals/v4/research_os_benchmarks.json"
+BENCHMARK_SYSTEM_IDS = {
+    "ars",
+    "k_dense",
+    "ai_scientist",
+    "paper_orchestra",
+    "sisyphus_academica",
+    "research_engineering_suite",
+}
+BENCHMARK_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SCHEMA_INSTANCES = {
     "competition_clock": "assets/templates/competition/competition_clock.json",
     "competition_method_router": "assets/registry/competition_method_router.json",
@@ -91,8 +100,8 @@ def validate_json_assets() -> list[str]:
         try: value = _read(template_path)
         except (OSError, json.JSONDecodeError) as exc: findings.append(f"{template_path}: {exc}"); continue
         if not isinstance(value, dict): findings.append(f"{template_path}: root must be an object")
-        elif value.get("skill_version") != LEGACY_SKILL_VERSION and not (template_path.name in V32_TEMPLATE_NAMES and value.get("skill_version") == SKILL_VERSION):
-            findings.append(f"{template_path}: skill_version must be {LEGACY_SKILL_VERSION}")
+        elif value.get("skill_version") != SKILL_VERSION:
+            findings.append(f"{template_path}: skill_version must be {SKILL_VERSION}")
     return findings
 
 
@@ -102,6 +111,78 @@ def validate_behavior_cases() -> list[str]:
     for index, case in enumerate(value.get("cases", [])):
         for field in ("id", "prompt", "required_behaviors", "forbidden_behaviors", "required_artifacts"):
             if not case.get(field): findings.append(f"cases[{index}].{field} is required")
+    return findings
+
+
+def validate_benchmark_suite_assets(root: Path = ROOT) -> list[str]:
+    """Validate the six-system behavior suite without trusting proxy metrics."""
+    path = root / BENCHMARK_SUITE_RELATIVE
+    findings: list[str] = []
+    try:
+        value = _read(path)
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"benchmark suite is unreadable: {exc}"]
+    if value.get("skill_version") != SKILL_VERSION:
+        findings.append(f"benchmark suite skill_version must be {SKILL_VERSION}")
+    systems = value.get("systems")
+    if not isinstance(systems, list):
+        return findings + ["benchmark suite systems must be a list"]
+    ids = {item.get("id") for item in systems if isinstance(item, dict)}
+    if ids != BENCHMARK_SYSTEM_IDS:
+        findings.append(f"benchmark suite system set mismatch: {sorted(str(item) for item in ids)}")
+    prohibited = {"agent_count", "code_size", "skill_count", "architecture_score"}
+    for index, item in enumerate(systems):
+        prefix = f"benchmark systems[{index}]"
+        if not isinstance(item, dict):
+            findings.append(f"{prefix} must be an object")
+            continue
+        for field in ("id", "name", "repository", "exact_commit", "license", "use_decision", "strongest_capabilities", "behavior_task", "parity_dimensions", "superiority_dimensions"):
+            if not item.get(field):
+                findings.append(f"{prefix}.{field} is required")
+        commit = item.get("exact_commit", "")
+        if not isinstance(commit, str) or not BENCHMARK_SHA_RE.fullmatch(commit):
+            findings.append(f"{prefix}.exact_commit must be a lowercase 40-character SHA")
+        dimensions = set(item.get("parity_dimensions", [])) | set(item.get("superiority_dimensions", []))
+        overlap = dimensions & prohibited
+        if overlap:
+            findings.append(f"{prefix} uses prohibited proxy dimensions: {sorted(overlap)}")
+        task = item.get("behavior_task", {})
+        if not isinstance(task, dict) or not task.get("id") or not task.get("required_outputs"):
+            findings.append(f"{prefix}.behavior_task must declare id and required_outputs")
+        for relative in task.get("public_inputs", []) if isinstance(task, dict) else []:
+            if not (root / relative).is_file():
+                findings.append(f"{prefix} public input is missing: {relative}")
+    ars = next((item for item in systems if isinstance(item, dict) and item.get("id") == "ars"), None)
+    if not isinstance(ars, dict) or ars.get("license") != "CC-BY-NC-4.0" or ars.get("use_decision") != "BENCHMARK_ONLY_DO_NOT_VENDOR":
+        findings.append("ARS must remain CC-BY-NC-4.0 benchmark-only material")
+    return findings
+
+
+def validate_benchmark_manifest_consistency(value: Any, root: Path = ROOT) -> list[str]:
+    """Ensure release metadata agrees with the actual benchmark run state."""
+    findings: list[str] = []
+    if not isinstance(value, dict):
+        return ["benchmark manifest consistency cannot inspect a non-object manifest"]
+    benchmark = value.get("benchmark_suite")
+    if not isinstance(benchmark, dict):
+        return ["RELEASE_MANIFEST_INVALID: benchmark_suite must be an object"]
+    systems = benchmark.get("systems")
+    if set(systems or []) != BENCHMARK_SYSTEM_IDS:
+        findings.append("BENCHMARK_MANIFEST_SYSTEMS_INCOMPLETE: manifest systems do not match the six-system suite")
+    status = benchmark.get("status")
+    if status not in {"NOT_RUN", "PASS", "FAIL"}:
+        findings.append("BENCHMARK_MANIFEST_STATUS_INVALID: status must be NOT_RUN, PASS, or FAIL")
+    run_root = root / str(benchmark.get("run_root", "benchmarks/v4/runs"))
+    has_run = run_root.is_dir() and any(run_root.iterdir())
+    if status == "NOT_RUN":
+        if has_run:
+            findings.append("BENCHMARK_MANIFEST_STALE: run artifacts exist but status is NOT_RUN")
+        if benchmark.get("multi_system_parity_gate") != "FAIL" or benchmark.get("ars_parity_gate") != "FAIL" or benchmark.get("v4_superiority_gate") != "FAIL" or benchmark.get("recommended_merge") != "NO":
+            findings.append("BENCHMARK_MANIFEST_GATE_INCONSISTENT: NOT_RUN must fail closed")
+    elif not has_run:
+        findings.append("BENCHMARK_MANIFEST_RUN_MISSING: completed benchmark status has no run artifacts")
+    if value.get("model_behavior_eval") == "PASS" and status != "PASS":
+        findings.append("MODEL_BEHAVIOR_GATE_INCONSISTENT: PASS requires a PASS benchmark suite")
     return findings
 
 
@@ -135,10 +216,17 @@ def validate_release_manifest_value(
     if not isinstance(value, dict):
         return ["RELEASE_MANIFEST_INVALID: root must be an object"]
     findings: list[str] = []
-    required = ("source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations", "release_disposition")
+    required = (
+        "source_version", "base_commit", "source_commit", "source_commit_mode",
+        "source_branch", "generated_at", "release_status", "deterministic_tests",
+        "hosted_ci", "model_behavior_eval", "benchmark_suite",
+        "tta_field_regression", "e2e_status", "known_limitations",
+        "recommended_merge", "release_disposition",
+    )
     findings.extend(f"RELEASE_MANIFEST_INVALID: missing {field}" for field in required if field not in value)
     if value.get("source_version") != SKILL_VERSION:
         findings.append(f"HOSTED_CI_WRONG_VERSION: expected {SKILL_VERSION}, got {value.get('source_version')}")
+    findings.extend(validate_benchmark_manifest_consistency(value, root))
     source_commit = str(value.get("source_commit", ""))
     mode = value.get("source_commit_mode")
     generated = _parse_utc(value.get("generated_at"))
@@ -150,8 +238,17 @@ def validate_release_manifest_value(
         hosted = value.get("hosted_ci")
         if not isinstance(hosted, dict) or any(hosted.get(field) is not None for field in ("run_id", "workflow", "branch", "head_sha", "conclusion")) or hosted.get("matrix") != {}:
             findings.append("STALE_RELEASE_MANIFEST: unresolved repository manifest must not contain Hosted CI success evidence")
-        if "V3.2.1 RELEASE BLOCKED" not in str(value.get("release_disposition", "")):
-            findings.append("RELEASE_DISPOSITION_INVALID: unresolved manifest must be blocked")
+        if value.get("source_branch") not in {"feat/v4-vendored-research-team", "main"}:
+            findings.append("SOURCE_BRANCH_INVALID: unresolved V4 manifest has an unexpected branch")
+        if value.get("release_status") != "RC_NOT_RELEASED" or value.get("tag") is not None:
+            findings.append("RELEASE_STATUS_INVALID: unresolved V4 manifest must be an untagged RC")
+        benchmark = value.get("benchmark_suite")
+        if not isinstance(benchmark, dict) or benchmark.get("recommended_merge") != "NO":
+            findings.append("BENCHMARK_GATE_INVALID: incomplete V4 benchmark must recommend NO")
+        if value.get("recommended_merge") != "NO" or "V4.0.0 RC FAIL" not in str(value.get("release_disposition", "")):
+            findings.append("RELEASE_DISPOSITION_INVALID: unresolved V4 manifest must fail closed")
+        if require_hosted_ci:
+            findings.append("HOSTED_CI_NOT_RUN: unresolved V4 manifest has no exact-SHA CI evidence")
         return findings
     if mode != "resolved" or not re.fullmatch(r"[0-9a-f]{40}", source_commit):
         findings.append("SOURCE_COMMIT_INCONSISTENT: resolved manifest must contain a lowercase 40-character SHA")
@@ -164,8 +261,8 @@ def validate_release_manifest_value(
     if generated is not None and commit_time is not None and generated < commit_time:
         findings.append("STALE_RELEASE_MANIFEST: generated_at predates source commit")
     tag = value.get("tag")
-    if tag not in {None, "v3.2.1"}:
-        findings.append("TAG_INCONSISTENT: release tag must be absent or v3.2.1")
+    if tag not in {None, "v4.0.0"}:
+        findings.append("TAG_INCONSISTENT: release tag must be absent or v4.0.0")
     hosted = value.get("hosted_ci")
     if not isinstance(hosted, dict):
         findings.append("HOSTED_CI_NOT_RUN: hosted_ci must be an object")
@@ -174,7 +271,7 @@ def validate_release_manifest_value(
         findings.append(f"HOSTED_CI_WRONG_SHA: expected {source_commit}, got {hosted.get('head_sha')}")
     branch = hosted.get("branch")
     allowed_branch = expected_branch or value.get("source_branch")
-    if branch != allowed_branch or branch not in {"v3.2", "main", "feat/cumcm-v32-final", "feat/v32-provider-final", "hotfix/v321-specialist-routing-final"}:
+    if branch != allowed_branch or branch not in {"feat/v4-vendored-research-team", "main"}:
         findings.append(f"HOSTED_CI_WRONG_BRANCH: expected {allowed_branch}, got {branch}")
     if hosted.get("workflow") != expected_workflow:
         findings.append(f"HOSTED_CI_WRONG_WORKFLOW: expected {expected_workflow}, got {hosted.get('workflow')}")
@@ -186,12 +283,17 @@ def validate_release_manifest_value(
     missing = [name for name in REQUIRED_CI_MATRIX if not isinstance(matrix, dict) or matrix.get(name) != "PASS"]
     if missing or (isinstance(matrix, dict) and set(matrix) != set(REQUIRED_CI_MATRIX)):
         findings.append("HOSTED_CI_MATRIX_INCOMPLETE: " + ", ".join(missing or sorted(set(matrix) ^ set(REQUIRED_CI_MATRIX))))
-    final_rc = branch == "hotfix/v321-specialist-routing-final" or hosted.get("branch") == "hotfix/v321-specialist-routing-final"
-    ready_disposition = "CORRECT-BASE V3.2.1 RC" if final_rc else "V3.2.1 RELEASE READY"
+    benchmark = value.get("benchmark_suite", {})
+    if value.get("model_behavior_eval") != "PASS" or not isinstance(benchmark, dict) or benchmark.get("status") != "PASS" or benchmark.get("multi_system_parity_gate") != "PASS" or benchmark.get("v4_superiority_gate") != "PASS":
+        findings.append("MODEL_BEHAVIOR_GATE_INCOMPLETE: all multi-system behavior gates must pass")
+    tta = value.get("tta_field_regression", {})
+    if not isinstance(tta, dict) or tta.get("formal_campaign") != "COMPLETED" or tta.get("publication_sufficiency") != "PASS" or tta.get("reviewer_completeness") != "PASS":
+        findings.append("TTA_FIELD_GATE_INCOMPLETE: formal expansion and publication gates must pass")
+    ready_disposition = "V4.0.0 RELEASE READY"
     if require_hosted_ci and findings:
         if str(value.get("release_disposition")) == ready_disposition:
             findings.append("RELEASE_DISPOSITION_INVALID: manifest claims READY despite release-integrity findings")
-    elif require_hosted_ci and value.get("release_disposition") != ready_disposition:
+    elif require_hosted_ci and (value.get("release_disposition") != ready_disposition or value.get("recommended_merge") != "YES"):
         findings.append("RELEASE_DISPOSITION_INVALID: exact-SHA successful manifest must be RELEASE READY")
     return findings
 
@@ -279,6 +381,10 @@ def validate_docs() -> list[str]:
     for path in ROOT.rglob("*.md"):
         if ".git" in path.parts: continue
         text = path.read_text(encoding="utf-8", errors="replace")
+        # Ignore Markdown-looking tokens inside fenced source examples. Vendored
+        # scientific Skills legitimately contain calls such as ``foo['bar'](...)``
+        # which the lightweight link scanner must not interpret as links.
+        text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
         for target in re.findall(r"\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)", text):
             if target.startswith(("http://", "https://", "mailto:")): continue
             if not (path.parent / target).resolve().exists(): findings.append(f"{path}: missing link target {target}")
@@ -295,7 +401,7 @@ def validate(
     expected_workflow: str = EXPECTED_WORKFLOW,
     require_hosted_ci: bool = False,
 ) -> dict[str, Any]:
-    findings = validate_json_assets() + validate_behavior_cases() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
+    findings = validate_json_assets() + validate_behavior_cases() + validate_benchmark_suite_assets() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
     if v32_e2e is not None:
         findings.extend(validate_v32_e2e(v32_e2e))
     if competition_e2e is not None:

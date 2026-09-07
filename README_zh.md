@@ -1,4 +1,4 @@
-# CS Nature Paper V3.2.1
+# CS Nature Paper V4.0.0
 
 面向计算机科学研究、以学生为中心、受证据约束的可执行科研操作系统。
 
@@ -20,9 +20,19 @@ CS Nature Paper 是一个 Agent Skill，帮助你把研究想法、代码库、�
 writing、review、revision 标记为 load-bearing，无需用户另外配置节点列表，
 即可强制执行 specialist 正式证据门禁。
 
-`v3.1.1` tag 仍是历史稳定版本，对应提交：
-`081aa693b907d8cc07104d1b8251d46301094ef7`。当前 `v3.2` 分支从精确基线
-`6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4` 开发 V3.2.1 最大自治 release candidate。
+V4 内置 29 个经过审计的第三方科研 Skill，来自 7 个 MIT 仓库并固定到
+40 位 commit SHA，断网时仍可加载。它们组成 14 个角色的完整投稿团队。
+在线发现只用于质量升级；外部候选只有在证明 `EXTERNAL_BETTER` 或
+`COMPLEMENTARY` 后才能替换或补充内置基线。
+
+面向投稿的工作流必须分别通过 Scientific Validity、Evidence Sufficiency、
+Publication Sufficiency、Reviewer Completeness 和 Submission Readiness。
+窄范围证据与大量重复运行不能替代数据集、模型、基线、消融、机制、
+外部验证、文献和论文深度。
+
+`v3.1.1` tag 与 V3.2.1 分支保留为历史版本。V4 从已验收提交
+`6f13161601854763b500cdb596dbe52df3a0fd19` 建立在
+`feat/v4-vendored-research-team` 分支。
 
 ## 系统如何工作
 

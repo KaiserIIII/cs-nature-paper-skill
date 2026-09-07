@@ -1,0 +1,15 @@
+{
+  "case_id": "experiment-log-to-paper-v1",
+  "task": "Turn the supplied completed-run summary into a full empirical manuscript while preserving null results and identifying experiments still required before submission.",
+  "research_question": "How stable is the relative ranking of two standard classifiers across repeated breast-cancer dataset splits?",
+  "completed_run_summary": {
+    "dataset": "sklearn breast cancer",
+    "paired_seeds": [11, 23, 37, 53, 71],
+    "models": ["scaled logistic regression", "random forest"],
+    "available_metrics": ["ROC AUC", "balanced accuracy"],
+    "results_location": "produced by the research_execution_case and bound by SHA-256"
+  },
+  "known_gaps": ["single dataset", "no external validation", "no calibration analysis", "no decision-curve analysis"],
+  "required_sections": ["Abstract", "Introduction", "Related Work", "Methods", "Results", "Discussion", "Limitations", "Reproducibility"],
+  "scope_rule": "Do not invent numeric results; unresolved evidence must be marked as a material gap or a required experiment."
+}

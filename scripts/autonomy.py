@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 POLICY_SCHEMA_VERSION = 1
 RISK_LEVELS = ("LOW", "MEDIUM", "HIGH", "CRITICAL")
 RISK_ORDER = {value: index for index, value in enumerate(RISK_LEVELS)}

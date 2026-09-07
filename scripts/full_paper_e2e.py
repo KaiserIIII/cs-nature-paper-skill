@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 
 
 def _load(name: str):

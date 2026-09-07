@@ -17,7 +17,7 @@ from typing import Any
 import sys
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 IMMUTABLE_REF = re.compile(r"^[0-9a-f]{40}$")
 SAFE_LICENSES = {"MIT", "BSD-2-CLAUSE", "BSD-3-CLAUSE", "APACHE-2.0", "ISC"}
 AUDIT_FILES = (

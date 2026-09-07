@@ -9,8 +9,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.1.1"
-HOTFIX_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
+REGISTRY_VERSION = "3.1.1"
+HOTFIX_VERSION = "4.0.0"
 FLOATING_REFS = {"", "head", "latest", "main", "master", "trunk"}
 ACTIVE = {"APPROVED", "SPECIALIST", "PROVISIONAL"}
 COST_ORDER = {"low": 0, "medium": 1, "high": 2, "unknown": 3}
@@ -51,6 +52,11 @@ class RouterError(RuntimeError):
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_DIR = ROOT / "assets" / "registry"
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import internal_specialists  # noqa: E402
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -66,8 +72,9 @@ def _read(path: Path) -> dict[str, Any]:
 def load_catalog(registry_dir: Path = REGISTRY_DIR) -> tuple[dict[str, Any], dict[str, Any]]:
     capabilities = _read(registry_dir / "capabilities.json")
     catalog = _read(registry_dir / "skill_catalog.json")
-    if capabilities.get("skill_version") != SKILL_VERSION or catalog.get("skill_version") != SKILL_VERSION:
-        raise RouterError(f"registry skill_version must match runtime {SKILL_VERSION}")
+    supported = {REGISTRY_VERSION, SKILL_VERSION}
+    if capabilities.get("skill_version") not in supported or catalog.get("skill_version") not in supported:
+        raise RouterError(f"registry skill_version must be one of {sorted(supported)}")
     if not isinstance(capabilities.get("capabilities"), list) or not isinstance(catalog.get("skills"), list):
         raise RouterError("capability and skill registries must contain lists")
     return capabilities, catalog
@@ -175,7 +182,9 @@ def _record(skill: dict[str, Any], capability_doc: dict[str, Any], context: dict
 def resolve(capability: str, *, project: Path | None = None, registry_dir: Path = REGISTRY_DIR,
             purpose: str = "advisory", load_bearing: bool = False,
             criticality: str = "low", host: str | None = None,
-            task: str | None = None) -> dict[str, Any]:
+            task: str | None = None, discovery_attempted: bool = False,
+            discovery_status: str | None = None,
+            external_comparison: str | None = None) -> dict[str, Any]:
     if purpose not in {"advisory", "exploratory", "formal"}:
         raise RouterError("purpose must be advisory, exploratory, or formal")
     if criticality not in {"low", "medium", "high", "critical"}:
@@ -219,6 +228,43 @@ def resolve(capability: str, *, project: Path | None = None, registry_dir: Path 
     execution_mode = "INSTALLED_SPECIALIST" if selected_specialist else (
         "SPECIALIST_DISCOVERY" if specialist_required else ("NATIVE" if native else "UNRESOLVED")
     )
+    internal = internal_specialists.specialist_for_capability(capability)
+    fallback_provider = None
+    provider_decision = None
+    if internal is not None:
+        fallback_provider = {
+            "skill_id": f"internal-specialist:{internal['id']}",
+            "provider_id": f"internal-specialist:{internal['id']}",
+            "type": "INTERNAL_SPECIALIST",
+            "specialist_id": internal["id"],
+            "runtime_status": "BUILT_IN",
+            "provider_quality": "FORMAL_QUALIFIED",
+            "quality_tier": internal_specialists.QUALITY_TIER,
+            "formal_eligible": True,
+            "eligible": True,
+        }
+        provider_decision = internal_specialists.provider_decision(
+            capability,
+            task=task or "",
+            purpose=purpose,
+            load_bearing=load_bearing,
+            criticality=criticality,
+            internal_available=True,
+            discovery_status=discovery_status,
+            discovery_attempted=discovery_attempted,
+            external_comparison=external_comparison,
+        )
+        if purpose == "formal" or load_bearing or not native:
+            if provider_decision["decision"] == "QUALITY_UPGRADE_DISCOVERY":
+                status = "CONDITIONAL"
+                execution_mode = "SPECIALIST_DISCOVERY"
+                routable_selected = []
+            elif provider_decision["decision"] in {"INTERNAL_BETTER", "FALLBACK_BUILT_IN", "UNVERIFIED"}:
+                status = "PASS"
+                execution_mode = "BUILT_IN_SPECIALIST"
+                routable_selected = [fallback_provider]
+                formal_eligible = True
+                selected_specialist = True
     return {
         "operation": "resolve", "hotfix_version": HOTFIX_VERSION, "status": status, "capability": capability,
         "task_context": context, "native_coverage": "AVAILABLE" if native else "NONE",
@@ -228,13 +274,15 @@ def resolve(capability: str, *, project: Path | None = None, registry_dir: Path 
         "risk": capability_doc.get("scientific_risk"), "specialist_triggers": capability_doc.get("specialist_triggers", []),
         "provider_quality": (routable_selected[0]["provider_quality"] if routable_selected else native_quality), "native_provider_quality": native_quality,
         "specialist_required": specialist_required, "formal_eligible": formal_eligible or selected_specialist,
-        "discovery_required": specialist_required and not selected_specialist,
+        "discovery_required": bool(provider_decision and provider_decision["decision"] == "QUALITY_UPGRADE_DISCOVERY"),
         "execution_mode": execution_mode,
         "host_fallback": "HOST_EXECUTION_REQUIRED" if specialist_required and not selected_specialist else None,
         "handoff_required": bool(specialist_required and not selected_specialist),
         "checker_required": bool(capability_doc.get("checker_requirement")),
         "evidence_required": bool(specialist_required or load_bearing),
         "execution_state": "RESOLVED", "rejected": [item for item in records if not item["eligible"]],
+        "fallback_provider": fallback_provider,
+        "provider_decision": provider_decision,
     }
 
 

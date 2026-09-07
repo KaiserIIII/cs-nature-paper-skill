@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = ROOT / "providers"
 for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):
@@ -30,6 +30,7 @@ import analysis_provider  # noqa: E402
 import writing_provider  # noqa: E402
 import review_provider  # noqa: E402
 import host_coding_provider  # noqa: E402
+import internal_specialists  # noqa: E402
 
 
 MAIN_SEQUENCE = (
@@ -229,7 +230,13 @@ def _discovery_attempted(project: Path, node: str, capability: str) -> bool:
 
 def _registry(project: Path) -> list[dict[str, Any]]:
     native_research_status = "QUALIFIED" if coding_provider.native_available(project) else "UNAVAILABLE"
+    pack_check = internal_specialists.validate_pack()
+    if pack_check["status"] != "PASS":
+        raise RuntimeError("internal specialist pack is invalid: " + "; ".join(pack_check["findings"]))
     records = [
+        provider_runtime.internal_specialist_provider(item["id"], validate_pack=False)
+        for item in internal_specialists.load_pack()["specialists"]
+    ] + [
         provider_runtime.provider("research-runtime-provider", "NATIVE", [
             "project-orientation", "research-question-structuring", "novelty-analysis", "closest-work-analysis",
             "feasibility-analysis", "experimental-design", "artifact-validation",
@@ -448,6 +455,7 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
     if route.get("status") == "SPECIALIST_DISCOVERY":
         specialist_discovery = _specialist_discovery(project, node, capability)
         task["discovery_attempted"] = True
+        task["discovery_status"] = specialist_discovery.get("status")
         employment_lifecycle = ["SPECIALIST_DISCOVERY", "AUTO_HIRE"]
         if specialist_discovery.get("status") == "PASS" and specialist_discovery.get("candidates"):
             if permissions.get("auto_hire") is True:
@@ -493,6 +501,7 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
         }
     if specialist_hire and specialist_hire.get("employment_lifecycle") and not employment_lifecycle:
         employment_lifecycle = list(specialist_hire["employment_lifecycle"])
+    internal_invocation = None
     if route["status"] == "HOST_EXECUTION_REQUIRED" and route.get("provider", {}).get("provider_id") == "host-coding-provider":
         selected = route["provider"]
         result = host_coding_provider.request_or_consume(project, node)
@@ -520,9 +529,34 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
     else:
         selected = route["provider"]
         try:
-            if selected.get("type") == "EXTERNAL_SKILL" and "RE-RESOLVE" not in employment_lifecycle:
+            if selected.get("type") == "INTERNAL_SPECIALIST":
+                internal_invocation = internal_specialists.invoke_specialist(
+                    str(selected["specialist_id"]), task=task, project=project,
+                    network_available=bool(permissions.get("network", False)),
+                )
+                if internal_invocation.get("status") != "PASS":
+                    return {
+                        "operation": "execute-node", "node": node, "status": "FAIL",
+                        "findings": internal_invocation.get("findings", ["internal specialist invocation failed"]),
+                        "provider_route": route, "internal_specialist_invocation": internal_invocation,
+                    }
+                # Vendored prompt resources guide the current Host; loading a
+                # Skill alone is not a scientific output and cannot pass the node.
+                result = host_research_provider.request_or_consume(project, node, capability)
+                if result.get("status") == "HOST_EXECUTION_REQUIRED":
+                    return result | {
+                        "operation": "execute-node", "node": node, "capability": capability,
+                        "provider_route": route, "host_request_created": True,
+                        "specialist_discovery": specialist_discovery,
+                        "specialist_hire": specialist_hire,
+                        "employment_lifecycle": employment_lifecycle,
+                        "internal_specialist_invocation": internal_invocation,
+                        "loaded_skills": internal_invocation.get("loaded_skills", []),
+                    }
+            elif selected.get("type") == "EXTERNAL_SKILL" and "RE-RESOLVE" not in employment_lifecycle:
                 employment_lifecycle.append("RE-RESOLVE")
-            result = _execute_external(project, selected, node, task) if selected.get("type") == "EXTERNAL_SKILL" else _invoke(project, selected["provider_id"], node)
+            if selected.get("type") != "INTERNAL_SPECIALIST":
+                result = _execute_external(project, selected, node, task) if selected.get("type") == "EXTERNAL_SKILL" else _invoke(project, selected["provider_id"], node)
             if selected.get("type") == "EXTERNAL_SKILL":
                 employment_lifecycle.append("EXTERNAL_SKILL_EXECUTED")
         except Exception as exc:
@@ -550,4 +584,5 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
         "actions": result.get("actions_taken", []), "output_validation": check, "checker": handoff_check,
         "provider_route": route, "specialist_discovery": specialist_discovery, "specialist_hire": specialist_hire,
         "employment_lifecycle": employment_lifecycle,
+        "internal_specialist_invocation": internal_invocation,
     }

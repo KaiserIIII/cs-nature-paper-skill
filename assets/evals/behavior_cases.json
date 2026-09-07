@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "skill_version": "3.1.1",
+  "skill_version": "4.0.0",
   "categories": ["routing", "student UX", "literature", "novelty", "method selection", "feasibility", "experiment design", "implementation", "statistics", "figures", "writing", "validation", "review", "security", "privacy", "authorization", "supply-chain", "graph recovery", "migration", "completion honesty", "competition clock", "competition method selection", "competition freeze"],
   "cases": [
     {

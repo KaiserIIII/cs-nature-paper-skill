@@ -1,4 +1,4 @@
-# CS Nature Paper V3.2.1
+# CS Nature Paper V4.0.0
 
 An executable, student-first, evidence-bound research operating system for
 computer science.
@@ -24,10 +24,21 @@ analysis, figures, writing, review, and revision as load-bearing. This removes
 the need for a separate project configuration list before specialist routing
 can enforce the formal evidence gate.
 
-The `v3.1.1` tag remains the historical stable release at commit
-`081aa693b907d8cc07104d1b8251d46301094ef7`. This branch adds the
-`v3.2.1` maximum-autonomy release candidate from baseline
-`6b34dcba551bdf200c2d7dd49bcb6b6057ef67c4`.
+V4 includes 29 audited third-party research Skills from seven MIT-licensed
+repositories at exact commits. They form a fourteen-role built-in publication
+team and remain usable offline. Online discovery is a quality upgrade: a
+candidate must prove it is better or complementary before it can replace or
+augment the internal baseline.
+
+Submission readiness now requires five separate results: Scientific Validity,
+Evidence Sufficiency, Publication Sufficiency, Reviewer Completeness, and
+Submission Readiness. Narrow evidence and repeated runs cannot substitute for
+dataset, model, baseline, ablation, mechanism, external-validation, literature,
+or manuscript depth.
+
+The `v3.1.1` tag and V3.2.1 branch remain historical. V4 is developed from the
+accepted V3.2.1 commit `6f13161601854763b500cdb596dbe52df3a0fd19` on
+`feat/v4-vendored-research-team`.
 
 ## How it works
 

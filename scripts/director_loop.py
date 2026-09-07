@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resumable v3.2 research executor: authorize, dispatch, check, evidence, transition."""
+"""Resumable V4 research executor: authorize, dispatch, check, evidence, transition."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 GLOBAL_RECOVERY_BUDGET = 20
 NODE_RECOVERY_BUDGETS = {"implementation": 5, "formal_experiment": 4, "analysis": 3}
 IDENTICAL_FAILURE_LIMIT = 3
@@ -34,6 +34,8 @@ autonomy = _load("autonomy")
 graph_runtime = _load("research_graph")
 executor_runtime = _load("research_executor")
 marketplace_runtime = _load("skill_marketplace_runtime")
+publication_runtime = _load("publication_sufficiency")
+expansion_runtime = _load("research_expansion")
 
 
 class DirectorError(RuntimeError):
@@ -79,6 +81,10 @@ def _policy_path(project: Path) -> Path:
 
 def _session_path(project: Path) -> Path:
     return _state(project) / "director_session.json"
+
+
+def _expansion_path(project: Path) -> Path:
+    return _state(project) / "v4-expansion" / "campaign.json"
 
 
 def _audit_path(project: Path) -> Path:
@@ -153,6 +159,69 @@ def _next_node(project: Path) -> str | None:
 def _complete(project: Path) -> bool:
     nodes = _node_map(project)
     return all(nodes.get(node_id, {}).get("status") in {"PASS", "CONDITIONAL"} for node_id in executor_runtime.MAIN_SEQUENCE)
+
+
+def ensure_expansion_campaign(project: Path, assessment: dict[str, Any]) -> dict[str, Any]:
+    """Persist one stable campaign for the current publication findings."""
+    project = project.resolve()
+    path = _expansion_path(project)
+    raw_findings = assessment.get("finding_ids") or assessment.get("findings") or []
+    finding_ids = sorted({
+        str(item.get("id")) if isinstance(item, dict) else str(item)
+        for item in raw_findings
+        if item
+    })
+    existing = _read(path)
+    if isinstance(existing, dict) and existing.get("trigger_findings") == finding_ids:
+        return {
+            "status": "EXPAND_RESEARCH",
+            "path": str(path),
+            "sha256": _hash_file(path),
+            "campaign_id": existing.get("campaign_id"),
+            "ready_packages": expansion_runtime.verify_campaign(existing, project)["ready_packages"],
+        }
+    campaign = expansion_runtime.build_campaign(
+        {"disposition": assessment.get("disposition", "EXPAND_RESEARCH"), "findings": finding_ids},
+        project_id=project.name,
+    )
+    _write(path, campaign)
+    return {
+        "status": "EXPAND_RESEARCH",
+        "path": str(path),
+        "sha256": _hash_file(path),
+        "campaign_id": campaign["campaign_id"],
+        "ready_packages": expansion_runtime.verify_campaign(campaign, project)["ready_packages"],
+    }
+
+
+def submission_gate(project: Path) -> dict[str, Any]:
+    """Apply publication depth only to declared full-paper/submission workflows."""
+    project = project.resolve()
+    if not executor_runtime._is_formal_full_paper_workflow(project):
+        return {
+            "operation": "director-submission-gate",
+            "status": "PASS",
+            "disposition": "WORKFLOW_COMPLETE",
+            "applicable": False,
+            "reason": "workflow is not submission-targeted",
+        }
+    assessment = publication_runtime.audit_project(project)
+    expansion = None
+    if assessment["disposition"] == "EXPAND_RESEARCH":
+        expansion = ensure_expansion_campaign(project, assessment)
+    return {
+        "operation": "director-submission-gate",
+        "status": assessment["submission_readiness"]["status"],
+        "disposition": assessment["disposition"],
+        "applicable": True,
+        "scientific_validity": assessment["scientific_validity"],
+        "evidence_sufficiency": assessment["evidence_sufficiency"],
+        "publication_sufficiency": assessment["publication_sufficiency"],
+        "reviewer_completeness": assessment["reviewer_completeness"],
+        "research_depth_profile": assessment["research_depth_profile"],
+        "research_expansion_plan": assessment["research_expansion_plan"],
+        "research_expansion_campaign": expansion,
+    }
 
 
 def _authorization_for(policy: dict[str, Any], node: str, actor: str, now: str) -> dict[str, Any]:
@@ -264,6 +333,20 @@ def run(project: Path, *, max_iterations: int = 32, actor: str = "director", now
         return {"operation": "director-run", "status": "BLOCKED", "reason": "max_iterations must be positive", "session_id": session["session_id"]}
     for _ in range(max_iterations):
         if _complete(project):
+            gate = submission_gate(project)
+            if gate["status"] != "PASS":
+                session.update({
+                    "status": "EXPAND_RESEARCH", "current_node": None,
+                    "blocked_reason": "publication or reviewer sufficiency gate failed",
+                    "last_decision": gate, "graph_hash": _graph_hash(project),
+                })
+                _persist(project, session)
+                return {
+                    "operation": "director-run", "status": "EXPAND_RESEARCH",
+                    "session_id": session["session_id"], "iteration": session["iteration"],
+                    "completed": session["completed"], "submission_gate": gate,
+                    "ordinary_author_prompts": session.get("ordinary_author_prompts", 0),
+                }
             session.update({"status": "READY_FOR_SUBMISSION", "current_node": None, "blocked_reason": None, "graph_hash": _graph_hash(project)})
             _persist(project, session)
             return {"operation": "director-run", "status": "READY_FOR_SUBMISSION", "session_id": session["session_id"], "iteration": session["iteration"], "completed": session["completed"], "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}
@@ -340,6 +423,20 @@ def run(project: Path, *, max_iterations: int = 32, actor: str = "director", now
         session["status"] = "RUNNING"
         _persist(project, session)
     if _complete(project):
+        gate = submission_gate(project)
+        if gate["status"] != "PASS":
+            session.update({
+                "status": "EXPAND_RESEARCH", "current_node": None,
+                "blocked_reason": "publication or reviewer sufficiency gate failed",
+                "last_decision": gate, "graph_hash": _graph_hash(project),
+            })
+            _persist(project, session)
+            return {
+                "operation": "director-run", "status": "EXPAND_RESEARCH",
+                "session_id": session["session_id"], "iteration": session["iteration"],
+                "completed": session["completed"], "submission_gate": gate,
+                "ordinary_author_prompts": session.get("ordinary_author_prompts", 0),
+            }
         session.update({"status": "READY_FOR_SUBMISSION", "current_node": None, "blocked_reason": None, "graph_hash": _graph_hash(project)})
         _persist(project, session)
         return {"operation": "director-run", "status": "READY_FOR_SUBMISSION", "session_id": session["session_id"], "iteration": session["iteration"], "completed": session["completed"], "ordinary_author_prompts": session.get("ordinary_author_prompts", 0)}

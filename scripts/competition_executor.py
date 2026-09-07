@@ -28,7 +28,7 @@ import competition_writing_provider  # noqa: E402
 import competition_host_provider  # noqa: E402
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 NODE_PROVIDER = {
     "contest_intake": ("competition-modeling-provider", "competition-intake"),
     "problem_decomposition": ("competition-modeling-provider", "question-decomposition"),

@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0.0",
+  "skill_version": "4.0.0",
+  "suite_id": "best-of-breed-cs-research-os-v1",
+  "evaluation_policy": {
+    "comparison": "counterbalanced_blind_behavior_judgment",
+    "parity_rule": "both orderings must judge V4 TIE or V4_BETTER",
+    "superiority_rule": "both orderings must judge V4_BETTER",
+    "missing_evidence": "FAIL",
+    "prohibited_proxies": [
+      "number of agents",
+      "repository size",
+      "number of installed skills",
+      "architecture diagram complexity"
+    ]
+  },
+  "systems": [
+    {
+      "id": "ars",
+      "name": "Academic Research Skills",
+      "repository": "Imbad0202/academic-research-skills",
+      "exact_commit": "6b7ee6dcae29c0fbb46e0017538f9cef84c3136b",
+      "license": "CC-BY-NC-4.0",
+      "use_decision": "BENCHMARK_ONLY_DO_NOT_VENDOR",
+      "strongest_capabilities": [
+        "deep literature research with explicit source verification",
+        "claim-to-citation integrity controls",
+        "full manuscript writing and revision",
+        "structured peer review and adversarial criticism"
+      ],
+      "behavior_task": {
+        "id": "grounded_research_write_review_revise",
+        "public_inputs": ["assets/evals/v4/cases/grounded_research_case.json"],
+        "required_outputs": ["literature synthesis", "claim-citation matrix", "full manuscript", "review", "revised manuscript"]
+      },
+      "parity_dimensions": [
+        "evidence_depth",
+        "citation_faithfulness",
+        "closest_work_coverage",
+        "manuscript_structure",
+        "writing_depth",
+        "reviewer_attack_quality",
+        "unsupported_claim_detection",
+        "revision_quality"
+      ],
+      "superiority_dimensions": [
+        "dataset_benchmark_selection",
+        "experimental_design",
+        "actual_implementation",
+        "actual_experiment_execution",
+        "research_compute",
+        "background_campaigns",
+        "checkpoint_resume_retry",
+        "actual_result_statistics",
+        "publication_sufficiency",
+        "reviewer_required_experiment_expansion",
+        "thin_evidence_auto_expansion"
+      ]
+    },
+    {
+      "id": "k_dense",
+      "name": "K-Dense Scientific Agent Skills",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "use_decision": "AUDITED_COMPONENTS_VENDORED_AND_BENCHMARKED",
+      "strongest_capabilities": [
+        "broad scientific specialist coverage",
+        "domain tool selection",
+        "statistical analysis and power planning",
+        "scientific visualization and data analysis"
+      ],
+      "behavior_task": {
+        "id": "scientific_tooling_and_statistics",
+        "public_inputs": ["assets/evals/v4/cases/research_execution_case.json"],
+        "required_outputs": ["tool plan", "executed analysis", "assumption checks", "uncertainty", "figure specification"]
+      },
+      "parity_dimensions": ["specialist_breadth", "tool_selection_quality", "statistical_rigor", "visualization_quality"],
+      "superiority_dimensions": ["cross_specialist_orchestration", "artifact_provenance", "publication_gate_integration"]
+    },
+    {
+      "id": "ai_scientist",
+      "name": "The AI Scientist",
+      "repository": "SakanaAI/AI-Scientist",
+      "exact_commit": "1de1dbc1f4ee2c5f61e9c94348d55eb51d7fa2eb",
+      "license": "AI-SCIENTIST-SOURCE-CODE-LICENSE-1.0",
+      "use_decision": "BENCHMARK_ONLY_DISCLOSURE_REQUIRED",
+      "strongest_capabilities": [
+        "automated idea generation and ranking",
+        "iterative code modification and experiment execution",
+        "result-driven write-up",
+        "automated review loop"
+      ],
+      "behavior_task": {
+        "id": "autonomous_idea_experiment_iteration",
+        "public_inputs": ["assets/evals/v4/cases/research_execution_case.json"],
+        "required_outputs": ["idea", "working implementation", "executed experiments", "iteration decision", "machine-generated disclosure"]
+      },
+      "parity_dimensions": ["autonomous_loop_completion", "result_driven_iteration", "implementation_effectiveness", "experiment_execution"],
+      "superiority_dimensions": ["protocol_integrity", "failure_preservation", "statistical_confirmation", "publication_sufficiency_expansion"]
+    },
+    {
+      "id": "paper_orchestra",
+      "name": "PaperOrchestra",
+      "repository": "Ar9av/PaperOrchestra",
+      "exact_commit": "798f03a14ce582607ba2742d025691f226470641",
+      "license": "MIT_WITH_UPSTREAM_PROMPT_NOTICE",
+      "use_decision": "BENCHMARK_ONLY_PENDING_PROMPT_RIGHTS_REVIEW",
+      "strongest_capabilities": [
+        "experiment-log aggregation",
+        "experiment-to-manuscript orchestration",
+        "literature-grounded outline reconciliation",
+        "iterative content refinement with paper autoraters"
+      ],
+      "behavior_task": {
+        "id": "experiment_log_to_manuscript",
+        "public_inputs": ["assets/evals/v4/cases/experiment_to_manuscript_case.json"],
+        "required_outputs": ["experiment synthesis", "reconciled outline", "claim-grounded manuscript", "refinement record"]
+      },
+      "parity_dimensions": ["experiment_result_transfer", "manuscript_coherence", "claim_evidence_alignment", "refinement_quality"],
+      "superiority_dimensions": ["missing_experiment_detection", "experiment_reexecution", "reviewer_driven_expansion", "submission_readiness_gate"]
+    },
+    {
+      "id": "sisyphus_academica",
+      "name": "Sisyphus Academica",
+      "repository": "argahv/sisyphus-academica",
+      "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8",
+      "license": "MIT",
+      "use_decision": "AUDITED_COMPONENTS_VENDORED_AND_BENCHMARKED",
+      "strongest_capabilities": [
+        "assumption excavation",
+        "counterfactual novelty generation",
+        "methodological skepticism",
+        "adversarial review"
+      ],
+      "behavior_task": {
+        "id": "novelty_collision_and_adversarial_review",
+        "public_inputs": ["assets/evals/v4/cases/grounded_research_case.json"],
+        "required_outputs": ["assumption map", "rival hypotheses", "closest-work collision", "falsifiers", "kill arguments"]
+      },
+      "parity_dimensions": ["novelty_generation", "prior_art_collision", "falsifier_quality", "adversarial_review_depth"],
+      "superiority_dimensions": ["novelty_to_protocol_translation", "discriminating_experiment_execution", "review_attack_to_expansion"]
+    },
+    {
+      "id": "research_engineering_suite",
+      "name": "Research Engineering Suite",
+      "repository": "JoeyJin-NJU/research-engineering-suite",
+      "exact_commit": "670d0be50c52595f9e13b684ebd995dff5831fb7",
+      "license": "MIT",
+      "use_decision": "AUDITED_COMPONENT_VENDORED_AND_BENCHMARKED",
+      "strongest_capabilities": [
+        "research code implementation and debugging",
+        "reproducible experiment workflow",
+        "failure diagnosis and recovery",
+        "research artifact verification"
+      ],
+      "behavior_task": {
+        "id": "debug_resume_and_provenance",
+        "public_inputs": ["assets/evals/v4/cases/research_execution_case.json"],
+        "required_outputs": ["corrected code", "executed tests", "failure record", "checkpoint resume", "artifact manifest"]
+      },
+      "parity_dimensions": ["debugging_quality", "reproducibility", "checkpoint_recovery", "artifact_verification"],
+      "superiority_dimensions": ["background_campaign_management", "cross_campaign_statistics", "publication_claim_binding"]
+    }
+  ]
+}

@@ -13,11 +13,13 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.1"
+SKILL_VERSION = "4.0.0"
 REQUIRED = (
     "policy", "audit", "graph", "graph_rebuild", "argument", "feasibility", "protocol", "claims", "evidence",
     "literature_sufficiency", "experiment_completeness", "figure_traceability", "manuscript_complete",
     "review_resolution", "risk_resolution", "reproducibility", "artifact_package", "director_orchestration_e2e", "e2e",
+    "scientific_validity", "evidence_sufficiency", "publication_sufficiency",
+    "reviewer_completeness", "research_depth_profile", "submission_readiness",
 )
 
 
@@ -35,6 +37,7 @@ autonomy = _load("autonomy")
 graph = _load("research_graph")
 state_runtime = _load("research_state")
 anchor_runtime = _load("evidence_anchor")
+publication_runtime = _load("publication_sufficiency")
 
 
 def required_checks() -> tuple[str, ...]:
@@ -68,6 +71,29 @@ def _commit(root: Path) -> str:
 
 def _check(status: str, findings: list[str] | None = None, **extra: Any) -> dict[str, Any]:
     return {"status": status, "findings": findings or []} | extra
+
+
+def _submission_targeted(project: Path) -> bool:
+    state = _state_dir(project)
+    documents = [
+        _read(project / "inputs" / "research_brief.json", {}),
+        _read(state / "project.json", {}),
+        _read(state / "research_contract.json", {}),
+    ]
+    for document in documents:
+        if not isinstance(document, dict):
+            continue
+        nested = [document]
+        nested.extend(document.get(key) for key in ("project", "venue", "submission") if isinstance(document.get(key), dict))
+        for value in nested:
+            if value.get("submission_targeted") is True or value.get("formal_workflow") is True:
+                return True
+            if any(str(value.get(key, "")).strip() for key in ("target_venue", "target_journal", "target_track")):
+                return True
+            workflow = str(value.get("workflow", value.get("workflow_mode", ""))).strip().lower().replace("_", "-")
+            if workflow in {"full", "full-paper", "fullpaper", "submission", "submission-targeted"}:
+                return True
+    return False
 
 
 def _evidence_check(project: Path) -> dict[str, Any]:
@@ -324,9 +350,31 @@ def evaluate(project: Path, *, e2e_result: Path | None = None, audit_path: Path 
     checks["artifact_package"] = _package(project)
     checks["director_orchestration_e2e"] = _director(project)
     checks["e2e"] = _e2e_check(e2e_result, project)
+    if _submission_targeted(project):
+        publication = publication_runtime.audit_project(project)
+        checks["scientific_validity"] = publication["scientific_validity"]
+        checks["evidence_sufficiency"] = publication["evidence_sufficiency"]
+        checks["publication_sufficiency"] = publication["publication_sufficiency"]
+        checks["reviewer_completeness"] = publication["reviewer_completeness"]
+        checks["research_depth_profile"] = _check(
+            publication["research_depth_profile"]["status"],
+            [f"insufficient research depth: {item}" for item in publication["research_depth_profile"]["failed_dimensions"]],
+            profile=publication["research_depth_profile"],
+        )
+        checks["submission_readiness"] = publication["submission_readiness"]
+    else:
+        for name in (
+            "scientific_validity", "evidence_sufficiency", "publication_sufficiency",
+            "reviewer_completeness", "research_depth_profile", "submission_readiness",
+        ):
+            checks[name] = _check("PASS", [], applicable=False, reason="workflow is not submission-targeted")
     critical_failures = [f"{name}: {finding}" for name, value in checks.items() if value.get("status") != "PASS" for finding in value.get("findings", [])]
     status = "PASS" if not critical_failures else "FAIL"
-    disposition = "READY_FOR_SUBMISSION" if status == "PASS" else "BLOCKED"
+    expansion_required = any(
+        checks[name].get("status") != "PASS"
+        for name in ("publication_sufficiency", "reviewer_completeness", "research_depth_profile")
+    )
+    disposition = "READY_FOR_SUBMISSION" if status == "PASS" else ("EXPAND_RESEARCH" if expansion_required else "BLOCKED")
     project_doc = _read(state / "project.json", {})
     return {
         "operation": "completion-contract",

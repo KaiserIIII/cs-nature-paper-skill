@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "3.2.1"
-PROVIDER_TYPES = {"NATIVE", "HOST_LLM", "WEB", "EXTERNAL_SKILL", "TOOL"}
+SKILL_VERSION = "4.0.0"
+PROVIDER_TYPES = {"NATIVE", "HOST_LLM", "WEB", "EXTERNAL_SKILL", "INTERNAL_SPECIALIST", "TOOL"}
 PROVIDER_STATUSES = {
     "AVAILABLE", "UNAVAILABLE", "QUALIFIED", "PROVISIONAL", "BLOCKED",
     "HOST_AVAILABLE", "HOST_REQUEST_CAPABLE", "HOST_BEHAVIOR_QUALIFIED",
@@ -36,6 +36,12 @@ REQUEST_FIELDS = {
 HANDOFF_FIELDS = {
     "status", "artifacts", "claims", "uncertainties", "actions_taken", "tool_calls", "handoff",
 }
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import internal_specialists  # noqa: E402
 
 
 def _now() -> str:
@@ -68,7 +74,9 @@ def provider(
     """Build a complete registry record; callers may persist the returned object."""
     # formal_eligible is an execution gate, not evidence that a provider is a
     # specialist.  Quality is explicit and conservative by default.
-    inferred_quality = quality_level or ("SPECIALIST" if provider_type == "EXTERNAL_SKILL" else "GENERAL")
+    inferred_quality = quality_level or (
+        "SPECIALIST" if provider_type in {"EXTERNAL_SKILL", "INTERNAL_SPECIALIST"} else "GENERAL"
+    )
     if inferred_quality not in QUALITY_LEVELS:
         raise ValueError(f"unknown provider quality level: {inferred_quality}")
     return {
@@ -114,6 +122,42 @@ def validate_provider(value: Any) -> dict[str, Any]:
     return {"status": "PASS" if not findings else "FAIL", "findings": findings}
 
 
+def internal_specialist_provider(specialist_id: str, *, validate_pack: bool = True) -> dict[str, Any]:
+    """Create a formal provider record from the validated V4 built-in pack."""
+    if validate_pack:
+        pack_check = internal_specialists.validate_pack()
+        if pack_check["status"] != "PASS":
+            raise ValueError("internal specialist pack is invalid: " + "; ".join(pack_check["findings"]))
+    specialist = next(
+        (item for item in internal_specialists.load_pack()["specialists"] if item["id"] == specialist_id),
+        None,
+    )
+    if specialist is None:
+        raise ValueError(f"unknown internal specialist: {specialist_id}")
+    value = provider(
+        f"internal-specialist:{specialist_id}",
+        "INTERNAL_SPECIALIST",
+        list(specialist["capabilities"]),
+        status="QUALIFIED",
+        qualification="QUALIFIED",
+        formal_eligible=True,
+        permissions=["local_read", "local_write"],
+        network=False,
+        credentials_required=False,
+        checker_required=True,
+        installed=True,
+        quality_level="FORMAL_QUALIFIED",
+        failure_modes=["vendored resource missing", "integrity mismatch", "output contract failure"],
+    )
+    value.update({
+        "specialist_id": specialist_id,
+        "quality_tier": internal_specialists.QUALITY_TIER,
+        "checker": specialist["checker"],
+        "source_kind": "VENDORED_BUILT_IN_TEAM",
+    })
+    return value
+
+
 def specialist_requirement(capability: str, task: dict[str, Any] | None = None, formal: bool = False) -> bool:
     """Determine whether a task needs a specialist-quality provider."""
     task = task or {}
@@ -131,6 +175,14 @@ def specialist_requirement(capability: str, task: dict[str, Any] | None = None, 
 
 def _confirmed_specialist(item: dict[str, Any], capability: str) -> bool:
     """Require exact capability, pin, semantic verification, and trial evidence."""
+    if item.get("type") == "INTERNAL_SPECIALIST":
+        return (
+            item.get("quality_level") == "FORMAL_QUALIFIED"
+            and item.get("formal_eligible") is True
+            and item.get("qualification") in QUALIFIED
+            and item.get("checker_required") is True
+            and item.get("source_kind") == "VENDORED_BUILT_IN_TEAM"
+        )
     if item.get("type") != "EXTERNAL_SKILL":
         return item.get("quality_level") == "FORMAL_QUALIFIED" and item.get("formal_eligible") is True
     if item.get("installed") is not True:
@@ -203,21 +255,66 @@ def resolve_provider(
     else:
         allowed = set(permissions)
     specialist_required = specialist_requirement(capability, task, formal)
+    task_text = " ".join(
+        str(task.get(key, "")) for key in ("task", "description", "purpose", "node", "method", "methods")
+    ).strip()
+    internal_candidates = [
+        item for item in available_providers
+        if item.get("type") == "INTERNAL_SPECIALIST" and _eligible(item, capability, formal, allowed)
+    ]
+    confirmed_external = [
+        item for item in available_providers
+        if item.get("type") == "EXTERNAL_SKILL"
+        and _eligible(item, capability, formal, allowed)
+        and (not specialist_required or _confirmed_specialist(item, capability))
+    ]
+    comparison = task.get("external_comparison")
+    if comparison is None and confirmed_external and task.get("discovery_attempted"):
+        comparison = "COMPLEMENTARY"
+    decision = internal_specialists.provider_decision(
+        capability,
+        task=task_text,
+        purpose="formal" if formal else str(task.get("purpose") or "advisory"),
+        load_bearing=bool(task.get("load_bearing")),
+        criticality=risk,
+        internal_available=bool(internal_candidates),
+        discovery_status=task.get("discovery_status") or (
+            "PASS" if confirmed_external and task.get("discovery_attempted") else None
+        ),
+        discovery_attempted=bool(task.get("discovery_attempted")),
+        external_comparison=comparison,
+    )
+    if decision["decision"] == "QUALITY_UPGRADE_DISCOVERY":
+        fallback = sorted(internal_candidates, key=lambda item: str(item["provider_id"]))[0]
+        return {
+            "operation": "resolve-provider", "status": "SPECIALIST_DISCOVERY", "capability": capability,
+            "formal": formal, "risk": risk, "specialist_required": specialist_required,
+            "discovery_required": True, "fallback_provider": fallback,
+            "provider_decision": decision, "truth_authority": "DETERMINISTIC_CHECKER",
+            "next": "skill_discovery_provider",
+        }
     candidates = [
         item for item in available_providers if _eligible(item, capability, formal, allowed)
     ]
     if specialist_required:
         candidates = [item for item in candidates if _confirmed_specialist(item, capability)]
 
+    if decision["decision"] in {"EXTERNAL_BETTER", "COMPLEMENTARY"} and confirmed_external:
+        candidates = confirmed_external
+    elif internal_candidates:
+        candidates = internal_candidates
+
     def priority(item: dict[str, Any]) -> tuple[int, str]:
-        if item["type"] == "NATIVE":
+        if item["type"] == "INTERNAL_SPECIALIST":
             rank = 0
-        elif item["type"] == "EXTERNAL_SKILL" and item.get("installed"):
+        elif item["type"] == "NATIVE":
             rank = 1
-        elif item["type"] in {"HOST_LLM", "TOOL", "WEB"}:
+        elif item["type"] == "EXTERNAL_SKILL" and item.get("installed"):
             rank = 2
-        else:
+        elif item["type"] in {"HOST_LLM", "TOOL", "WEB"}:
             rank = 3
+        else:
+            rank = 4
         return rank, str(item["provider_id"])
 
     if candidates:
@@ -228,12 +325,13 @@ def resolve_provider(
                 "capability": capability, "provider": selected, "formal": formal, "risk": risk,
                 "truth_authority": "DETERMINISTIC_CHECKER", "task": task, "specialist_required": specialist_required,
                 "discovery_required": False, "handoff_required": True, "checker_required": True,
+                "provider_decision": decision,
             }
         return {
             "operation": "resolve-provider", "status": "PASS", "capability": capability,
             "provider": selected, "formal": formal, "risk": risk,
             "truth_authority": "DETERMINISTIC_CHECKER", "task": task, "specialist_required": specialist_required,
-            "discovery_required": False,
+            "discovery_required": False, "provider_decision": decision,
         }
     host_candidates = [
         item for item in available_providers
@@ -249,6 +347,7 @@ def resolve_provider(
             "formal": formal, "risk": risk, "specialist_required": True, "discovery_required": True,
             "host_fallback": "HOST_EXECUTION_REQUIRED" if host_candidates else None,
             "truth_authority": "DETERMINISTIC_CHECKER", "next": "skill_discovery_provider",
+            "provider_decision": decision,
         }
     if host_candidates:
         selected = sorted(host_candidates, key=lambda item: str(item["provider_id"]))[0]
@@ -257,18 +356,21 @@ def resolve_provider(
             "capability": capability, "provider": selected, "formal": formal, "risk": risk,
             "truth_authority": "DETERMINISTIC_CHECKER", "task": task, "specialist_required": specialist_required,
             "discovery_required": False, "handoff_required": True, "checker_required": True, "evidence_required": True,
+            "provider_decision": decision,
         }
     if "auto_hire" in allowed and risk in {"LOW", "MEDIUM"}:
         return {
             "operation": "resolve-provider", "status": "AUTO_HIRE", "capability": capability,
             "formal": formal, "risk": risk, "next": "skill_discovery_provider",
             "specialist_required": specialist_required, "discovery_required": True,
+            "provider_decision": decision,
         }
     return {
         "operation": "resolve-provider", "status": "FALLBACK", "capability": capability,
         "formal": formal, "risk": risk,
         "recovery": ["RETRY", "REPAIR_INPUT", "ALTERNATE_PROVIDER", "AUTO_HIRE", "SIMPLIFY", "REDUCE_SCOPE", "ASK_AUTHOR"],
         "specialist_required": specialist_required, "discovery_required": False,
+        "provider_decision": decision,
     }
 
 

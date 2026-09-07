@@ -1,19 +1,46 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V3.2.1: student-first, evidence-bound maximum-autonomy Research OS for research papers and CUMCM competitions, with executable Director orchestration, provenance tracking, deterministic contest timing, and no fabricated science or unauthorized release."
+description: "CS Nature Paper V4.0.0: an evidence-bound Research OS with audited vendored research Skills, a built-in publication team, quality-upgrade discovery, publication sufficiency gates, and no fabricated science or unauthorized release."
 metadata:
-  version: "3.2.1"
-  architecture: "research-control-plane + execution-plane + capability-runtime + adaptive-graph"
+  version: "4.0.0"
+  architecture: "research-control-plane + vendored-specialist-plane + capability-runtime + publication-gates + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V3.2.1 - Maximum Autonomy Research OS
+# CS Nature Paper V4.0.0 - Vendored Specialist Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
 in control of scientific judgments, ethics, resource commitments, and external
 release. The goal is the strongest claim the available evidence can defend,
 not a prestige promise.
+
+V4 ships with audited, pinned, vendored third-party research Skills as a built-in publication-grade specialist team.
+
+Online Skill Discovery upgrades the built-in team; it does not define the minimum capability.
+
+Strong evidence for a narrow claim is not automatically sufficient for a strong paper.
+
+Repetition count is not research breadth.
+
+The system must expand an underpowered study before polishing it into a deceptively complete manuscript.
+
+## Built-in publication team
+
+The default team contains the Research Director and thirteen specialists:
+Literature & Evidence; Innovation / Prior-Art; Theory & Mechanism; Data /
+Dataset; Experimental Design; Research Engineering / Compute; Implementation;
+Statistics; Visualization; Scientific Writing; Reproducibility / Integrity;
+Adversarial Reviewer Board; and Publication Editor. Read
+[references/internal-specialists/team.md](references/internal-specialists/team.md)
+and validate the executable pack with `scripts/internal_specialists.py`.
+
+Each role loads complete local Skills from `vendor/research-skills/`. The
+third-party manifest records exact commits, licenses, redistributed files,
+modifications, security audit, behavior trial, capabilities, and assigned
+roles. A loaded Skill provides operating guidance and a typed handoff; it
+cannot mark its graph node PASS or authorize evidence, protocol changes, or
+release.
 
 ## First response: diagnose and route
 
@@ -74,8 +101,10 @@ The Provider layer supplies execution capacity without creating a second
 control plane. Read [references/core/providers.md](references/core/providers.md)
 and, for a host request, [references/core/host-provider.md](references/core/host-provider.md).
 Resolve each graph node's capability through `scripts/provider_runtime.py`:
-qualified native providers first, then qualified installed Skills, then the
-current host/tool, then capability-driven AUTO_HIRE discovery. A provider may
+vendored built-in specialist first, then Host plus the built-in Skill, then
+`QUALITY_UPGRADE_DISCOVERY`, then a qualified external Skill, with the built-in
+specialist retained as fallback. An external candidate is selected only when
+comparison returns `EXTERNAL_BETTER` or `COMPLEMENTARY`. A provider may
 produce an artifact but cannot mark the graph PASS, upgrade evidence, or bypass
 authorization. Formal/load-bearing work requires a qualified provider and a
 separate checker invocation.
@@ -144,6 +173,13 @@ relabeling its originals. `.research-state-v31` is preferred when present.
 8. **Review:** select roles from actual threats; report severity, anchor,
    alternative, smallest fix, disagreement, and residual risk. Do not predict
    acceptance or count votes.
+9. **Publication sufficiency:** evaluate dataset, model, baseline, ablation,
+   mechanism, external-validation, related-work, and manuscript depth separately
+   from claim validity. Read
+   [references/core/publication-sufficiency.md](references/core/publication-sufficiency.md).
+10. **Reviewer completeness:** require novelty, domain, methods, statistics,
+    experimental-completeness, reproducibility, and adversarial review before
+    submission readiness.
 
 Use the detailed gate procedures in [references/core/gates.md](references/core/gates.md),
 [references/methods/experiment-decision-matrix.md](references/methods/experiment-decision-matrix.md),
@@ -321,14 +357,16 @@ GitHub search hits do not acquire capabilities. Capability verification is
 exact pin and a passed relevant behavior trial before formal evidence work.
 
 Do not load every reference by default. Do not copy third-party text or code
-without a compatible license. Existing V1 and V2 branches are historical
-artifacts; the `v3.1.1` tag remains historical and unchanged. The `v3.2`
-branch is the maximum-autonomy release-candidate line.
+without a compatible license. V4 never clones or downloads a built-in Skill at
+runtime. Existing V1-V3 branches and tags remain historical and unchanged.
 
 ## Completion
 
 Stop when the requested artifact passes the relevant gates and remaining risk is
-explicit. Report completed, running, planned, and author-only actions separately.
+explicit. A submission-targeted paper must pass Scientific Validity, Evidence
+Sufficiency, Publication Sufficiency, Reviewer Completeness, and Submission
+Readiness. Otherwise return `EXPAND_RESEARCH`. Report completed, running,
+planned, and author-only actions separately.
 Provide paths to the research contract, graph, evidence ledger, manifests,
 manuscript, and review matrix when they exist. Never claim Nature/top-venue
 acceptance, scientific truth beyond the design, or completion without fresh

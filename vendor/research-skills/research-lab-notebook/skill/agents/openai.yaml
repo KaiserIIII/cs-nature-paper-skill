@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Lab Notebook"
+  short_description: "Set up and operate a durable research notebook"
+  default_prompt: "Use $research-lab-notebook to set up and maintain this project's research notebook."

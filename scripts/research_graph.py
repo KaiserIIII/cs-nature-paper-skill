@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.1.1"
+SKILL_VERSION = "4.0.0"
 STATUSES = {
     "PLANNED", "READY", "RUNNING", "BLOCKED", "PASS", "CONDITIONAL", "FAIL",
     "REOPENED", "SUPERSEDED", "WITHDRAWN", "ANOMALY",

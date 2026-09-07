@@ -9,7 +9,7 @@ import sys
 from typing import Any
 
 LEVELS = {"A": "Coursework", "B": "Workshop", "C": "Standard peer-reviewed venue", "D": "Top field venue", "E": "Broad high-impact / Nature-family ambition"}
-SKILL_VERSION = "3.1.1"
+SKILL_VERSION = "4.0.0"
 DIMENSIONS = ("importance", "novelty_depth", "mechanistic_insight", "technical_depth", "generality", "evidence_diversity", "robustness", "reproducibility", "external_relevance", "audience_breadth")
 
 

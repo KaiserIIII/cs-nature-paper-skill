@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "e2e_status", "known_limitations", "release_disposition"],
+  "required": ["source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "benchmark_suite", "tta_field_regression", "recommended_merge", "e2e_status", "known_limitations", "release_disposition"],
   "properties": {
-    "source_version": {"enum": ["3.2.1"]},
+    "source_version": {"enum": ["4.0.0"]},
     "source_commit": {"type": "string", "minLength": 1},
     "source_commit_mode": {"enum": ["publisher-injected", "resolved"]},
-    "source_branch": {"enum": ["v3.2", "main"]},
+    "source_branch": {"enum": ["feat/v4-vendored-research-team", "main"]},
     "generated_at": {"type": "string", "minLength": 20},
     "tag": {"type": ["string", "null"]},
     "e2e_commit": {"type": ["string", "null"]},
@@ -25,6 +25,22 @@
       "additionalProperties": false
     },
     "model_behavior_eval": {"enum": ["PASS", "PENDING", "NOT_RUN", "FAIL"]},
+    "benchmark_suite": {
+      "type": "object",
+      "required": ["status", "systems", "multi_system_parity_gate", "ars_parity_gate", "v4_superiority_gate", "recommended_merge"],
+      "properties": {
+        "status": {"enum": ["NOT_RUN", "PASS", "FAIL"]},
+        "run_root": {"type": "string"},
+        "systems": {"type": "array"},
+        "multi_system_parity_gate": {"enum": ["PASS", "FAIL"]},
+        "ars_parity_gate": {"enum": ["PASS", "FAIL"]},
+        "v4_superiority_gate": {"enum": ["PASS", "FAIL"]},
+        "recommended_merge": {"enum": ["YES", "NO"]}
+      },
+      "additionalProperties": false
+    },
+    "tta_field_regression": {"type": "object"},
+    "recommended_merge": {"enum": ["YES", "NO"]},
     "e2e_status": {"enum": ["PASS", "CONDITIONAL", "NOT_RUN", "FAIL"]},
     "known_limitations": {"type": "array"},
     "release_disposition": {"type": "string"}
