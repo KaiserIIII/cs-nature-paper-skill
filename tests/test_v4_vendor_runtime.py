@@ -23,6 +23,21 @@ internal = load("internal_specialists")
 
 
 class V4VendorRuntimeTests(unittest.TestCase):
+    def test_vendored_checkout_preserves_audited_blob_bytes(self):
+        paths = [
+            "vendor/research-skills/k-dense/statistical-analysis/SKILL.md",
+            "vendor/research-skills/paper-writing-skill/SKILL.md",
+            "vendor/research-skills/research-engineering-suite/agents/openai.yaml",
+        ]
+        attributes = subprocess.check_output(
+            ["git", "check-attr", "text", "--", *paths],
+            cwd=ROOT,
+            text=True,
+        ).splitlines()
+        self.assertEqual(len(attributes), len(paths))
+        for attribute in attributes:
+            self.assertTrue(attribute.endswith("text: unset"), attribute)
+
     def test_manifest_is_pinned_complete_and_redistributable(self):
         result = vendor_runtime.validate_manifest()
         self.assertEqual(result["status"], "PASS", result)
