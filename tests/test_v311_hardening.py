@@ -24,8 +24,10 @@ smoke_check = load("check_smoke")
 class HardeningRegressionTests(unittest.TestCase):
     def test_provisional_cannot_produce_formal_evidence(self):
         result = router.resolve("statistical-modeling", purpose="formal", load_bearing=True, criticality="critical")
-        self.assertEqual(result["status"], "CONDITIONAL")
-        self.assertEqual(result["selected"], [])
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["selected"][0]["type"], "INTERNAL_SPECIALIST")
+        self.assertTrue(all(item["runtime_status"] != "PROVISIONAL" for item in result["selected"]))
+        self.assertTrue(any(item["runtime_status"] == "PROVISIONAL" for item in result["rejected"]))
 
     def test_static_specialist_is_not_formally_qualified(self):
         result = router.resolve("literature-discovery", purpose="formal", load_bearing=True)

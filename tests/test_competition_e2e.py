@@ -20,6 +20,7 @@ class CompetitionE2ETests(unittest.TestCase):
         result = module.run()
 
         self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["skill_version"], "4.0.0")
         self.assertEqual(result["competition"], "CUMCM")
         self.assertEqual(result["evaluation_class"], "HARNESS_SELF_TEST")
         self.assertIn("NOT_RUN", result["model_behavior"])

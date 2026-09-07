@@ -1,0 +1,9 @@
+{
+  "case_id": "recurrent-tta-mechanism-novelty-v1",
+  "task": "Evaluate a proposed hysteresis-aware reset controller for recurrent test-time adaptation. Separate an interesting idea from a publishable contribution and design tests that distinguish mechanisms.",
+  "candidate_claim": "A controller that uses recent loss curvature and parameter drift can reduce error accumulation when corruptions recur.",
+  "required_attacks": ["closest prior art", "recent preemption", "obvious combination", "simpler explanation", "incremental contribution"],
+  "rival_mechanisms": ["benefit comes only from periodic reset", "benefit comes only from a smaller effective learning rate", "benefit disappears outside one corruption order"],
+  "required_outputs": ["assumption tree", "novelty collision table", "falsifiers", "prospective predictions", "decisive experiments", "go or pivot verdict"],
+  "scope_rule": "Do not describe the candidate claim as a discovery before formal results exist."
+}

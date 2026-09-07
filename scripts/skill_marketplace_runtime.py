@@ -229,7 +229,7 @@ def _registry_path(project: Path) -> Path:
 
 def _register(project: Path, record: dict[str, Any]) -> None:
     path = _registry_path(project)
-    registry = _read(path, {"schema_version": 3, "skill_version": "3.1.1", "employees": []})
+    registry = _read(path, {"schema_version": 3, "skill_version": SKILL_VERSION, "employees": []})
     employees = registry.setdefault("employees", [])
     employees[:] = [item for item in employees if item.get("id") != record["id"]]
     employees.append(record)

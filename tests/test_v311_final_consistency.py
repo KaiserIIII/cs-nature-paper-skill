@@ -432,6 +432,8 @@ class FinalConsistencyRegressionTests(unittest.TestCase):
 
     def test_true_e2e_reports_command_generated_output(self):
         result = smoke.run()
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["skill_version"], "4.0.0")
         execution = result["execution_record"]
         self.assertEqual(execution.get("status"), "PASS")
         self.assertEqual(len(execution.get("outputs", [])), 1)

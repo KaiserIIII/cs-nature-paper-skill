@@ -1,13 +1,13 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V4.0.0: an evidence-bound Research OS with audited vendored research Skills, a built-in publication team, quality-upgrade discovery, publication sufficiency gates, and no fabricated science or unauthorized release."
+description: "CS Nature Paper V4.0.0: an evidence-bound Research OS with an independently functional public team, an optional behavior-qualified private specialist layer, publication sufficiency gates, and no fabricated science or unauthorized release."
 metadata:
   version: "4.0.0"
   architecture: "research-control-plane + vendored-specialist-plane + capability-runtime + publication-gates + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V4.0.0 - Vendored Specialist Research OS
+# CS Nature Paper V4.0.0 - Best-of-Breed Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
@@ -100,11 +100,30 @@ and [references/core/evidence-provenance.md](references/core/evidence-provenance
 The Provider layer supplies execution capacity without creating a second
 control plane. Read [references/core/providers.md](references/core/providers.md)
 and, for a host request, [references/core/host-provider.md](references/core/host-provider.md).
-Resolve each graph node's capability through `scripts/provider_runtime.py`:
-vendored built-in specialist first, then Host plus the built-in Skill, then
-`QUALITY_UPGRADE_DISCOVERY`, then a qualified external Skill, with the built-in
-specialist retained as fallback. An external candidate is selected only when
-comparison returns `EXTERNAL_BETTER` or `COMPLEMENTARY`. A provider may
+`PUBLIC_CORE` resolves through `scripts/provider_runtime.py` and remains the
+offline, distributable fallback. For explicitly enabled `PRIVATE_ULTRA` work,
+resolve the role and concrete capability through
+`scripts/private_ultra_runtime.py`. The private overlay selects only a local
+provider whose exact commit, entrypoint, static audit, task-specific behavior
+trial, output hash, comparison against PUBLIC_CORE, and independent checker are
+recorded. Missing behavior evidence leaves PUBLIC_CORE selected. High-stakes
+ensembles are allowed only when each complement adds a declared, non-redundant
+capability.
+
+```bash
+python scripts/private_ultra_runtime.py validate
+python scripts/private_ultra_runtime.py resolve --role literature-evidence --capability literature-synthesis --mode PRIVATE_ULTRA --criticality critical --local-registry PATH
+```
+
+System-level projects remain benchmark or adapter candidates; they are not
+treated as ordinary Skills. Candidate provenance lives in
+`assets/registry/private_ultra_candidates.json`, and the fourteen-role target
+team lives in `references/private-ultra/team.json`. License metadata informs
+redistribution decisions but never ranks scientific quality. No private Skill
+contents or local paths may enter public commits.
+
+An external candidate is selected only when comparison returns
+`EXTERNAL_BETTER` or it adds verified complementary value. A provider may
 produce an artifact but cannot mark the graph PASS, upgrade evidence, or bypass
 authorization. Formal/load-bearing work requires a qualified provider and a
 separate checker invocation.

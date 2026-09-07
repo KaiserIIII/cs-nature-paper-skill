@@ -1,0 +1,11 @@
+{
+  "case_id": "tta-recurrent-shift-literature-v1",
+  "task": "Build a source-grounded literature map for recurrent test-time adaptation under non-stationary corruption streams. Verify source identity, locate exact support, search for contradictory evidence, and identify the closest work before proposing a gap.",
+  "public_sources": [
+    {"id": "tent2021", "title": "Tent: Fully Test-Time Adaptation by Entropy Minimization", "url": "https://openreview.net/forum?id=uXl3bZLkr3c", "allowed_fact": "adapts normalization parameters by entropy minimization at test time"},
+    {"id": "cotta2022", "title": "Continual Test-Time Domain Adaptation", "url": "https://openaccess.thecvf.com/content/CVPR2022/html/Wang_Continual_Test-Time_Domain_Adaptation_CVPR_2022_paper.html", "allowed_fact": "addresses continual test-time adaptation with restoration and augmentation"},
+    {"id": "sar2023", "title": "Towards Stable Test-Time Adaptation in Dynamic Wild World", "url": "https://openreview.net/forum?id=g2YraF75Tj", "allowed_fact": "studies stability under dynamic test distributions"}
+  ],
+  "required_outputs": ["identity ledger", "exact supporting regions", "closest-work matrix", "contradiction search", "bounded gap statement"],
+  "forbidden_claim": "No supplied source establishes that any proposed recurrent-shift method is universally superior."
+}

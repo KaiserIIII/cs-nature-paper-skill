@@ -22,14 +22,14 @@ research_state = load("research_state")
 
 
 class SpecialistRoutingHotfixTests(unittest.TestCase):
-    def test_active_runtime_metadata_is_unified_at_321(self):
-        self.assertEqual(research_executor.SKILL_VERSION, "3.2.1")
+    def test_active_runtime_metadata_is_unified_at_v4(self):
+        self.assertEqual(research_executor.SKILL_VERSION, "4.0.0")
         provider_runtime = load("provider_runtime")
-        self.assertEqual(provider_runtime.SKILL_VERSION, "3.2.1")
+        self.assertEqual(provider_runtime.SKILL_VERSION, "4.0.0")
         manifest = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["source_version"], "3.2.1")
+        self.assertEqual(manifest["source_version"], "4.0.0")
 
-    def test_active_v32_metadata_files_are_321(self):
+    def test_active_metadata_files_are_v4(self):
         paths = (
             ROOT / "SKILL.md",
             ROOT / "README.md",
@@ -43,7 +43,7 @@ class SpecialistRoutingHotfixTests(unittest.TestCase):
             ROOT / "assets" / "templates" / "v3" / "provider_registry.json",
         )
         for path in paths:
-            self.assertIn("3.2.1", path.read_text(encoding="utf-8"), str(path))
+            self.assertIn("4.0.0", path.read_text(encoding="utf-8"), str(path))
 
     def test_full_paper_workflow_auto_marks_core_scientific_nodes_load_bearing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -161,7 +161,17 @@ class SpecialistRoutingHotfixTests(unittest.TestCase):
                 }],
             }
             (registry_dir / "skill_catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
-            result = router.resolve("statistical-modeling", registry_dir=registry_dir, purpose="formal", load_bearing=True, criticality="critical", task="mixed effects")
+            result = router.resolve(
+                "statistical-modeling",
+                registry_dir=registry_dir,
+                purpose="formal",
+                load_bearing=True,
+                criticality="critical",
+                task="mixed effects",
+                discovery_attempted=True,
+                discovery_status="PASS",
+                external_comparison="EXTERNAL_BETTER",
+            )
             self.assertEqual(result["selected"][0]["skill_id"], "formal-stats-specialist")
             self.assertEqual(result["execution_mode"], "INSTALLED_SPECIALIST")
 

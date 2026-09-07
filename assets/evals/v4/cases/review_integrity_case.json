@@ -1,0 +1,11 @@
+{
+  "case_id": "thin-tta-paper-review-integrity-v1",
+  "task": "Review a seven-page TTA draft whose only completed evidence is one dataset, two seeds, no modern published baseline, no mechanism ablation, and no external validation. Audit every claim and decide the smallest decisive repair.",
+  "draft_claims": [
+    {"id": "c1", "claim": "The method consistently outperforms all prior TTA methods.", "support": "one dataset and two seeds"},
+    {"id": "c2", "claim": "The improvement is caused by hysteresis-aware recovery.", "support": "no mechanism intervention"},
+    {"id": "c3", "claim": "The method is ready for broad deployment.", "support": "no external validation, runtime, or calibration analysis"}
+  ],
+  "required_outputs": ["severity-ranked findings", "evidence anchors", "unsupported-claim report", "missing experiments", "repair graph", "revised bounded claims", "submission verdict"],
+  "expected_gate": "EXPAND_RESEARCH"
+}

@@ -542,7 +542,10 @@ def execute_node(project: Path, node: str) -> dict[str, Any]:
                     }
                 # Vendored prompt resources guide the current Host; loading a
                 # Skill alone is not a scientific output and cannot pass the node.
-                result = host_research_provider.request_or_consume(project, node, capability)
+                if capability == "software-implementation":
+                    result = host_coding_provider.request_or_consume(project, node)
+                else:
+                    result = host_research_provider.request_or_consume(project, node, capability)
                 if result.get("status") == "HOST_EXECUTION_REQUIRED":
                     return result | {
                         "operation": "execute-node", "node": node, "capability": capability,

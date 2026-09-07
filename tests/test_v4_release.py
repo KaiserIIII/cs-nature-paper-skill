@@ -2,6 +2,7 @@ import ast
 import importlib.util
 import json
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -37,6 +38,18 @@ class V4ReleaseTests(unittest.TestCase):
                 if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "SKILL_VERSION" for target in node.targets):
                     if not isinstance(node.value, ast.Constant) or node.value.value != VERSION:
                         stale.append(path.name)
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Dict):
+                    continue
+                for key, value in zip(node.keys, node.values):
+                    if (
+                        isinstance(key, ast.Constant)
+                        and key.value == "skill_version"
+                        and isinstance(value, ast.Constant)
+                        and isinstance(value.value, str)
+                        and value.value != VERSION
+                    ):
+                        stale.append(f"{path.name}:{value.lineno}")
         self.assertFalse(stale, stale)
 
     def test_all_nonlegacy_json_assets_declare_v4(self):
@@ -76,7 +89,39 @@ class V4ReleaseTests(unittest.TestCase):
         validator = load("validate_release")
         self.assertEqual(validator.validate_json_assets(), [])
         self.assertEqual(validator.validate_benchmark_suite_assets(), [])
+        self.assertEqual(validator.validate_private_ultra_assets(), [])
         self.assertEqual(validator.validate_release_manifest(require_hosted_ci=False), [])
+
+    def test_hosted_ci_resolution_preserves_v4_and_incomplete_research_gates(self):
+        resolver = load("resolve_release_manifest")
+        validator = load("validate_release")
+        commit = __import__("subprocess").run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "resolved.json"
+            value = resolver.resolve(
+                ROOT / "release_manifest.json",
+                output,
+                commit,
+                run_id=42,
+                workflow="cs-nature-paper-v4",
+                branch="feat/v4-vendored-research-team",
+                conclusion="success",
+                matrix_status="PASS",
+            )
+            self.assertEqual(value["source_version"], VERSION)
+            self.assertEqual(value["recommended_merge"], "NO")
+            self.assertIn("V4.0.0 RC FAIL", value["release_disposition"])
+            self.assertEqual(
+                validator.validate_release_manifest(
+                    output,
+                    expected_commit=commit,
+                    expected_branch="feat/v4-vendored-research-team",
+                    require_hosted_ci=True,
+                ),
+                [],
+            )
 
     def test_benchmark_manifest_fails_closed_and_matches_run_state(self):
         validator = load("validate_release")

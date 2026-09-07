@@ -1,8 +1,8 @@
-name: cs-nature-paper-v3.2
+name: cs-nature-paper-v4
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final, feat/v32-provider-final, hotfix/v321-specialist-routing-final]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final, feat/v32-provider-final, hotfix/v321-specialist-routing-final, feat/v4-vendored-research-team]
   pull_request:
   workflow_dispatch:
 
@@ -102,7 +102,7 @@ jobs:
           python scripts/resolve_release_manifest.py
           --source-commit "${{ github.sha }}"
           --run-id "${{ github.run_id }}"
-          --workflow "cs-nature-paper-v3.2"
+          --workflow "cs-nature-paper-v4"
           --branch "${{ github.ref_name }}"
           --conclusion success
           --matrix-status PASS
@@ -113,7 +113,7 @@ jobs:
           --manifest resolved_release_manifest.json
           --expected-commit "${{ github.sha }}"
           --expected-branch "${{ github.ref_name }}"
-          --expected-workflow "cs-nature-paper-v3.2"
+          --expected-workflow "cs-nature-paper-v4"
           --require-hosted-ci
       - name: Upload exact-SHA release-integrity record
         uses: actions/upload-artifact@v4

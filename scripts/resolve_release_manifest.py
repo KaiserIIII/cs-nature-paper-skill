@@ -38,11 +38,13 @@ def resolve(
     if not re.fullmatch(r"[0-9a-fA-F]{40}", commit):
         raise ValueError("source commit must be a 40-character hexadecimal SHA")
     commit = commit.lower()
+    source_version = str(value.get("source_version", ""))
+    if source_version != "4.0.0":
+        raise ValueError(f"release manifest source_version must be 4.0.0, got {source_version or 'missing'}")
     value.update({
-        "source_version": "3.2.1",
         "source_commit": commit,
         "source_commit_mode": "resolved",
-        "source_branch": branch or value.get("source_branch", "v3.2"),
+        "source_branch": branch or value.get("source_branch", "feat/v4-vendored-research-team"),
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "e2e_commit": commit,
         "resolved_by": "hosted-ci-release-integrity",
@@ -56,14 +58,33 @@ def resolve(
             "conclusion": conclusion,
             "matrix": {name: matrix_status for name in REQUIRED_CI_MATRIX},
         }
-        ready = conclusion == "success" and matrix_status == "PASS"
-        if branch == "hotfix/v321-specialist-routing-final":
-            value["release_disposition"] = "CORRECT-BASE V3.2.1 RC" if ready else "CORRECT-BASE V3.2.1 RC BLOCKED"
-        else:
-            value["release_disposition"] = "V3.2.1 RELEASE READY" if ready else "V3.2.1 RELEASE BLOCKED"
+        ci_ready = conclusion == "success" and matrix_status == "PASS"
+        benchmark = value.get("benchmark_suite", {})
+        tta = value.get("tta_field_regression", {})
+        research_ready = (
+            value.get("model_behavior_eval") == "PASS"
+            and isinstance(benchmark, dict)
+            and benchmark.get("status") == "PASS"
+            and benchmark.get("multi_system_parity_gate") == "PASS"
+            and benchmark.get("v4_superiority_gate") == "PASS"
+            and isinstance(tta, dict)
+            and tta.get("formal_campaign") == "COMPLETED"
+            and tta.get("publication_sufficiency") == "PASS"
+            and tta.get("reviewer_completeness") == "PASS"
+        )
+        ready = ci_ready and research_ready
+        value["recommended_merge"] = "YES" if ready else "NO"
+        value["release_disposition"] = (
+            "V4.0.0 RELEASE READY"
+            if ready
+            else "V4.0.0 RC FAIL; Hosted CI passed but behavior or field gates remain incomplete"
+            if ci_ready
+            else "V4.0.0 RC FAIL; Hosted CI did not pass"
+        )
     else:
         value["hosted_ci"] = {"run_id": None, "workflow": None, "branch": None, "head_sha": None, "conclusion": None, "matrix": {}}
-        value["release_disposition"] = "V3.2.1 RELEASE BLOCKED; Hosted CI binding is incomplete"
+        value["recommended_merge"] = "NO"
+        value["release_disposition"] = "V4.0.0 RC FAIL; Hosted CI binding is incomplete"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     return value

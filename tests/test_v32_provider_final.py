@@ -170,16 +170,18 @@ class SkillDiscoveryProviderTests(unittest.TestCase):
 
 
 class GenericExecutionTests(unittest.TestCase):
-    def test_generic_research_orchestration_uses_input_derived_results(self):
+    def test_generic_research_orchestration_requests_real_scientific_handoff(self):
         harness = load_script("generic_research_orchestration_e2e")
         result = harness.run()
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["evaluation_class"], "GENERIC_RESEARCH_ORCHESTRATION_E2E")
         self.assertEqual(result["ordinary_author_prompts"], 0)
         self.assertEqual(result["model_behavior"], "NOT_RUN")
-        self.assertTrue(result["actual_command"]["exit_status"] == 0)
-        self.assertTrue(result["input_derived"])
-        self.assertEqual(result["review_repair"], "PASS")
+        self.assertIsNone(result["actual_command"]["exit_status"])
+        self.assertFalse(result["input_derived"])
+        self.assertEqual(result["review_repair"], "NOT_RUN")
+        self.assertTrue(result["host_request_created"])
+        self.assertEqual(result["submission_readiness"], "HOST_EXECUTION_REQUIRED")
         self.assertNotEqual(result["provider_id"], "native-fixture")
 
     def test_generic_competition_provider_covers_three_structural_families(self):

@@ -1,166 +1,152 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "skill_version": "4.0.0",
-  "suite_id": "best-of-breed-cs-research-os-v1",
+  "suite_id": "best-of-breed-cs-research-os-v2",
+  "evaluation_status": "NOT_RUN",
   "evaluation_policy": {
     "comparison": "counterbalanced_blind_behavior_judgment",
     "parity_rule": "both orderings must judge V4 TIE or V4_BETTER",
     "superiority_rule": "both orderings must judge V4_BETTER",
     "missing_evidence": "FAIL",
-    "prohibited_proxies": [
-      "number of agents",
-      "repository size",
-      "number of installed skills",
-      "architecture diagram complexity"
-    ]
+    "selection_basis": "task-specific output behavior with hash-bound evidence",
+    "prohibited_proxies": ["popularity", "repository size", "number of installed components", "architecture diagram complexity", "licensing convenience"]
   },
   "systems": [
     {
-      "id": "ars",
-      "name": "Academic Research Skills",
-      "repository": "Imbad0202/academic-research-skills",
-      "exact_commit": "6b7ee6dcae29c0fbb46e0017538f9cef84c3136b",
-      "license": "CC-BY-NC-4.0",
-      "use_decision": "BENCHMARK_ONLY_DO_NOT_VENDOR",
-      "strongest_capabilities": [
-        "deep literature research with explicit source verification",
-        "claim-to-citation integrity controls",
-        "full manuscript writing and revision",
-        "structured peer review and adversarial criticism"
-      ],
-      "behavior_task": {
-        "id": "grounded_research_write_review_revise",
-        "public_inputs": ["assets/evals/v4/cases/grounded_research_case.json"],
-        "required_outputs": ["literature synthesis", "claim-citation matrix", "full manuscript", "review", "revised manuscript"]
-      },
-      "parity_dimensions": [
-        "evidence_depth",
-        "citation_faithfulness",
-        "closest_work_coverage",
-        "manuscript_structure",
-        "writing_depth",
-        "reviewer_attack_quality",
-        "unsupported_claim_detection",
-        "revision_quality"
-      ],
-      "superiority_dimensions": [
-        "dataset_benchmark_selection",
-        "experimental_design",
-        "actual_implementation",
-        "actual_experiment_execution",
-        "research_compute",
-        "background_campaigns",
-        "checkpoint_resume_retry",
-        "actual_result_statistics",
-        "publication_sufficiency",
-        "reviewer_required_experiment_expansion",
-        "thin_evidence_auto_expansion"
-      ]
+      "id": "ars", "kind": "SKILL_SUITE", "name": "Academic Research Skills",
+      "repository": "Imbad0202/academic-research-skills", "exact_commit": "6b7ee6dcae29c0fbb46e0017538f9cef84c3136b", "license": "CC-BY-NC-4.0", "use_decision": "BENCHMARK_ONLY_DO_NOT_VENDOR",
+      "strongest_capabilities": ["deep research", "scientific writing", "peer review", "claim-citation integrity"],
+      "behavior_task": {"id": "ars_literature_write_review", "public_inputs": ["assets/evals/v4/cases/literature_evidence_case.json", "assets/evals/v4/cases/review_integrity_case.json"], "required_outputs": ["source-grounded synthesis", "claim-citation ledger", "manuscript section", "review", "revision"]},
+      "parity_dimensions": ["evidence_depth", "citation_faithfulness", "closest_work_coverage", "manuscript_structure", "writing_depth", "reviewer_attack_quality", "unsupported_claim_detection", "revision_quality"],
+      "superiority_dimensions": ["actual_experiment_execution", "publication_sufficiency", "reviewer_required_experiment_expansion", "thin_evidence_auto_expansion"]
     },
     {
-      "id": "k_dense",
-      "name": "K-Dense Scientific Agent Skills",
-      "repository": "K-Dense-AI/scientific-agent-skills",
-      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
-      "license": "MIT",
-      "use_decision": "AUDITED_COMPONENTS_VENDORED_AND_BENCHMARKED",
-      "strongest_capabilities": [
-        "broad scientific specialist coverage",
-        "domain tool selection",
-        "statistical analysis and power planning",
-        "scientific visualization and data analysis"
-      ],
-      "behavior_task": {
-        "id": "scientific_tooling_and_statistics",
-        "public_inputs": ["assets/evals/v4/cases/research_execution_case.json"],
-        "required_outputs": ["tool plan", "executed analysis", "assumption checks", "uncertainty", "figure specification"]
-      },
-      "parity_dimensions": ["specialist_breadth", "tool_selection_quality", "statistical_rigor", "visualization_quality"],
-      "superiority_dimensions": ["cross_specialist_orchestration", "artifact_provenance", "publication_gate_integration"]
+      "id": "ars_codex", "kind": "SKILL_SUITE", "name": "Academic Research Skills for Codex",
+      "repository": "Imbad0202/academic-research-skills-codex", "exact_commit": "925975e933a20893b81681d925a3404e3b7f73b7", "license": "CC-BY-NC-4.0", "use_decision": "LOCAL_ADAPTER_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["Codex-native research workflow", "literature synthesis", "manuscript revision", "integrity checking"],
+      "behavior_task": {"id": "ars_codex_integrity_revision", "public_inputs": ["assets/evals/v4/cases/review_integrity_case.json"], "required_outputs": ["claim audit", "review findings", "repair plan", "revised claims"]},
+      "parity_dimensions": ["unsupported_claim_detection", "claim_source_alignment", "revision_quality", "workflow_usability"],
+      "superiority_dimensions": ["checker_independence", "artifact_provenance", "research_expansion"]
     },
     {
-      "id": "ai_scientist",
-      "name": "The AI Scientist",
-      "repository": "SakanaAI/AI-Scientist",
-      "exact_commit": "1de1dbc1f4ee2c5f61e9c94348d55eb51d7fa2eb",
-      "license": "AI-SCIENTIST-SOURCE-CODE-LICENSE-1.0",
-      "use_decision": "BENCHMARK_ONLY_DISCLOSURE_REQUIRED",
-      "strongest_capabilities": [
-        "automated idea generation and ranking",
-        "iterative code modification and experiment execution",
-        "result-driven write-up",
-        "automated review loop"
-      ],
-      "behavior_task": {
-        "id": "autonomous_idea_experiment_iteration",
-        "public_inputs": ["assets/evals/v4/cases/research_execution_case.json"],
-        "required_outputs": ["idea", "working implementation", "executed experiments", "iteration decision", "machine-generated disclosure"]
-      },
-      "parity_dimensions": ["autonomous_loop_completion", "result_driven_iteration", "implementation_effectiveness", "experiment_execution"],
-      "superiority_dimensions": ["protocol_integrity", "failure_preservation", "statistical_confirmation", "publication_sufficiency_expansion"]
+      "id": "k_dense", "kind": "SKILL_SUITE", "name": "K-Dense Scientific Agent Skills",
+      "repository": "K-Dense-AI/scientific-agent-skills", "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c", "license": "MIT", "use_decision": "AUDITED_COMPONENTS_AND_BENCHMARK",
+      "strongest_capabilities": ["scientific tooling breadth", "literature retrieval", "experimental design", "statistics and visualization"],
+      "behavior_task": {"id": "k_dense_design_and_analysis", "public_inputs": ["assets/evals/v4/cases/experiment_design_case.json"], "required_outputs": ["formal protocol", "power rationale", "analysis plan", "figure plan"]},
+      "parity_dimensions": ["tool_selection_quality", "experimental_rigor", "statistical_validity", "visualization_quality"],
+      "superiority_dimensions": ["cross_specialist_orchestration", "actual_execution", "publication_gate_integration"]
     },
     {
-      "id": "paper_orchestra",
-      "name": "PaperOrchestra",
-      "repository": "Ar9av/PaperOrchestra",
-      "exact_commit": "798f03a14ce582607ba2742d025691f226470641",
-      "license": "MIT_WITH_UPSTREAM_PROMPT_NOTICE",
-      "use_decision": "BENCHMARK_ONLY_PENDING_PROMPT_RIGHTS_REVIEW",
-      "strongest_capabilities": [
-        "experiment-log aggregation",
-        "experiment-to-manuscript orchestration",
-        "literature-grounded outline reconciliation",
-        "iterative content refinement with paper autoraters"
-      ],
-      "behavior_task": {
-        "id": "experiment_log_to_manuscript",
-        "public_inputs": ["assets/evals/v4/cases/experiment_to_manuscript_case.json"],
-        "required_outputs": ["experiment synthesis", "reconciled outline", "claim-grounded manuscript", "refinement record"]
-      },
+      "id": "orchestra_skills", "kind": "SKILL_SUITE", "name": "Orchestra AI Research Skills",
+      "repository": "Orchestra-Research/AI-Research-SKILLs", "exact_commit": "773a52944ba4747a18bd4ae9ade53fff041adcbc", "license": "MIT", "use_decision": "LOCAL_ADAPTER_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["ML engineering breadth", "training recipes", "distributed compute", "ML and systems paper writing"],
+      "behavior_task": {"id": "orchestra_ml_engineering", "public_inputs": ["assets/evals/v4/cases/experiment_design_case.json"], "required_outputs": ["implementation plan", "compute plan", "execution manifest", "paper structure"]},
+      "parity_dimensions": ["implementation_depth", "compute_planning", "domain_tooling", "technical_writing"],
+      "superiority_dimensions": ["protocol_freeze", "failure_preservation", "claim_result_binding"]
+    },
+    {
+      "id": "orchestra_autoresearch", "kind": "SYSTEM_BENCHMARK", "name": "Orchestra Autoresearch",
+      "repository": "Orchestra-Research/AI-Research-SKILLs", "exact_commit": "773a52944ba4747a18bd4ae9ade53fff041adcbc", "license": "MIT", "use_decision": "SYSTEM_ADAPTER_BENCHMARK_ONLY",
+      "strongest_capabilities": ["continuous research iteration", "experiment feedback loop", "implementation refinement"],
+      "behavior_task": {"id": "orchestra_long_horizon_loop", "public_inputs": ["assets/evals/v4/cases/long_horizon_orchestration_case.json"], "required_outputs": ["iteration ledger", "executed repair", "checkpoint", "stop decision"]},
+      "parity_dimensions": ["long_horizon_progress", "iteration_quality", "execution_follow_through"],
+      "superiority_dimensions": ["protocol_integrity", "publication_sufficiency", "release_authority_boundary"]
+    },
+    {
+      "id": "eureka", "kind": "SKILL_SUITE", "name": "Eureka Research Skills",
+      "repository": "jeonnoin-alt/Eureka", "exact_commit": "9f3d28a14b0b35010d8da6f2116aa3b4b8b790ff", "license": "MIT", "use_decision": "AUDITED_COMPONENTS_AND_BENCHMARK",
+      "strongest_capabilities": ["hypothesis-first research", "novelty audit", "claims audit", "submission readiness"],
+      "behavior_task": {"id": "eureka_novelty_and_integrity", "public_inputs": ["assets/evals/v4/cases/novelty_mechanism_case.json", "assets/evals/v4/cases/review_integrity_case.json"], "required_outputs": ["novelty verdict", "falsifiers", "claims audit", "readiness decision"]},
+      "parity_dimensions": ["novelty_discrimination", "hypothesis_rigor", "unsupported_claim_detection", "readiness_judgment"],
+      "superiority_dimensions": ["actual_experiment_execution", "checkpoint_resume_retry", "reviewer_required_experiment_expansion"]
+    },
+    {
+      "id": "sisyphus_academica", "kind": "SKILL_SUITE", "name": "Sisyphus Academica",
+      "repository": "argahv/sisyphus-academica", "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8", "license": "MIT", "use_decision": "AUDITED_COMPONENTS_AND_BENCHMARK",
+      "strongest_capabilities": ["assumption excavation", "counterfactual novelty", "methodological skepticism", "adversarial review"],
+      "behavior_task": {"id": "sisyphus_novelty_collision", "public_inputs": ["assets/evals/v4/cases/novelty_mechanism_case.json"], "required_outputs": ["assumption tree", "closest-work collision", "rival mechanisms", "kill arguments"]},
+      "parity_dimensions": ["novelty_generation", "prior_art_collision", "falsifier_quality", "adversarial_depth"],
+      "superiority_dimensions": ["novelty_to_protocol_translation", "discriminating_experiment_execution", "review_attack_to_expansion"]
+    },
+    {
+      "id": "snl_paper_writing", "kind": "SKILL", "name": "SNL Paper Writing Skill",
+      "repository": "SNL-UCSB/paper-writing-skill", "exact_commit": "676f8520bba54208eb4fe1d41620e365d9af6a24", "license": "MIT", "use_decision": "LOCAL_ADAPTER_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["CS paper structure", "editorial depth", "argument flow", "revision craft"],
+      "behavior_task": {"id": "snl_evidence_bound_writing", "public_inputs": ["assets/evals/v4/cases/experiment_to_manuscript_case.json"], "required_outputs": ["full manuscript", "claim boundaries", "editorial revision"]},
+      "parity_dimensions": ["manuscript_structure", "writing_depth", "argument_flow", "revision_quality"],
+      "superiority_dimensions": ["missing_experiment_detection", "claim_evidence_enforcement", "publication_sufficiency"]
+    },
+    {
+      "id": "research_engineering_suite", "kind": "SKILL", "name": "Research Engineering Suite",
+      "repository": "JoeyJin-NJU/research-engineering-suite", "exact_commit": "670d0be50c52595f9e13b684ebd995dff5831fb7", "license": "MIT", "use_decision": "AUDITED_COMPONENT_AND_BENCHMARK",
+      "strongest_capabilities": ["research implementation", "debugging", "experiment provenance", "reproducibility checks"],
+      "behavior_task": {"id": "research_engineering_recovery", "public_inputs": ["assets/evals/v4/cases/long_horizon_orchestration_case.json"], "required_outputs": ["failure diagnosis", "repair", "resume record", "artifact manifest"]},
+      "parity_dimensions": ["debugging_quality", "reproducibility", "checkpoint_recovery", "artifact_verification"],
+      "superiority_dimensions": ["cross_campaign_statistics", "publication_claim_binding", "research_expansion"]
+    },
+    {
+      "id": "opencite", "kind": "TOOL", "name": "OpenCite",
+      "repository": "neuromechanist/opencite", "exact_commit": "78d8059bc9038263b499e259ba6b4243b1df9785", "license": "MIT", "use_decision": "LOCAL_TOOL_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["citation identity verification", "full-text acquisition", "citation graph inspection"],
+      "behavior_task": {"id": "opencite_source_verification", "public_inputs": ["assets/evals/v4/cases/literature_evidence_case.json"], "required_outputs": ["identity-verified sources", "supporting regions", "citation graph", "contradiction list"]},
+      "parity_dimensions": ["source_identity_accuracy", "full_text_coverage", "citation_traceability", "contradiction_search"],
+      "superiority_dimensions": ["claim_ledger_integration", "checker_independence", "publication_gate_integration"]
+    },
+    {
+      "id": "neuromechanist_research_skills", "kind": "PLUGIN_SUITE", "name": "Neuromechanist Research Skills",
+      "repository": "neuromechanist/research-skills", "exact_commit": "af4f609f395d825ea2d2dadddc223be70ae904da", "license": "BSD-3-Clause", "use_decision": "LOCAL_PLUGIN_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["figure QA", "manuscript writing", "fresh-context review", "ML training"],
+      "behavior_task": {"id": "neuromechanist_review_and_figures", "public_inputs": ["assets/evals/v4/cases/review_integrity_case.json"], "required_outputs": ["fresh-context review", "figure audit", "manuscript repairs"]},
+      "parity_dimensions": ["reviewer_attack_quality", "figure_integrity", "writing_quality", "reproducibility"],
+      "superiority_dimensions": ["review_finding_to_experiment", "evidence_ledger_integration", "publication_sufficiency"]
+    },
+    {
+      "id": "experiment_agent", "kind": "SKILL", "name": "Experiment Agent",
+      "repository": "Imbad0202/experiment-agent", "exact_commit": "e291e7dc7ca268b2de7e1a9cf23bc2eef5dc0651", "license": "CC-BY-NC-4.0", "use_decision": "LOCAL_ADAPTER_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["experiment planning", "implementation loop", "result inspection", "iteration"],
+      "behavior_task": {"id": "experiment_agent_confirmatory_design", "public_inputs": ["assets/evals/v4/cases/experiment_design_case.json"], "required_outputs": ["frozen design", "implementation", "execution record", "analysis"]},
+      "parity_dimensions": ["experiment_design", "implementation_effectiveness", "execution_completeness", "result_interpretation"],
+      "superiority_dimensions": ["formal_exploratory_separation", "failure_preservation", "publication_sufficiency"]
+    },
+    {
+      "id": "hermes_research_writing", "kind": "SKILL", "name": "Hermes Research Paper Writing",
+      "repository": "NousResearch/hermes-agent", "exact_commit": "c4a5deeffa959f8ebc891e02c5bcf767aff1dd2a", "license": "MIT", "use_decision": "LOCAL_ADAPTER_CANDIDATE_AND_BENCHMARK",
+      "strongest_capabilities": ["research paper drafting", "structured technical prose", "revision"],
+      "behavior_task": {"id": "hermes_manuscript_draft", "public_inputs": ["assets/evals/v4/cases/experiment_to_manuscript_case.json"], "required_outputs": ["structured manuscript", "limitations", "revision record"]},
+      "parity_dimensions": ["manuscript_structure", "technical_clarity", "writing_depth", "revision_quality"],
+      "superiority_dimensions": ["claim_result_binding", "missing_experiment_detection", "release_boundary"]
+    },
+    {
+      "id": "paper_orchestra", "kind": "SYSTEM_BENCHMARK", "name": "PaperOrchestra",
+      "repository": "google-research/paper-orchestra", "exact_commit": "ca1b3fa01c2970fc7cda32d16245db38d57b3f56", "license": "Apache-2.0", "use_decision": "SYSTEM_ADAPTER_BENCHMARK_ONLY",
+      "strongest_capabilities": ["experiment material aggregation", "literature synthesis", "plotting", "manuscript refinement"],
+      "behavior_task": {"id": "paper_orchestra_experiment_to_manuscript", "public_inputs": ["assets/evals/v4/cases/experiment_to_manuscript_case.json"], "required_outputs": ["experiment synthesis", "outline", "full manuscript", "refinement record"]},
       "parity_dimensions": ["experiment_result_transfer", "manuscript_coherence", "claim_evidence_alignment", "refinement_quality"],
       "superiority_dimensions": ["missing_experiment_detection", "experiment_reexecution", "reviewer_driven_expansion", "submission_readiness_gate"]
     },
     {
-      "id": "sisyphus_academica",
-      "name": "Sisyphus Academica",
-      "repository": "argahv/sisyphus-academica",
-      "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8",
-      "license": "MIT",
-      "use_decision": "AUDITED_COMPONENTS_VENDORED_AND_BENCHMARKED",
-      "strongest_capabilities": [
-        "assumption excavation",
-        "counterfactual novelty generation",
-        "methodological skepticism",
-        "adversarial review"
-      ],
-      "behavior_task": {
-        "id": "novelty_collision_and_adversarial_review",
-        "public_inputs": ["assets/evals/v4/cases/grounded_research_case.json"],
-        "required_outputs": ["assumption map", "rival hypotheses", "closest-work collision", "falsifiers", "kill arguments"]
-      },
-      "parity_dimensions": ["novelty_generation", "prior_art_collision", "falsifier_quality", "adversarial_review_depth"],
-      "superiority_dimensions": ["novelty_to_protocol_translation", "discriminating_experiment_execution", "review_attack_to_expansion"]
+      "id": "ai_scientist_v2", "kind": "SYSTEM_BENCHMARK", "name": "AI Scientist v2",
+      "repository": "SakanaAI/AI-Scientist-v2", "exact_commit": "96bd51617cfdbb494a9fc283af00fe090edfae48", "license": "AI-SCIENTIST-SOURCE-CODE-LICENSE-1.0", "use_decision": "SYSTEM_ADAPTER_BENCHMARK_ONLY",
+      "strongest_capabilities": ["open-ended ideation", "tree-search research", "code modification", "experiment-paper loop"],
+      "behavior_task": {"id": "ai_scientist_v2_autonomous_loop", "public_inputs": ["assets/evals/v4/cases/long_horizon_orchestration_case.json"], "required_outputs": ["hypothesis tree", "working code", "executed experiments", "iteration decision", "paper"]},
+      "parity_dimensions": ["autonomous_loop_completion", "novelty_search", "implementation_effectiveness", "result_driven_iteration"],
+      "superiority_dimensions": ["protocol_integrity", "failure_preservation", "statistical_confirmation", "publication_sufficiency_expansion"]
     },
     {
-      "id": "research_engineering_suite",
-      "name": "Research Engineering Suite",
-      "repository": "JoeyJin-NJU/research-engineering-suite",
-      "exact_commit": "670d0be50c52595f9e13b684ebd995dff5831fb7",
-      "license": "MIT",
-      "use_decision": "AUDITED_COMPONENT_VENDORED_AND_BENCHMARKED",
-      "strongest_capabilities": [
-        "research code implementation and debugging",
-        "reproducible experiment workflow",
-        "failure diagnosis and recovery",
-        "research artifact verification"
-      ],
-      "behavior_task": {
-        "id": "debug_resume_and_provenance",
-        "public_inputs": ["assets/evals/v4/cases/research_execution_case.json"],
-        "required_outputs": ["corrected code", "executed tests", "failure record", "checkpoint resume", "artifact manifest"]
-      },
-      "parity_dimensions": ["debugging_quality", "reproducibility", "checkpoint_recovery", "artifact_verification"],
-      "superiority_dimensions": ["background_campaign_management", "cross_campaign_statistics", "publication_claim_binding"]
+      "id": "agent_laboratory", "kind": "SYSTEM_BENCHMARK", "name": "Agent Laboratory",
+      "repository": "kspviswa/agentlaboratory", "exact_commit": "5201197bf00edb46629693358c697564bd4b92b7", "license": "MIT", "use_decision": "SYSTEM_ADAPTER_BENCHMARK_ONLY",
+      "strongest_capabilities": ["literature-to-experiment workflow", "autonomous experimentation", "report generation"],
+      "behavior_task": {"id": "agent_laboratory_end_to_end", "public_inputs": ["assets/evals/v4/cases/long_horizon_orchestration_case.json"], "required_outputs": ["literature packet", "experiment", "analysis", "report"]},
+      "parity_dimensions": ["end_to_end_completion", "literature_to_experiment", "execution_quality", "report_quality"],
+      "superiority_dimensions": ["evidence_fidelity", "checkpoint_resume_retry", "reviewer_required_expansion", "submission_readiness_gate"]
+    },
+    {
+      "id": "deer_flow", "kind": "SYSTEM_BENCHMARK", "name": "DeerFlow",
+      "repository": "bytedance/deer-flow", "exact_commit": "99367100fbdddeaf7cec29aebbc9170cb5653def", "license": "MIT", "use_decision": "SYSTEM_ADAPTER_BENCHMARK_ONLY",
+      "strongest_capabilities": ["long-horizon orchestration", "progressive capability loading", "research workflow coordination"],
+      "behavior_task": {"id": "deer_flow_long_horizon", "public_inputs": ["assets/evals/v4/cases/long_horizon_orchestration_case.json"], "required_outputs": ["work graph", "progress ledger", "recovery record", "final research state"]},
+      "parity_dimensions": ["long_horizon_orchestration", "progressive_loading", "recovery_quality", "task_completion"],
+      "superiority_dimensions": ["scientific_gate_depth", "formal_evidence_provenance", "publication_sufficiency", "authorization_boundary"]
     }
   ]
 }

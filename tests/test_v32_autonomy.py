@@ -22,7 +22,7 @@ autonomy = load("autonomy")
 def policy():
     return {
         "schema_version": 1,
-        "skill_version": "3.2.1",
+        "skill_version": autonomy.SKILL_VERSION,
         "mode": "maximum-autonomy",
         "risk_cap": "MEDIUM",
         "fail_closed": True,

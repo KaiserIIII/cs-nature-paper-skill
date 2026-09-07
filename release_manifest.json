@@ -4,7 +4,7 @@
   "source_commit": "release-process-injected",
   "source_commit_mode": "publisher-injected",
   "source_branch": "feat/v4-vendored-research-team",
-  "generated_at": "2026-09-07T02:30:00Z",
+  "generated_at": "2026-09-07T10:39:35Z",
   "release_status": "RC_NOT_RELEASED",
   "tag": null,
   "e2e_commit": null,
@@ -13,8 +13,9 @@
     "v4_vendor_runtime": "PASS",
     "publication_sufficiency": "PASS",
     "research_expansion": "PASS",
+    "private_ultra_registry_and_routing": "PASS",
     "multi_system_benchmark_gate": "NOT_RUN",
-    "full_regression": "PENDING"
+    "full_regression": "PASS"
   },
   "hosted_ci": {
     "run_id": null,
@@ -30,33 +31,63 @@
     "run_root": "benchmarks/v4/runs",
     "systems": [
       "ars",
+      "ars_codex",
       "k_dense",
-      "ai_scientist",
-      "paper_orchestra",
+      "orchestra_skills",
+      "orchestra_autoresearch",
+      "eureka",
       "sisyphus_academica",
-      "research_engineering_suite"
+      "snl_paper_writing",
+      "research_engineering_suite",
+      "opencite",
+      "neuromechanist_research_skills",
+      "experiment_agent",
+      "hermes_research_writing",
+      "paper_orchestra",
+      "ai_scientist_v2",
+      "agent_laboratory",
+      "deer_flow"
     ],
     "multi_system_parity_gate": "FAIL",
     "ars_parity_gate": "FAIL",
     "v4_superiority_gate": "FAIL",
     "recommended_merge": "NO"
   },
+  "private_ultra": {
+    "status": "IMPLEMENTED_NOT_BEHAVIOR_QUALIFIED",
+    "candidate_count": 18,
+    "role_count": 14,
+    "selection_policy": "BEST_QUALIFIED_PROVIDER_OR_BEST_COMPLEMENTARY_ENSEMBLE",
+    "qualified_external_providers": [],
+    "fallback": "PUBLIC_CORE",
+    "missing_behavior_evidence": "FAIL_CLOSED"
+  },
   "tta_field_regression": {
     "project": "external-project:ccta_tta",
     "thin_draft_detection": "PASS",
     "expansion_campaign_generation": "PASS",
     "gpu_smoke": "PASS",
-    "formal_campaign": "NOT_RUN",
+    "formal_campaign": "RUNNING",
+    "formal_campaign_snapshot": {
+      "total_jobs": 1000,
+      "completed_jobs": 875,
+      "remaining_jobs": 125,
+      "current_failed_jobs": 0,
+      "preserved_historical_failures": 80,
+      "workers": 4,
+      "observed_at": "2026-09-07T18:39:35+08:00"
+    },
     "publication_sufficiency": "FAIL",
     "reviewer_completeness": "FAIL"
   },
   "e2e_status": "CONDITIONAL",
   "known_limitations": [
-    "The multi-system model behavior comparison has not yet completed; parity and superiority remain failed.",
+    "The 17-target multi-system behavior comparison has not yet run; parity and superiority remain failed.",
+    "PRIVATE_ULTRA has no behavior-qualified external provider yet, so PUBLIC_CORE remains selected.",
     "The TTA field project remains publication-insufficient until cross-dataset formal runs, published modern baselines, ablations, statistics, adversarial review, and revision complete.",
     "Hosted CI has not run against an exact committed V4 SHA.",
-    "ARS remains benchmark-only under CC BY-NC 4.0 and is not vendored into V4.",
-    "AI Scientist is benchmark-only under its source-code license and requires prominent machine-generation disclosure for manuscript outputs."
+    "The TTA formal campaign is still running; the recorded job counts are a time-bounded snapshot.",
+    "System-level comparators require adapters and are not treated as ordinary Skills."
   ],
   "recommended_merge": "NO",
   "release_disposition": "V4.0.0 RC FAIL; required behavior comparisons, formal field expansion, and exact-SHA Hosted CI are incomplete"

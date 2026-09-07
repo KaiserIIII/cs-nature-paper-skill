@@ -11,11 +11,13 @@ from pathlib import Path
 from typing import Any
 
 
-SCRIPT_DIR = str(Path(__file__).resolve().parent)
-if SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, SCRIPT_DIR)
+ROOT = Path(__file__).resolve().parents[1]
+for directory in (str(Path(__file__).resolve().parent), str(ROOT / "providers")):
+    if directory not in sys.path:
+        sys.path.insert(0, directory)
 import director_loop  # noqa: E402
 import host_provider_runtime  # noqa: E402
+import host_research_provider  # noqa: E402
 import research_state  # noqa: E402
 
 
@@ -113,23 +115,71 @@ def _handoff(project: Path, task_id: str) -> dict[str, Any]:
     }
 
 
+def _scientific_handoff(project: Path, request: dict[str, Any]) -> dict[str, Any]:
+    """Materialize a bounded recorded fixture for pre-implementation lifecycle nodes."""
+    node = str(request["node"])
+    generated = host_research_provider.execute(project, node)
+    if generated.get("status") != "PASS":
+        raise RuntimeError(f"recorded {node} fixture failed: {generated}")
+    return {
+        "task_id": str(request["task_id"]),
+        "provider_id": f"recorded-host-research-{node}",
+        "status": "PASS",
+        "artifacts": list(generated.get("artifacts", [])),
+        "claims": list(generated.get("claims", [])),
+        "uncertainties": list(generated.get("uncertainties", []))
+        + ["recorded fixture is not live model behavior or publication evidence"],
+        "actions_taken": list(generated.get("actions_taken", [])) or [
+            "inspected the scoped project inputs",
+            f"materialized the recorded {node} artifact",
+        ],
+        "tool_calls": list(generated.get("tool_calls", [])),
+        "commands": [],
+        "checker_notes": ["verify the bounded artifact and retain the model-behavior NOT_RUN label"],
+    }
+
+
 def run(output: Path | None = None) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="generic-host-research-") as temporary:
         project = Path(temporary) / "project"
         project.mkdir()
         _seed(project)
         first = director_loop.run(project, max_iterations=32, now="2026-08-29T00:00:00Z")
-        task_id = str(host_provider_runtime.pending(project)["requests"][0]["task_id"])
-        received = host_provider_runtime.receive(project, _handoff(project, task_id))
-        checked = host_provider_runtime.check(project, task_id, checker_id="deterministic-research-checker")
-        final = director_loop.run(project, max_iterations=48, now="2026-08-29T00:00:00Z")
+        final = first
+        accepted_nodes: list[str] = []
+        received_states: list[str] = []
+        checker_states: list[str] = []
+        for _ in range(3):
+            if final.get("status") != "HOST_EXECUTION_REQUIRED":
+                break
+            requests = host_provider_runtime.pending(project).get("requests", [])
+            if not requests:
+                break
+            request = requests[0]
+            node = str(request.get("node"))
+            if node not in {"innovation", "protocol_freeze", "implementation"}:
+                break
+            task_id = str(request["task_id"])
+            handoff = _handoff(project, task_id) if node == "implementation" else _scientific_handoff(project, request)
+            received = host_provider_runtime.receive(project, handoff)
+            checked = host_provider_runtime.check(
+                project,
+                task_id,
+                checker_id=f"deterministic-{node}-checker",
+            )
+            accepted_nodes.append(node)
+            received_states.append(str(received.get("state")))
+            checker_states.append(str(checked.get("status")))
+            final = director_loop.run(project, max_iterations=48, now="2026-08-29T00:00:00Z")
         execution_path = project / "artifacts" / "formal_execution.json"
         execution = json.loads(execution_path.read_text(encoding="utf-8")) if execution_path.is_file() else {}
         passed = (
             first.get("status") == "HOST_EXECUTION_REQUIRED"
-            and received.get("state") == "HOST_HANDOFF_RECEIVED"
-            and checked.get("status") == "ACCEPTED"
-            and final.get("status") == "READY_FOR_SUBMISSION"
+            and accepted_nodes == ["innovation", "protocol_freeze", "implementation"]
+            and all(state == "HOST_HANDOFF_RECEIVED" for state in received_states)
+            and all(state == "ACCEPTED" for state in checker_states)
+            and final.get("status") == "HOST_EXECUTION_REQUIRED"
+            and final.get("node") == "analysis"
             and execution.get("status") == "PASS"
             and execution.get("host_provider_id") == "recorded-host-research"
         )
@@ -138,12 +188,14 @@ def run(output: Path | None = None) -> dict[str, Any]:
             "evaluation_class": "RECORDED_HOST_HANDOFF_E2E",
             "status": "PASS" if passed else "FAIL",
             "host_request_created": first.get("host_request_created") is True,
-            "host_handoff_received": received.get("state") == "HOST_HANDOFF_RECEIVED",
+            "host_handoff_received": bool(received_states) and all(state == "HOST_HANDOFF_RECEIVED" for state in received_states),
             "deterministic_execution": execution.get("status") == "PASS",
-            "checker": (checked.get("checker") or {}).get("status", "FAIL"),
+            "checker": "PASS" if checker_states and all(state == "ACCEPTED" for state in checker_states) else "FAIL",
             "ordinary_author_prompts": final.get("ordinary_author_prompts", first.get("ordinary_author_prompts", 0)),
             "model_behavior": "RECORDED_HANDOFF",
             "model_behavior_eval": "NOT_RUN",
+            "accepted_nodes": accepted_nodes,
+            "next_required_node": final.get("node"),
         }
     if output:
         _write(output, result)

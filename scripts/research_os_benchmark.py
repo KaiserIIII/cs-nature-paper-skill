@@ -13,14 +13,26 @@ from typing import Any
 SKILL_VERSION = "4.0.0"
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUITE = ROOT / "assets" / "evals" / "v4" / "research_os_benchmarks.json"
-SYSTEM_IDS = {
+MANDATORY_SYSTEM_IDS = {
     "ars",
+    "ars_codex",
     "k_dense",
-    "ai_scientist",
-    "paper_orchestra",
+    "orchestra_skills",
+    "orchestra_autoresearch",
+    "eureka",
     "sisyphus_academica",
+    "snl_paper_writing",
     "research_engineering_suite",
+    "opencite",
+    "neuromechanist_research_skills",
+    "experiment_agent",
+    "hermes_research_writing",
+    "paper_orchestra",
+    "ai_scientist_v2",
+    "agent_laboratory",
+    "deer_flow",
 }
+ALLOWED_KINDS = {"SKILL", "SKILL_SUITE", "PLUGIN_SUITE", "TOOL", "SYSTEM_BENCHMARK"}
 VERDICTS = {"BENCHMARK_BETTER", "TIE", "V4_BETTER"}
 
 
@@ -46,9 +58,16 @@ def validate_suite(suite: Any, *, root: Path = ROOT) -> list[str]:
     if not isinstance(systems, list):
         return findings + ["systems must be a list"]
     ids = {item.get("id") for item in systems if isinstance(item, dict)}
-    if ids != SYSTEM_IDS:
+    if ids != MANDATORY_SYSTEM_IDS:
         findings.append(f"benchmark system set mismatch: {sorted(str(item) for item in ids)}")
-    prohibited = {"agent_count", "code_size", "skill_count", "architecture_score"}
+    prohibited = {
+        "agent_count",
+        "code_size",
+        "skill_count",
+        "architecture_score",
+        "star_count",
+        "license_convenience",
+    }
     for index, item in enumerate(systems):
         if not isinstance(item, dict):
             findings.append(f"systems[{index}] must be an object")
@@ -56,6 +75,7 @@ def validate_suite(suite: Any, *, root: Path = ROOT) -> list[str]:
         prefix = f"systems[{index}]"
         for field in (
             "id",
+            "kind",
             "name",
             "repository",
             "exact_commit",
@@ -71,11 +91,15 @@ def validate_suite(suite: Any, *, root: Path = ROOT) -> list[str]:
         commit = item.get("exact_commit", "")
         if not isinstance(commit, str) or len(commit) != 40 or any(ch not in "0123456789abcdef" for ch in commit):
             findings.append(f"{prefix}.exact_commit must be a lowercase 40-character SHA")
+        if item.get("kind") not in ALLOWED_KINDS:
+            findings.append(f"{prefix}.kind is invalid")
         dimensions = set(item.get("parity_dimensions", [])) | set(item.get("superiority_dimensions", []))
         overlap = dimensions & prohibited
         if overlap:
             findings.append(f"{prefix} uses prohibited proxy dimensions: {sorted(overlap)}")
         task = item.get("behavior_task", {})
+        if not isinstance(task, dict) or not task.get("id") or not task.get("required_outputs"):
+            findings.append(f"{prefix}.behavior_task must declare id and required_outputs")
         for relative in task.get("public_inputs", []) if isinstance(task, dict) else []:
             if not (root / relative).is_file():
                 findings.append(f"{prefix} public input is missing: {relative}")
@@ -85,7 +109,7 @@ def validate_suite(suite: Any, *, root: Path = ROOT) -> list[str]:
     return findings
 
 
-def _system_result(system: dict[str, Any], run_root: Path) -> dict[str, Any]:
+def _system_result(system: dict[str, Any], run_root: Path, suite_id: str) -> dict[str, Any]:
     system_id = system["id"]
     run = run_root / system_id
     required_files = {
@@ -114,10 +138,20 @@ def _system_result(system: dict[str, Any], run_root: Path) -> dict[str, Any]:
         "benchmark": _sha256(required_files["benchmark_output"]),
         "v4": _sha256(required_files["v4_output"]),
     }
+    public_input_hashes = {
+        relative: _sha256(ROOT / relative)
+        for relative in system["behavior_task"]["public_inputs"]
+    }
     if manifest.get("status") != "COMPLETED":
         findings.append(f"{system_id}: producer run is not COMPLETED")
     if manifest.get("system_id") != system_id or manifest.get("task_id") != system["behavior_task"]["id"]:
         findings.append(f"{system_id}: run identity mismatch")
+    if manifest.get("suite_id") != suite_id:
+        findings.append(f"{system_id}: suite identity mismatch")
+    if manifest.get("benchmark_commit") != system["exact_commit"]:
+        findings.append(f"{system_id}: benchmark commit mismatch")
+    if manifest.get("public_input_sha256") != public_input_hashes:
+        findings.append(f"{system_id}: public inputs are not hash-bound")
     producers = manifest.get("producer_runs", {})
     for side in ("benchmark", "v4"):
         producer = producers.get(side, {}) if isinstance(producers, dict) else {}
@@ -164,10 +198,13 @@ def _system_result(system: dict[str, Any], run_root: Path) -> dict[str, Any]:
 
 def evaluate_run(suite: dict[str, Any], run_root: Path) -> dict[str, Any]:
     suite_findings = validate_suite(suite)
-    results = [_system_result(system, run_root) for system in suite.get("systems", [])] if not suite_findings else []
+    results = [
+        _system_result(system, run_root, str(suite.get("suite_id", "")))
+        for system in suite.get("systems", [])
+    ] if not suite_findings else []
     findings = suite_findings + [finding for result in results for finding in result["findings"]]
-    parity = "PASS" if results and all(result["parity_gate"] == "PASS" for result in results) else "FAIL"
-    superiority = "PASS" if results and all(result["superiority_gate"] == "PASS" for result in results) else "FAIL"
+    parity = "PASS" if results and all(result.get("parity_gate") == "PASS" for result in results) else "FAIL"
+    superiority = "PASS" if results and all(result.get("superiority_gate") == "PASS" for result in results) else "FAIL"
     ars_result = next((result for result in results if result["system_id"] == "ars"), None)
     ars_parity = ars_result["parity_gate"] if ars_result else "FAIL"
     rc = "PASS" if parity == superiority == "PASS" else "FAIL"

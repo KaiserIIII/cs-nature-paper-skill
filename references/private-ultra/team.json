@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0.0",
+  "skill_version": "4.0.0",
+  "layers": ["PUBLIC_CORE", "PRIVATE_ULTRA"],
+  "selection_policy": "BEST_QUALIFIED_PROVIDER_OR_BEST_COMPLEMENTARY_ENSEMBLE",
+  "truth_authority": "V4_CONTROL_PLANE_AND_INDEPENDENT_CHECKERS",
+  "roles": [
+    {
+      "id": "research-director",
+      "name": "Research Director",
+      "authority": "V4 control plane owns research graph, evidence, protocol, authorization, publication, and release decisions",
+      "public_core_provider": "internal-specialist:research-director",
+      "primary_candidates": ["ars", "orchestra_skills"],
+      "complementary_candidates": ["deer_flow", "agent_laboratory", "ai_scientist_v2"],
+      "checker_candidates": ["internal-checker:control-plane-director-checker"],
+      "adversarial_candidates": ["eureka"],
+      "task_capabilities": ["research-orchestration", "long-horizon-research"]
+    },
+    {
+      "id": "literature-evidence",
+      "name": "Literature & Evidence Specialist",
+      "authority": "V4 evidence ledger decides whether a source may support a load-bearing claim",
+      "public_core_provider": "internal-specialist:literature-evidence",
+      "primary_candidates": ["ars"],
+      "complementary_candidates": ["k_dense", "opencite"],
+      "checker_candidates": ["internal-checker:literature-evidence-checker", "ars_codex"],
+      "adversarial_candidates": ["eureka"],
+      "task_capabilities": ["literature-synthesis", "full-text-acquisition", "citation-identity-verification", "claim-support-verification"]
+    },
+    {
+      "id": "innovation-prior-art",
+      "name": "Innovation / Prior-Art Specialist",
+      "authority": "V4 novelty gate requires closest-work and recent-preemption evidence",
+      "public_core_provider": "internal-specialist:innovation-prior-art",
+      "primary_candidates": ["sisyphus_academica"],
+      "complementary_candidates": ["eureka", "k_dense", "ars"],
+      "checker_candidates": ["internal-checker:innovation-adversary"],
+      "adversarial_candidates": ["sisyphus_academica", "ars"],
+      "task_capabilities": ["novelty-generation", "prior-art-collision", "preemption-search", "incrementality-attack"]
+    },
+    {
+      "id": "theory-mechanism",
+      "name": "Theory & Mechanism Specialist",
+      "authority": "V4 mechanism gate owns causal scope and temporal-availability decisions",
+      "public_core_provider": "internal-specialist:theory-mechanism",
+      "primary_candidates": ["k_dense", "eureka"],
+      "complementary_candidates": ["sisyphus_academica"],
+      "checker_candidates": ["internal-checker:theory-consistency-checker"],
+      "adversarial_candidates": ["sisyphus_academica"],
+      "task_capabilities": ["mechanism-analysis", "rival-mechanisms", "falsifiers", "prospective-predictions"]
+    },
+    {
+      "id": "data-dataset",
+      "name": "Data / Dataset Specialist",
+      "authority": "V4 publication sufficiency owns benchmark breadth and external-validity decisions",
+      "public_core_provider": "internal-specialist:data-dataset",
+      "primary_candidates": ["k_dense"],
+      "complementary_candidates": ["orchestra_skills"],
+      "checker_candidates": ["internal-checker:dataset-integrity-checker"],
+      "adversarial_candidates": ["eureka"],
+      "task_capabilities": ["dataset-audit", "leakage-detection", "benchmark-selection", "external-validity"]
+    },
+    {
+      "id": "experimental-design",
+      "name": "Experimental Design Specialist",
+      "authority": "V4 frozen protocol and amendments remain authoritative",
+      "public_core_provider": "internal-specialist:experimental-design",
+      "primary_candidates": ["eureka"],
+      "complementary_candidates": ["k_dense", "experiment_agent", "sisyphus_academica"],
+      "checker_candidates": ["internal-checker:experimental-design-checker"],
+      "adversarial_candidates": ["sisyphus_academica"],
+      "task_capabilities": ["hypothesis-freeze", "experimental-design", "power-analysis", "stopping-rule"]
+    },
+    {
+      "id": "research-engineering-compute",
+      "name": "Research Engineering / Compute Specialist",
+      "authority": "V4 job and artifact registries decide completion and evidence status",
+      "public_core_provider": "internal-specialist:research-engineering-compute",
+      "primary_candidates": ["orchestra_skills", "research_engineering_suite"],
+      "complementary_candidates": ["research_lab_notebook", "experiment_agent", "neuromechanist_research_skills", "lab_notes"],
+      "checker_candidates": ["internal-checker:research-engineering-checker"],
+      "adversarial_candidates": ["eureka"],
+      "task_capabilities": ["compute-planning", "background-campaign", "checkpoint-resume-retry", "failure-preservation", "artifact-provenance"]
+    },
+    {
+      "id": "implementation",
+      "name": "Implementation Specialist",
+      "authority": "Host execution writes code; V4 separates implementation correctness from scientific validity",
+      "public_core_provider": "host-native-coding",
+      "primary_candidates": ["orchestra_skills", "research_engineering_suite"],
+      "complementary_candidates": ["k_dense"],
+      "checker_candidates": ["internal-checker:implementation-checker"],
+      "adversarial_candidates": ["eureka"],
+      "task_capabilities": ["software-implementation", "framework-implementation", "debugging", "correctness-testing"]
+    },
+    {
+      "id": "statistics",
+      "name": "Statistics Specialist",
+      "authority": "V4 analysis plan and evidence ledger own estimands and claim scope",
+      "public_core_provider": "internal-specialist:statistics",
+      "primary_candidates": ["k_dense"],
+      "complementary_candidates": ["eureka"],
+      "checker_candidates": ["internal-checker:statistics-checker"],
+      "adversarial_candidates": ["sisyphus_academica"],
+      "task_capabilities": ["statistical-analysis", "statistical-power", "hierarchical-modeling", "bayesian-modeling", "robustness-analysis"]
+    },
+    {
+      "id": "scientific-visualization",
+      "name": "Visualization Specialist",
+      "authority": "V4 figure manifest owns source-data and claim linkage",
+      "public_core_provider": "internal-specialist:scientific-visualization",
+      "primary_candidates": ["neuromechanist_research_skills"],
+      "complementary_candidates": ["orchestra_skills", "k_dense", "snl_paper_writing"],
+      "checker_candidates": ["internal-checker:figure-integrity-checker"],
+      "adversarial_candidates": ["eureka"],
+      "task_capabilities": ["data-figure", "figure-qa", "academic-plotting", "conceptual-figure"]
+    },
+    {
+      "id": "scientific-writing",
+      "name": "Scientific Writing Specialist",
+      "authority": "V4 evidence and publication gates prevent prose from outrunning research",
+      "public_core_provider": "internal-specialist:scientific-writing",
+      "primary_candidates": ["ars"],
+      "complementary_candidates": ["snl_paper_writing", "orchestra_skills", "hermes_research_writing", "neuromechanist_research_skills"],
+      "checker_candidates": ["internal-checker:scientific-writing-checker", "ars_codex"],
+      "adversarial_candidates": ["sisyphus_academica", "eureka"],
+      "task_capabilities": ["evidence-bound-writing", "manuscript-architecture", "ml-paper-writing", "systems-paper-writing", "revision"]
+    },
+    {
+      "id": "reproducibility-integrity",
+      "name": "Reproducibility / Integrity Specialist",
+      "authority": "V4 provenance, protocol, amendments, and release records remain canonical",
+      "public_core_provider": "internal-specialist:reproducibility-integrity",
+      "primary_candidates": ["eureka", "ars"],
+      "complementary_candidates": ["research_engineering_suite", "research_lab_notebook", "k_dense", "opencite"],
+      "checker_candidates": ["internal-checker:reproducibility-checker"],
+      "adversarial_candidates": ["sisyphus_academica"],
+      "task_capabilities": ["claim-tracing", "citation-integrity", "experiment-provenance", "fresh-reproduction"]
+    },
+    {
+      "id": "adversarial-review-board",
+      "name": "Adversarial Reviewer Board",
+      "authority": "V4 reviewer completeness and repair graph own review closure",
+      "public_core_provider": "internal-specialist:adversarial-review-board",
+      "primary_candidates": ["ars", "sisyphus_academica", "eureka", "k_dense", "neuromechanist_research_skills"],
+      "complementary_candidates": ["snl_paper_writing"],
+      "checker_candidates": ["internal-checker:review-board-meta-checker"],
+      "adversarial_candidates": ["ars", "sisyphus_academica", "eureka", "k_dense", "neuromechanist_research_skills"],
+      "task_capabilities": ["novelty-review", "methods-review", "statistics-review", "reproducibility-review", "claim-evidence-review", "figure-review", "writing-review"]
+    },
+    {
+      "id": "publication-editor",
+      "name": "Publication Editor",
+      "authority": "V4 Publication Sufficiency Gate is the final readiness authority; submission remains author-only",
+      "public_core_provider": "internal-specialist:publication-editor",
+      "primary_candidates": ["eureka", "ars", "snl_paper_writing"],
+      "complementary_candidates": ["paper_orchestra"],
+      "checker_candidates": ["internal-checker:publication-sufficiency-gate"],
+      "adversarial_candidates": ["sisyphus_academica"],
+      "task_capabilities": ["publication-sufficiency", "reviewer-completeness", "submission-readiness", "research-expansion"]
+    }
+  ]
+}

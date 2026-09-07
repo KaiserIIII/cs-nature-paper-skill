@@ -127,7 +127,7 @@ def _policy_findings(policy: Any) -> list[str]:
     if policy.get("schema_version") != POLICY_SCHEMA_VERSION:
         findings.append("policy.schema_version must be 1")
     if policy.get("skill_version") != SKILL_VERSION:
-        findings.append("policy.skill_version must be 3.2.1")
+        findings.append(f"policy.skill_version must be {SKILL_VERSION}")
     if policy.get("mode") != "maximum-autonomy":
         findings.append("policy.mode must be maximum-autonomy")
     if policy.get("risk_cap") not in RISK_LEVELS:

@@ -35,7 +35,7 @@ class CompletionContractTests(unittest.TestCase):
         self.assertTrue((state / "autonomy_policy.json").exists())
         self.assertTrue((state / "completion_contract.json").exists())
         self.assertTrue((state / "director_session.json").exists())
-        self.assertEqual(json.loads((state / "research_contract.json").read_text(encoding="utf-8"))["skill_version"], "3.1.1")
+        self.assertEqual(json.loads((state / "research_contract.json").read_text(encoding="utf-8"))["skill_version"], research_state.SKILL_VERSION)
 
     def test_completion_is_fail_closed_without_scientific_and_audit_evidence(self):
         result = completion_contract.evaluate(self.project)

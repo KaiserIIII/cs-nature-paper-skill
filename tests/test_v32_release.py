@@ -10,10 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class V32ReleaseTests(unittest.TestCase):
-    def test_release_manifest_declares_v3_2_and_candidate_disposition(self):
+    def test_release_manifest_declares_v4_rc_and_fail_closed_disposition(self):
         value = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(value["source_version"], "3.2.1")
-        self.assertIn("V3.2.1 RELEASE BLOCKED", value["release_disposition"])
+        self.assertEqual(value["source_version"], "4.0.0")
+        self.assertIn("V4.0.0 RC FAIL", value["release_disposition"])
         self.assertIsInstance(value["hosted_ci"], dict)
         self.assertIsNone(value["hosted_ci"]["run_id"])
 

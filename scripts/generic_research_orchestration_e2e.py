@@ -58,19 +58,27 @@ def run(output: Path | None = None) -> dict[str, Any]:
         execution = json.loads((project / "artifacts" / "formal_execution.json").read_text(encoding="utf-8")) if (project / "artifacts" / "formal_execution.json").is_file() else {}
         review = json.loads((project / "artifacts" / "review_findings.json").read_text(encoding="utf-8")) if (project / "artifacts" / "review_findings.json").is_file() else {}
         repaired = bool(review.get("findings")) and all(item.get("status") == "RESOLVED" for item in review.get("findings", []))
+        correctly_requested_host = (
+            director.get("status") == "HOST_EXECUTION_REQUIRED"
+            and director.get("node") == "innovation"
+            and director.get("host_request_created") is True
+            and not execution
+            and not formal
+        )
         result = {
             "operation": "generic-research-orchestration-e2e",
             "evaluation_class": "GENERIC_RESEARCH_ORCHESTRATION_E2E",
-            "status": "PASS" if director.get("status") == "READY_FOR_SUBMISSION" and execution.get("exit_status") == 0 and repaired else "FAIL",
+            "status": "PASS" if correctly_requested_host else "FAIL",
             "model_behavior": "NOT_RUN",
             "ordinary_author_prompts": director.get("ordinary_author_prompts"),
-            "provider_id": "coding-provider",
+            "provider_id": "host-research-provider",
             "selected_method": formal.get("selected_method"),
             "actual_command": {"exit_status": execution.get("exit_status"), "command": execution.get("command")},
             "input_derived": formal.get("values") == [120.0, 118.0, 115.0, 112.0, 109.0, 108.0, 104.0, 101.0],
-            "review_repair": "PASS" if repaired else "FAIL",
+            "review_repair": "NOT_RUN",
+            "host_request_created": director.get("host_request_created") is True,
             "submission_readiness": director.get("status"),
-            "director_diagnostics": director if director.get("status") != "READY_FOR_SUBMISSION" else {},
+            "director_diagnostics": director,
         }
     if output:
         _write(output, result)

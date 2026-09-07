@@ -363,7 +363,7 @@ def run(output: Path | None = None) -> dict[str, Any]:
         )
         result = {
             "status": "PASS" if passed else "FAIL",
-            "skill_version": "3.1.1",
+            "skill_version": research_state.SKILL_VERSION,
             "competition": "CUMCM",
             "fixture_id": fixture["id"],
             "evaluation_class": "HARNESS_SELF_TEST",
