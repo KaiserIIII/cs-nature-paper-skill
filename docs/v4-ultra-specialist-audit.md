@@ -66,12 +66,15 @@ stale hashes, or any parity loss fail closed.
 
 ## TTA field regression
 
-At `2026-09-08T09:46:40+08:00`, the scheduled campaign was `RUNNING`
-with 820/1000 jobs completed, 180 remaining, four workers, zero current failed
-jobs, and 80 historical failures preserved. The snapshot does not imply
-experiment completion. Statistics, mechanism analysis, ablations, modern
-baselines, reviewer completeness, research expansion, full manuscript review,
-and revision remain open. Publication Sufficiency is `FAIL`.
+At `2026-09-08T10:45:36+08:00`, the formal_v2 campaign was `COMPLETED` with
+1000/1000 jobs, four workers, zero current failures, and the earlier historical
+failures retained in the archive. The admission canary and postprocess checks
+passed; the derived analysis contains 1,000 verified rows and an explicit
+frozen-runner metadata alias with raw shards unchanged. The mechanism screen is
+`NOT_SUPPORTED` because it has one held seed and negative incremental fit.
+Modern baselines, registered ablations, fresh held seeds, reviewer
+completeness, full manuscript review, and revision remain open. Publication
+Sufficiency is `FAIL`.
 
 ## CI and remaining gaps
 
@@ -81,7 +84,8 @@ runtime metadata and the obsolete smoke expectation for V4's built-in formal
 specialist. Hosted CI has not yet run against the commit containing this audit.
 
 CRITICAL gaps: the 17 real comparator runs and blind judgments are absent; the
-TTA campaign and publication expansion are incomplete.
+TTA publication expansion remains incomplete despite the formal_v2 campaign
+completion.
 
 MAJOR gaps: system adapters are not behavior-qualified; no external provider
 has passed a local task trial; the final statistical, mechanism, ablation,
