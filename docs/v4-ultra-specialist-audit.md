@@ -1,6 +1,6 @@
 # V4 Ultra Specialist Audit
 
-Observed: 2026-09-07. Branch: `feat/v4-vendored-research-team`. This is a
+Observed: 2026-09-08. Branch: `feat/v4-vendored-research-team`. This is a
 review snapshot, not a release record.
 
 ## Decision
@@ -66,8 +66,8 @@ stale hashes, or any parity loss fail closed.
 
 ## TTA field regression
 
-At `2026-09-07T18:39:35+08:00`, the detached scheduled campaign was `RUNNING`
-with 875/1000 jobs completed, 125 remaining, four workers, zero current failed
+At `2026-09-08T09:46:40+08:00`, the scheduled campaign was `RUNNING`
+with 820/1000 jobs completed, 180 remaining, four workers, zero current failed
 jobs, and 80 historical failures preserved. The snapshot does not imply
 experiment completion. Statistics, mechanism analysis, ablations, modern
 baselines, reviewer completeness, research expansion, full manuscript review,
@@ -75,7 +75,7 @@ and revision remain open. Publication Sufficiency is `FAIL`.
 
 ## CI and remaining gaps
 
-The complete deterministic suite passes 259/259 tests. The local CI smoke and
+The complete deterministic suite passes 275 tests plus 24 subtests. The local CI smoke and
 recorded-handoff E2E paths also pass after correcting the remaining V3.1.1
 runtime metadata and the obsolete smoke expectation for V4's built-in formal
 specialist. Hosted CI has not yet run against the commit containing this audit.

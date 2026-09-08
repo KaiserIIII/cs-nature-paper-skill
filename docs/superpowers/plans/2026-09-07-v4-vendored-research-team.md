@@ -157,9 +157,9 @@ hash manifests
 
 ## Task 10: Execute and register the TTA field expansion
 
-**Files:** `E:/学习/gpt6/ccta_tta/configs/expansion_*.json`,
-`E:/学习/gpt6/ccta_tta/run_expansion_supervisor.py`,
-`E:/学习/gpt6/ccta_tta/tests/test_expansion_campaign.py`, TTA research-state
+**Files:** `<EXTERNAL_RESEARCH_PROJECT>/configs/expansion_*.json`,
+`<EXTERNAL_RESEARCH_PROJECT>/run_expansion_supervisor.py`,
+`<EXTERNAL_RESEARCH_PROJECT>/tests/test_expansion_campaign.py`, TTA research-state
 registries and generated run artifacts
 
 1. Reconcile the completed 960/960 Tier 1 jobs with the stale experiment

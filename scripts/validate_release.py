@@ -4,11 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import re
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -170,6 +172,87 @@ def validate_benchmark_suite_assets(root: Path = ROOT) -> list[str]:
     ars = next((item for item in systems if isinstance(item, dict) and item.get("id") == "ars"), None)
     if not isinstance(ars, dict) or ars.get("license") != "CC-BY-NC-4.0" or ars.get("use_decision") != "BENCHMARK_ONLY_DO_NOT_VENDOR":
         findings.append("ARS must remain CC-BY-NC-4.0 benchmark-only material")
+    return findings
+
+
+def validate_long_run_assets(root: Path = ROOT) -> list[str]:
+    """Exercise the two-hour durable handoff and fail-closed resume gate."""
+    findings: list[str] = []
+    runtime_path = root / "scripts" / "long_run_handoff.py"
+    reference_path = root / "references" / "core" / "long-running-work.md"
+    for path in (runtime_path, reference_path):
+        if not path.is_file():
+            findings.append(f"long-run handoff asset is missing: {path.relative_to(root)}")
+    if findings:
+        return findings
+    try:
+        spec = importlib.util.spec_from_file_location("long_run_handoff_validation", runtime_path)
+        if spec is None or spec.loader is None:
+            return ["long-run handoff runtime cannot be imported"]
+        runtime = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runtime)
+    except Exception as exc:
+        return [f"long-run handoff runtime import failed: {exc}"]
+    if runtime.SKILL_VERSION != SKILL_VERSION:
+        findings.append(f"long-run handoff skill version must be {SKILL_VERSION}")
+    if runtime.TWO_HOURS_SECONDS != 7200:
+        findings.append("long-run handoff threshold must be exactly two hours")
+    try:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            paths: dict[str, str] = {}
+            for name in ("status", "heartbeat", "stdout", "stderr"):
+                path = temporary_root / f"{name}.log"
+                path.write_text("ready\n", encoding="utf-8")
+                paths[name] = str(path)
+            frozen_files: dict[str, str] = {}
+            frozen_hashes: dict[str, str] = {}
+            for index, name in enumerate(("runner", "manifest", "protocol"), start=1):
+                path = temporary_root / f"{name}.txt"
+                path.write_text(f"frozen-{index}\n", encoding="utf-8")
+                field = f"{name}_sha256"
+                frozen_files[field] = str(path)
+                frozen_hashes[field] = "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+            output = temporary_root / "result.json"
+            record = {
+                "launch_mode": "DETACHED_SERVICE",
+                "launch_id": "release-validation-fixture",
+                "working_directory": str(temporary_root),
+                "status_path": paths["status"],
+                "heartbeat_path": paths["heartbeat"],
+                "stdout_log": paths["stdout"],
+                "stderr_log": paths["stderr"],
+                "resume_command": "python worker.py --resume",
+                "frozen_hashes": frozen_hashes,
+                "frozen_files": frozen_files,
+                "expected_outputs": [{"path": str(output), "minimum_bytes": 2}],
+            }
+            if runtime.assess(7200, record).get("decision") != "CONTINUE_IN_SESSION":
+                findings.append("long-run handoff mishandles the exact two-hour boundary")
+            if runtime.assess(7201, record).get("decision") != "BACKGROUND_AND_YIELD":
+                findings.append("long-run handoff does not yield above two hours")
+            if runtime.assess(7201, {}).get("decision") != "BLOCKED_NEEDS_DURABLE_LAUNCH":
+                findings.append("long-run handoff permits yield without a durable launch")
+            spoofed = runtime.resume_decision(
+                record,
+                {"status": "COMPLETED", "outputs_verified": True},
+            )
+            if spoofed.get("decision") != "VERIFY_BEFORE_CONTINUING":
+                findings.append("long-run resume trusts an unverified completion claim")
+            output.write_text("{}", encoding="utf-8")
+            completed = runtime.resume_decision(record, {"status": "COMPLETED"})
+            if completed.get("decision") != "RESUME_RESEARCH":
+                findings.append("long-run resume rejects verified declared output")
+            Path(frozen_files["runner_sha256"]).write_text("mutated\n", encoding="utf-8")
+            drift = runtime.resume_decision(record, {"status": "COMPLETED"})
+            if drift.get("decision") != "IDENTITY_DRIFT_STOP":
+                findings.append("long-run resume does not stop on frozen runner drift")
+    except Exception as exc:
+        findings.append(f"long-run handoff behavior validation failed: {exc}")
+    reference = reference_path.read_text(encoding="utf-8")
+    for token in ("BACKGROUND_AND_YIELD", "VERIFY_BEFORE_CONTINUING", "RESUME_RESEARCH"):
+        if token not in reference:
+            findings.append(f"long-running work reference is missing {token}")
     return findings
 
 
@@ -436,7 +519,7 @@ def validate(
     expected_workflow: str = EXPECTED_WORKFLOW,
     require_hosted_ci: bool = False,
 ) -> dict[str, Any]:
-    findings = validate_json_assets() + validate_behavior_cases() + validate_benchmark_suite_assets() + validate_private_ultra_assets() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
+    findings = validate_json_assets() + validate_behavior_cases() + validate_benchmark_suite_assets() + validate_long_run_assets() + validate_private_ultra_assets() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
     if v32_e2e is not None:
         findings.extend(validate_v32_e2e(v32_e2e))
     if competition_e2e is not None:
@@ -448,7 +531,7 @@ def validate(
     except Exception as exc: findings.append(f"registry validation error: {exc}")
     try:
         from privacy_lint import lint
-        privacy = lint([ROOT / "benchmarks", ROOT / "release_manifest.json"])
+        privacy = lint([ROOT / "benchmarks", ROOT / "docs", ROOT / "release_manifest.json"])
         if privacy["status"] != "PASS": findings.extend("privacy: " + item["kind"] + " in " + item["path"] for item in privacy["findings"])
     except Exception as exc: findings.append(f"privacy validation error: {exc}")
     return {"operation": "validate-release", "status": "PASS" if not findings else "FAIL", "skill_version": SKILL_VERSION, "findings": findings}

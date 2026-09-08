@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "tta-formal-v1-integrity-failure",
+  "disposition": "INVALID_FOR_PRIMARY_EVIDENCE",
+  "observed_jobs": 1000,
+  "reason_codes": [
+    "SOURCE_BN_STATE_CONTAMINATION",
+    "DRIFT_TEMPORAL_MISLABELING",
+    "INCOMPLETE_RUNNER_DATASET_PROVENANCE"
+  ],
+  "preservation": "PERMANENT_REGRESSION_FIXTURE",
+  "expected_gate": "FORMAL_ADMISSION_FAIL",
+  "scientific_lessons": [
+    "process success cannot establish source-model immutability",
+    "prospective predictors require explicit event ordering",
+    "formal shards require frozen code, protocol, data, checkpoint, and environment identities"
+  ],
+  "contains_private_project_data": false
+}

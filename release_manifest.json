@@ -4,7 +4,7 @@
   "source_commit": "release-process-injected",
   "source_commit_mode": "publisher-injected",
   "source_branch": "feat/v4-vendored-research-team",
-  "generated_at": "2026-09-07T10:39:35Z",
+  "generated_at": "2026-09-08T01:46:40Z",
   "release_status": "RC_NOT_RELEASED",
   "tag": null,
   "e2e_commit": null,
@@ -70,12 +70,12 @@
     "formal_campaign": "RUNNING",
     "formal_campaign_snapshot": {
       "total_jobs": 1000,
-      "completed_jobs": 875,
-      "remaining_jobs": 125,
+      "completed_jobs": 820,
+      "remaining_jobs": 180,
       "current_failed_jobs": 0,
       "preserved_historical_failures": 80,
       "workers": 4,
-      "observed_at": "2026-09-07T18:39:35+08:00"
+      "observed_at": "2026-09-08T09:46:40+08:00"
     },
     "publication_sufficiency": "FAIL",
     "reviewer_completeness": "FAIL"

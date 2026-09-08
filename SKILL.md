@@ -182,6 +182,10 @@ relabeling its originals. `.research-state-v31` is preferred when present.
 4. **Protocol:** separate `DISCOVERY`, `PILOT`, `FORMAL`,
    `EXPLORATORY_POST_HOC`, `REPLICATION`, and `REPRODUCTION`; freeze outcome-
    bearing inputs and analysis before formal execution; register amendments.
+   Before scaling a formal matrix, run `FORMAL_CAMPAIGN_ADMISSION_GATE` as
+   specified in
+   [references/core/formal-campaign-admission.md](references/core/formal-campaign-admission.md).
+   Process/CUDA smoke alone never authorizes scale-out.
 5. **Decision relevance:** add an experiment only when a result tests a named
    threat, distinguishes mechanisms, bounds scope, or changes a conclusion.
 6. **Writing:** pass the editor's 90-second test while preserving scope,
@@ -303,7 +307,13 @@ running, blocked, current best model, largest scoring risk, highest-ROI next
 action, and submission readiness.
 
 Respect a budget for tokens, time, network, compute, money, private paths, and
-external writes. Long jobs are resumable and checked at meaningful boundaries.
+external writes. For work estimated to take more than two hours, read
+[references/core/long-running-work.md](references/core/long-running-work.md),
+materialize and validate a durable background/resume contract, then return
+`BACKGROUND_AND_YIELD` and end the current turn. Do not claim that work is
+running when the durable launch gate fails. On resume, verify completion and
+frozen identities before consuming outputs. Long jobs are resumable and checked
+at meaningful boundaries.
 No mode silently replaces the core RQ, promotes pilot results, publishes,
 uploads, or submits. In `maximum-autonomy`, ordinary reversible research and
 low-risk hires are `AUTO`; network research, bounded protocol amendments,

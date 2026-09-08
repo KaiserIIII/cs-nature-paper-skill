@@ -101,6 +101,21 @@ class V4BenchmarkSuiteTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, serialized)
 
+    def test_benchmark_audit_uses_current_core_pins_and_full_system_count(self):
+        suite = benchmark.load_suite()
+        systems = {item["id"]: item for item in suite["systems"]}
+        audit = (ROOT / "docs" / "v4-benchmark-audit.md").read_text(encoding="utf-8")
+        for system_id in (
+            "ars",
+            "k_dense",
+            "ai_scientist_v2",
+            "paper_orchestra",
+            "sisyphus_academica",
+            "research_engineering_suite",
+        ):
+            self.assertIn(systems[system_id]["exact_commit"], audit)
+        self.assertIn("17 real comparator runs", audit)
+
     def test_missing_real_runs_fail_closed(self):
         with tempfile.TemporaryDirectory() as td:
             result = benchmark.evaluate_run(benchmark.load_suite(), Path(td))

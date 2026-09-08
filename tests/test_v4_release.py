@@ -52,6 +52,46 @@ class V4ReleaseTests(unittest.TestCase):
                         stale.append(f"{path.name}:{value.lineno}")
         self.assertFalse(stale, stale)
 
+    def test_active_provider_metadata_and_user_agents_are_v4(self):
+        stale = []
+        for path in sorted((ROOT / "providers").glob("*.py")):
+            if path.name.endswith("_fixture_provider.py"):
+                continue
+            text = path.read_text(encoding="utf-8")
+            if "3.2.1" in text:
+                stale.append(str(path.relative_to(ROOT)))
+        discovery = (ROOT / "scripts" / "skill_discovery_provider.py").read_text(encoding="utf-8")
+        if "cs-nature-paper-provider/3.2.1" in discovery:
+            stale.append("scripts/skill_discovery_provider.py")
+        self.assertFalse(stale, stale)
+
+    def test_active_schema_version_constants_are_v4(self):
+        stale = []
+        for path in sorted((ROOT / "assets" / "schemas").glob("*.schema.json")):
+            value = json.loads(path.read_text(encoding="utf-8"))
+            const = value.get("properties", {}).get("skill_version", {}).get("const")
+            if const is not None and const != VERSION:
+                stale.append(str(path.relative_to(ROOT)))
+        self.assertFalse(stale, stale)
+
+    def test_public_privacy_lint_scans_docs_prepared_and_forward_slash_paths(self):
+        privacy = load("privacy_lint")
+        self.assertNotIn("prepared", privacy.SKIP_DIRS)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prepared = root / "prepared"
+            prepared.mkdir()
+            (prepared / "leak.json").write_text('{"path":"E:/private/project/result.json"}', encoding="utf-8")
+            result = privacy.lint([root], root)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertTrue(any(item["kind"] == "windows-forward-absolute-path" for item in result["findings"]), result)
+
+        public = privacy.lint(
+            [ROOT / "benchmarks", ROOT / "docs", ROOT / "release_manifest.json"],
+            ROOT,
+        )
+        self.assertEqual(public["status"], "PASS", public["findings"])
+
     def test_all_nonlegacy_json_assets_declare_v4(self):
         stale = []
         for path in (ROOT / "assets").rglob("*.json"):
@@ -90,6 +130,7 @@ class V4ReleaseTests(unittest.TestCase):
         self.assertEqual(validator.validate_json_assets(), [])
         self.assertEqual(validator.validate_benchmark_suite_assets(), [])
         self.assertEqual(validator.validate_private_ultra_assets(), [])
+        self.assertEqual(validator.validate_long_run_assets(), [])
         self.assertEqual(validator.validate_release_manifest(require_hosted_ci=False), [])
 
     def test_hosted_ci_resolution_preserves_v4_and_incomplete_research_gates(self):

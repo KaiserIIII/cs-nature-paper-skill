@@ -9,8 +9,8 @@ skill count, or architecture diagrams.
 |---|---|---|---|---|
 | Academic Research Skills (ARS) | `6b7ee6dcae29c0fbb46e0017538f9cef84c3136b` | CC BY-NC 4.0 | deep literature, citation verification, manuscript writing, peer review | benchmark-only; do not vendor |
 | K-Dense Scientific Agent Skills | `1e5eeffbdad3749125afe7ab48a39694e27f181c` | MIT | specialist breadth, scientific tooling, statistics, visualization | audited components vendored and benchmarked |
-| The AI Scientist | `1de1dbc1f4ee2c5f61e9c94348d55eb51d7fa2eb` | AI Scientist Source Code License 1.0 | autonomous idea → code → experiment loop | benchmark-only; disclosure required |
-| PaperOrchestra | `798f03a14ce582607ba2742d025691f226470641` | MIT with upstream prompt notice | experiment-log to manuscript orchestration | benchmark-only pending prompt-rights review |
+| AI Scientist v2 | `96bd51617cfdbb494a9fc283af00fe090edfae48` | AI Scientist Source Code License 1.0 | autonomous idea → code → experiment loop | system adapter benchmark only |
+| PaperOrchestra | `ca1b3fa01c2970fc7cda32d16245db38d57b3f56` | Apache 2.0 | experiment-log to manuscript orchestration | system adapter benchmark only |
 | Sisyphus Academica | `5fc165211d6a0c8f1a4ff1243311314ad26847b8` | MIT | novelty collision, assumption excavation, adversarial review | audited components vendored and benchmarked |
 | Research Engineering Suite | `670d0be50c52595f9e13b684ebd995dff5831fb7` | MIT | implementation, debugging, reproducibility, artifact verification | audited components vendored and benchmarked |
 
@@ -42,7 +42,7 @@ in both judge orderings for every applicable dimension.
 ## Current evidence state
 
 The suite definition and fail-closed evaluator are present and schema-validated.
-The six real comparator runs have not yet produced complete manifests, outputs,
+The 17 real comparator runs have not yet produced complete manifests, outputs,
 and counterbalanced judgments. Therefore the current release state is
 `NOT_RUN`, `ARS_PARITY_GATE=FAIL`, `V4_SUPERIORITY_GATE=FAIL`, and
 `recommended_merge=NO`. This is an evidence decision, not a proxy score.
