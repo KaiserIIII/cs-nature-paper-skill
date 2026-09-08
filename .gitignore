@@ -5,6 +5,7 @@
 __pycache__/
 *.pyc
 node_modules/
+.worktrees/
 .DS_Store
 Thumbs.db
 .security-pressure-run/
