@@ -1,7 +1,7 @@
 # V4.1 Specialist Integration Design
 
 **Date:** 2026-09-19  
-**Status:** Approved scope; implementation pending review of this document  
+**Status:** Final expansion audit complete; implementation pending
 **Baseline:** V4.0.0 at `b71b892b5277c0d2cd7dbdf7cd7c4da732c03796`  
 **Branch:** `feat/v4.1-specialist-integration`
 
@@ -39,12 +39,27 @@ materialization. The complete upstream repositories are not vendored.
 | PaperSpine5 | `99a84fe452ab7681e30cd81387fcb6263a676125` | MIT | Contribution-First, Results-as-Validation, exemplar-learning dossier, target-venue research, figure-story/reference QA, publication metadata/delivery concepts | bounded adapter/provider; no installer, runtime, UI, or whole application |
 | Nature Skills | `9cecfef6ac683fa59d7d15d2e22f98fa71dacaf5` | Apache-2.0 | `nature-figure`, `nature-reviewer` first; Tier B skills remain audit/benchmark candidates | bounded adapter/provider; preserve Apache attribution and any subtree notices |
 
+The final expansion-round audit adds the following bounded candidates. Their
+repositories, exact commits, license decisions, security observations, and
+classification are recorded in `assets/registry/v41_upstream_audits.json`.
+
+| Candidate | Exact commit | Classification | V4.1 scope decision |
+|---|---|---|---|
+| AREX-Skill | `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | `ADAPTER_CANDIDATE` | discovery-only `AREX_DISCOVERY_PROVIDER`; never auto-download, install, execute, or qualify a discovered Skill |
+| Systematic Literature Review | `955fcc435e651834b03768c136dca6b16ccbae08` | `METHODOLOGY_ONLY` | native `literature_recall_assurance` challenger; no repository code vendored because no repository license was detected |
+| SkillLens | `ce8fcb89b00164569ed792d8737ee1315b070556` | `METHODOLOGY_ONLY` | strengthen utility/security behavior qualification; do not vendor its runtime or datasets |
+| Curie | `db1b1f56159b591515f77e03c55bf473d5c1c201` | `ADAPTER_CANDIDATE` | subordinate `curie:experiment-backend`; accepts only a frozen V4 experiment contract |
+| CORAL | `0123dfb939b35228cf2c1fde224cd0561e727408` | `ADAPTER_CANDIDATE` | subordinate `coral:parallel-search-backend`; cannot become Research Director or evidence authority |
+| POPPER | `59611864e09dd15d7528e240ad87c7ddbb4a701c` | `REFERENCE_ONLY` | extract only high-level falsification principles; no code vendored because no repository license was detected |
+| Autoresearch Paper | `ad40dcc605a834b879d2dc43b0d04de5cb4e0346` | `REFERENCE_ONLY` | architecture adversary for runtime invariants; no second control plane |
+
 The audit records repository metadata, exact commit, source paths, license and
 notice findings, dependencies, network/subprocess/write behavior, credentials,
 host assumptions, and required resources in
 `assets/registry/v41_upstream_audits.json`. An audit entry is not a qualification
-entry: a candidate remains `NOT_QUALIFIED` until the comparable behavior trial,
-typed output contract, and independent checker pass.
+entry: a candidate remains `qualification_status=PROVISIONAL` (or
+`REJECTED`) until the comparable behavior trial, typed output contract, and
+independent checker pass.
 
 ## Scope decisions
 
@@ -82,9 +97,47 @@ verified `COMPLEMENTARY` value.
 
 `nature-writing`, `nature-statistics`, `nature-academic-search`,
 `nature-data`, and optionally `nature-citation` receive source audits and
-behavior fixtures. They remain `NOT_QUALIFIED` for formal routing in this
-release unless a real, comparable behavior result demonstrates a non-redundant
+behavior fixtures. They remain `qualification_status=PROVISIONAL` and are not
+formal-eligible in this release unless a real, comparable behavior result demonstrates a non-redundant
 capability that the existing core lacks.
+
+### Discovery / Evaluation Tier
+
+The final expansion round adds three non-authoritative capabilities to the
+design, without making them formal providers:
+
+1. `AREX_DISCOVERY_PROVIDER` can enumerate a missing specialized capability
+   through the area -> family -> repository -> workflow hierarchy. Discovery
+   returns provenance and a candidate reference only. Each discovered Skill
+   separately requires an immutable pin, per-Skill license decision, static
+   security audit, behavior trial, typed output contract, and independent
+   checker. A repository-level license never clears an individual Skill.
+2. `literature_recall_assurance` is a routed challenger for novelty-critical,
+   first-of-kind, systematic-review, expensive-commitment, or final related-
+   work claims. It may use seed/citation expansion, venue and author census,
+   benchmark tracing, adversarial repair, corpus freeze, amendments, PRISMA
+   accounting, and confidence grading. It does not replace ordinary evidence
+   retrieval and cannot certify completeness by itself.
+3. SkillLens-derived evaluation methodology requires utility and security to
+   be measured separately with repeated executor rollouts, fixed provider and
+   judge configuration, exact artifact hashes, and run-level metadata. SkillLens
+   is not a scientific provider and its runtime/datasets are not vendored.
+
+### System Adapter Tier
+
+`curie:experiment-backend` and `coral:parallel-search-backend` remain
+benchmark/adapter candidates. They receive only a frozen V4 objective or
+experiment contract and return candidate artifacts. V4 checkers decide whether
+those artifacts enter the evidence ledger. Neither adapter can redefine an RQ,
+change a protocol, or promote evidence.
+
+### Reference / Methodology Tier
+
+POPPER contributes the reference concept of a claim-level falsification
+obligation. Autoresearch Paper is an architecture adversary for evaluator
+freeze, artifact-only acceptance, watchdogs, durable resume, resource
+ownership, and evaluator identity drift. Neither source receives default
+routing or control-plane authority.
 
 ### Tier C: explicitly deferred
 
@@ -202,8 +255,8 @@ router. Every candidate provider record contains:
 - local file hashes and license/notice decision;
 - permissions, network, credentials, subprocess, and write scope;
 - output contract and required checker;
-- independent `qualification_state`, `comparison_state`, and derived
-  `eligibility_state` fields;
+  - independent `qualification_status`, `comparison_decision`, and derived
+  `eligibility` fields;
 - behavior-trial and checker references;
 - rollback/fallback provider.
 
@@ -211,13 +264,13 @@ The three states are intentionally independent:
 
 | State | Meaning | Examples |
 |---|---|---|
-| `qualification_state` | Whether the candidate passed immutable source, license, security, semantic, behavior, and output-contract checks | `UNASSESSED`, `STATIC_AUDITED`, `BEHAVIOR_QUALIFIED`, `FORMAL_QUALIFIED`, `QUARANTINED`, `REJECTED` |
-| `comparison_state` | What the counterbalanced comparison with PUBLIC_CORE established; this does not qualify a candidate | `NOT_RUN`, `INTERNAL_BETTER`, `EXTERNAL_BETTER`, `COMPLEMENTARY`, `NO_DIFFERENCE`, `INCONCLUSIVE` |
-| `eligibility_state` | Deterministically derived permission to use the provider for a specific task | `INELIGIBLE`, `ADVISORY_ONLY`, `HOST_HANDOFF_ONLY`, `FORMAL_ELIGIBLE`, `BLOCKED` |
+| `qualification_status` | Whether the candidate passed immutable source, license, security, semantic, behavior, and output-contract checks | `UNAUDITED`, `AUDITED`, `PROVISIONAL`, `QUALIFIED`, `REJECTED` |
+| `comparison_decision` | What the counterbalanced comparison with PUBLIC_CORE established; this does not qualify a candidate | `NOT_RUN`, `INTERNAL_BETTER`, `EXTERNAL_BETTER`, `COMPLEMENTARY`, `EQUIVALENT`, `INCONCLUSIVE` |
+| `eligibility` | Deterministically derived permission to use the provider for a specific task | `DISCOVERY_ONLY`, `ADVISORY_ONLY`, `NON_LOAD_BEARING`, `FORMAL_ELIGIBLE`, `DISABLED` |
 
-`eligibility_state` is never author-entered and never inferred from a README or
+`eligibility` is never author-entered and never inferred from a README or
 comparison result alone. It is recomputed from exact commit/hash, license
-decision, qualification state, comparison state, task capability, permissions,
+decision, qualification status, comparison decision, task capability, permissions,
 network/credential policy, formal flag, checker requirement, and fallback
 availability. The legacy `qualification`, `status`, and `formal_eligible`
 fields remain readable for V4 compatibility, but V4.1 treats them as derived
@@ -244,6 +297,16 @@ Planned files:
 - `scripts/vendor_skill_runtime.py` (selected-resource integrity loading only)
 - `tests/test_v41_provider_integration.py`
 
+### Utility and security qualification
+
+Every candidate carries separate `UTILITY_STATUS` and `SECURITY_STATUS`.
+Security review covers arbitrary shell execution, package installation,
+runtime clone/download, secret access, credential leakage, uncontrolled
+network, data egress, file-write/destructive behavior, hidden telemetry, and
+subprocesses. Formal eligibility requires an acceptable security status and a
+behavior-qualified utility result; scientific usefulness cannot waive a
+security failure.
+
 ### 4. Nature Reviewer workflow
 
 For formal high-stakes review, create one immutable review packet containing
@@ -263,11 +326,15 @@ distinct checker operations:
    hash-bound to the same packet, produced by a distinct context, and does not
    contain another report as an input. It emits a verification record; it does
    not synthesize concerns or mark reviewer completeness.
-2. `review-synthesis-checker`, distinct from every reviewer producer, consumes
-   only frozen reports plus the packet-check records. It may group overlapping
-   findings, preserve disagreements, map findings to authoritative IDs, and
-   produce a synthesis artifact. It must preserve every source report hash and
-   cannot edit, delete, downgrade, or upgrade an individual finding.
+2. A dedicated `review-synthesis-provider` (or equivalent deterministic
+   synthesis process), distinct from every reviewer producer and from both
+   checkers, consumes only frozen reports plus the packet-check records. It
+   produces the synthesis artifact by grouping overlapping findings, preserving
+   disagreements, and mapping findings to authoritative IDs. The independent
+   `review-synthesis-checker` then validates that artifact against the frozen
+   reports, packet checks, schema, hashes, and preservation rules. The checker
+   must not generate, repair, or rewrite the synthesis artifact it later
+   validates.
 
 The synthesis artifact has `SYNTHESIS_ACCEPTED` or `SYNTHESIS_CONDITIONAL`
 status, never a graph `PASS` or publication `PASS`. Only the V4 control plane
@@ -305,13 +372,16 @@ provider resolution -> provider execution -> typed artifact
 
 - Missing or stale hashes: `REJECTED` and preserve the prior artifact.
 - Candidate without exact commit, license decision, or behavior evidence:
-  `NOT_QUALIFIED`; route to PUBLIC_CORE.
+  `qualification_status=PROVISIONAL` or `REJECTED`; route to PUBLIC_CORE.
 - Provider output without required anchors: `CONDITIONAL` for advisory use,
   never formal evidence.
 - Review isolation unavailable: record limitation and fail the relevant
   completeness dimension; do not synthesize independence.
 - Review synthesis without frozen, same-packet, independently checked reports:
   `SYNTHESIS_REJECTED`; individual reports remain preserved for diagnosis.
+- A synthesis checker that is also the synthesis producer:
+  `SYNTHESIS_REJECTED` for formal use; preserve the provider artifact for
+  advisory diagnosis only.
 - Argument graph orphan or claim-strength violation: fail the graph validation
   and reopen the smallest owning node.
 - Profile N/A without domain/study/venue justification: fail closed.
@@ -332,9 +402,14 @@ PUBLIC_CORE/candidate inputs covering:
 7. adversarial peer review;
 8. full publication-package construction.
 
-Every result records provider ID, exact commit, input/output hashes, tool and
-network use, checker identity, and judge evidence. Counterbalanced order is
-required. Structural tests may pass without behavior qualification; the release
+Every result records `run_id`, timestamp, provider ID, exact provider commit and
+source hash, V4 commit, host model identity/version, system and provider
+prompt/config hashes, toolset snapshot, network policy, token/compute/resource
+budgets, temperature and sampling configuration, seed or
+`seed_control=UNAVAILABLE`, retry count, input/output hashes, checker and judge
+IDs/config hashes, artifact manifest, failures, and measurable wall-clock
+duration. Use multiple rollouts where practical and require counterbalanced
+order. Structural tests may pass without behavior qualification; the release
 manifest must keep `BEHAVIOR_BENCHMARK=NOT_RUN` or `FAIL` until real behavior
 evidence exists. Architecture alone cannot produce `EXTERNAL_BETTER`.
 
@@ -344,6 +419,24 @@ Planned files:
 - `scripts/v41_behavior_benchmark.py`
 - `tests/test_v41_behavior_benchmark.py`
 - `docs/v4.1-specialist-integration-audit.md`
+
+The final expansion round is frozen in
+`assets/registry/v41_candidate_pool_freeze.json`; no additional provider search
+is part of V4.1.
+
+### Native falsification obligation
+
+For load-bearing or high-strength claims, the graph may require a
+profile-aware `falsification_obligation` containing a confirmation test,
+falsification attempt, boundary-condition test, strongest surviving
+alternative explanation, and residual confidence. The profile selects the
+appropriate form: alternative baselines and leakage checks for ML; project,
+operationalization, confounder, and temporal sensitivity for software
+engineering; workload/hardware/scale/adversarial variation for systems;
+counterexample and proof-dependency audits for theory; and measurement,
+alternative-explanation, subgroup, or sensitivity analysis for human studies.
+The obligation is a V4-native graph/evidence requirement, not a POPPER runtime
+or a universal demand for experimental falsification.
 
 ## Duplicate Skill routing
 
@@ -361,7 +454,7 @@ written and must cover:
 - duplicate routing elimination;
 - immutable upstream pinning and license/notice preservation;
 - selected file hashes and no runtime clone/download;
-- provider fallback and `NOT_QUALIFIED` behavior;
+- provider fallback and provisional/unqualified behavior;
 - independent checker requirement;
 - argument graph schema, traceability, orphan Results, and claim-strength
   violations;
