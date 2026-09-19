@@ -150,6 +150,38 @@ The resolver must reject checklist gaming: an N/A dimension without a valid
 profile rule and justification remains a failure. Existing publication gates
 become fallback defaults rather than disappearing.
 
+#### Deterministic profile merge and conflict semantics
+
+Profile resolution is a pure, reproducible operation. The resolver applies
+layers in this exact order:
+
+```text
+fallback -> domain -> study_type -> claim_type -> venue -> article_type -> design
+```
+
+Each layer is identified by a stable profile ID and source hash. Ordinary
+`required`, `recommended`, and `not_applicable` entries are additive. A
+dimension appearing in more than one category is a `PROFILE_CONFLICT`; the
+resolver never silently chooses the later layer. A profile may resolve such a
+conflict only with an explicit override record containing the dimension, prior
+category, target category, non-empty scientific justification, applicable
+scope, source identity, and profile version.
+
+Overrides are applied from least-specific to most-specific scope and are
+accepted only when the scope matches the request. An override cannot remove a
+dimension without assigning it to `not_applicable`; an N/A assignment must
+also carry a design-specific justification. Conflicting overrides at the same
+specificity, missing scope, stale source hash, or a required dimension moved to
+N/A without valid justification produce `PROFILE_CONFLICT` and fail closed.
+
+The merged artifact records sorted dimension IDs, ordered applied profile IDs,
+every conflict and resolution event, all N/A justifications, the canonical
+input hash, and the canonical output hash. JSON serialization uses sorted keys
+and stable arrays, so repeated resolution of identical inputs produces
+byte-identical output. A profile merge never changes claims, evidence,
+protocol, or graph state; publication sufficiency consumes the merged artifact
+and remains the gate authority.
+
 Planned files:
 
 - `assets/schemas/publication_profile.schema.json`
@@ -170,20 +202,39 @@ router. Every candidate provider record contains:
 - local file hashes and license/notice decision;
 - permissions, network, credentials, subprocess, and write scope;
 - output contract and required checker;
-- qualification state and behavior-trial references;
-- comparison decision (`INTERNAL_BETTER`, `EXTERNAL_BETTER`,
-  `COMPLEMENTARY`, `FALLBACK_BUILT_IN`, `NOT_QUALIFIED`, `UNAVAILABLE`);
+- independent `qualification_state`, `comparison_state`, and derived
+  `eligibility_state` fields;
+- behavior-trial and checker references;
 - rollback/fallback provider.
+
+The three states are intentionally independent:
+
+| State | Meaning | Examples |
+|---|---|---|
+| `qualification_state` | Whether the candidate passed immutable source, license, security, semantic, behavior, and output-contract checks | `UNASSESSED`, `STATIC_AUDITED`, `BEHAVIOR_QUALIFIED`, `FORMAL_QUALIFIED`, `QUARANTINED`, `REJECTED` |
+| `comparison_state` | What the counterbalanced comparison with PUBLIC_CORE established; this does not qualify a candidate | `NOT_RUN`, `INTERNAL_BETTER`, `EXTERNAL_BETTER`, `COMPLEMENTARY`, `NO_DIFFERENCE`, `INCONCLUSIVE` |
+| `eligibility_state` | Deterministically derived permission to use the provider for a specific task | `INELIGIBLE`, `ADVISORY_ONLY`, `HOST_HANDOFF_ONLY`, `FORMAL_ELIGIBLE`, `BLOCKED` |
+
+`eligibility_state` is never author-entered and never inferred from a README or
+comparison result alone. It is recomputed from exact commit/hash, license
+decision, qualification state, comparison state, task capability, permissions,
+network/credential policy, formal flag, checker requirement, and fallback
+availability. The legacy `qualification`, `status`, and `formal_eligible`
+fields remain readable for V4 compatibility, but V4.1 treats them as derived
+compatibility projections; contradictory hand-edited values fail validation.
 
 Resolution rules remain:
 
-1. qualified internal specialist first;
-2. qualified external provider only after exact pin, static audit, behavior
-   trial, typed output, and checker;
-3. complementary providers may be selected only for declared non-overlapping
+1. compute the candidate's three states independently;
+2. qualified internal specialist first;
+3. qualified external provider only after exact pin, static audit, behavior
+   trial, typed output, checker, and a comparison state of `EXTERNAL_BETTER` or
+   `COMPLEMENTARY`;
+4. complementary providers may be selected only for declared non-overlapping
    capabilities;
-4. otherwise use PUBLIC_CORE;
-5. no provider can directly alter graph or evidence status.
+5. otherwise use PUBLIC_CORE and record `FALLBACK_BUILT_IN` as the routing
+   decision, without changing the candidate's qualification state;
+6. no provider can directly alter graph or evidence status.
 
 Planned files:
 
@@ -198,13 +249,34 @@ Planned files:
 For formal high-stakes review, create one immutable review packet containing
 the manuscript, claims, evidence ledger, figures, protocol identity, and source
 hashes. When the host supports isolation, launch three independent reviewer
-contexts without shared reports; freeze each report before synthesis. If
-isolation is unavailable, record `isolation_status=UNAVAILABLE` and downgrade
-reviewer completeness instead of manufacturing independence.
+contexts without shared reports; each producer receives only the packet hash and
+its assigned threat contract. Each report is frozen as an immutable artifact
+before any synthesis input is made available. If isolation is unavailable,
+record `isolation_status=UNAVAILABLE` and downgrade reviewer completeness
+instead of manufacturing independence.
 
 Each finding maps to claim IDs, evidence anchors, figure IDs, manuscript
-locations, and graph nodes where applicable. Synthesis is a checker-side
-operation and does not modify the packet or source-of-truth state.
+locations, and graph nodes where applicable. The review workflow has two
+distinct checker operations:
+
+1. `review-packet-checker` verifies that every report is schema-valid, frozen,
+   hash-bound to the same packet, produced by a distinct context, and does not
+   contain another report as an input. It emits a verification record; it does
+   not synthesize concerns or mark reviewer completeness.
+2. `review-synthesis-checker`, distinct from every reviewer producer, consumes
+   only frozen reports plus the packet-check records. It may group overlapping
+   findings, preserve disagreements, map findings to authoritative IDs, and
+   produce a synthesis artifact. It must preserve every source report hash and
+   cannot edit, delete, downgrade, or upgrade an individual finding.
+
+The synthesis artifact has `SYNTHESIS_ACCEPTED` or `SYNTHESIS_CONDITIONAL`
+status, never a graph `PASS` or publication `PASS`. Only the V4 control plane
+may interpret the synthesis against reviewer-completeness requirements,
+reopen graph nodes, or record a gate transition. No majority vote, concern
+count, fabricated disagreement, or acceptance prediction is allowed. If
+isolation is unavailable, synthesis may still be generated for advisory use,
+but it is explicitly `SYNTHESIS_CONDITIONAL` and cannot satisfy the formal
+independence requirement.
 
 ### 5. Nature Figure workflow
 
@@ -238,6 +310,8 @@ provider resolution -> provider execution -> typed artifact
   never formal evidence.
 - Review isolation unavailable: record limitation and fail the relevant
   completeness dimension; do not synthesize independence.
+- Review synthesis without frozen, same-packet, independently checked reports:
+  `SYNTHESIS_REJECTED`; individual reports remain preserved for diagnosis.
 - Argument graph orphan or claim-strength violation: fail the graph validation
   and reopen the smallest owning node.
 - Profile N/A without domain/study/venue justification: fail closed.
