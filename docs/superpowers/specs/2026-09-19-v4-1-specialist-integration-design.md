@@ -1,0 +1,321 @@
+# V4.1 Specialist Integration Design
+
+**Date:** 2026-09-19  
+**Status:** Approved scope; implementation pending review of this document  
+**Baseline:** V4.0.0 at `b71b892b5277c0d2cd7dbdf7cd7c4da732c03796`  
+**Branch:** `feat/v4.1-specialist-integration`
+
+## Goal
+
+Make CS Nature Paper stronger in contribution-to-evidence traceability,
+publication-shape adaptation, scientific-figure QA, and independent manuscript
+review while preserving the V4 Research Control Plane as the only authority.
+
+V4.1 is an integration layer, not a replacement orchestrator. The public core
+must remain fully usable offline, and no imported provider may promote evidence,
+mark a research node `PASS`, alter a frozen protocol, or authorize release.
+
+## Current context and protected invariants
+
+- V4 has 14 internal roles, 29 audited vendored Skills, 17 routed capabilities,
+  and a passing deterministic baseline of `275 passed, 24 subtests passed`.
+- The current release remains `RC_NOT_RELEASED`; behavior benchmarks and hosted
+  CI are fail-closed and must not be fabricated or silently upgraded.
+- The V4 control plane remains authoritative for research questions, claims,
+  protocol, amendments, evidence/provenance status, graph transitions,
+  publication gates, permissions, and external execution authorization.
+- Providers only produce typed artifacts. A provider result is never itself a
+  scientific claim or graph transition.
+- Producer/checker separation remains mandatory for formal and load-bearing work.
+- Existing V4 `PASS` semantics may only be preserved or strengthened.
+
+## Upstream audit snapshot
+
+The audit resolves floating default branches to immutable commits before any
+materialization. The complete upstream repositories are not vendored.
+
+| Candidate | Exact commit | Repository license | Selected scope | Initial decision |
+|---|---|---|---|---|
+| PaperSpine5 | `99a84fe452ab7681e30cd81387fcb6263a676125` | MIT | Contribution-First, Results-as-Validation, exemplar-learning dossier, target-venue research, figure-story/reference QA, publication metadata/delivery concepts | bounded adapter/provider; no installer, runtime, UI, or whole application |
+| Nature Skills | `9cecfef6ac683fa59d7d15d2e22f98fa71dacaf5` | Apache-2.0 | `nature-figure`, `nature-reviewer` first; Tier B skills remain audit/benchmark candidates | bounded adapter/provider; preserve Apache attribution and any subtree notices |
+
+The audit records repository metadata, exact commit, source paths, license and
+notice findings, dependencies, network/subprocess/write behavior, credentials,
+host assumptions, and required resources in
+`assets/registry/v41_upstream_audits.json`. An audit entry is not a qualification
+entry: a candidate remains `NOT_QUALIFIED` until the comparable behavior trial,
+typed output contract, and independent checker pass.
+
+## Scope decisions
+
+### Tier A: implement now as subordinate providers
+
+1. `paperspine:contribution`
+   - Require an evidence-bounded contribution record before substantive
+     manuscript optimization in submission-targeted/full-paper workflows.
+   - Reuse the Contribution-First distinction between motivation and the
+     contribution that a reviewer can accept or reject.
+2. `paperspine:results-validation`
+   - Require each major Results unit to map to a contribution/claim, evidence
+     anchor, result artifact, figure/table, allowed interpretation, and
+     forbidden overclaim.
+3. `paperspine:target-exemplar`
+   - Store a target-venue dossier that separates official requirements from
+     observed exemplar style; never copy data, claims, or copyrighted prose.
+4. `paperspine:publication-production`
+   - Add bounded metadata, render, and delivery consistency checks; these are
+     packaging checks only and cannot imply scientific validity.
+5. `nature:figure`
+   - Add source-data mapping, panel-role declarations, uncertainty/missingness
+     checks, final-size inspection metadata, PDF collision/geometry checks, and
+     journal-rule metadata.
+6. `nature:reviewer`
+   - Add immutable review-packet identity, reviewer-isolation metadata, and
+     claim/evidence/figure/section anchors for findings.
+
+These providers are initially `PROVISIONAL` or `SPECIALIST` and are only
+formal-eligible after the behavior trial and checker gates pass. PUBLIC_CORE
+remains the default selection until comparison returns `EXTERNAL_BETTER` or
+verified `COMPLEMENTARY` value.
+
+### Tier B: audit and benchmark only in V4.1
+
+`nature-writing`, `nature-statistics`, `nature-academic-search`,
+`nature-data`, and optionally `nature-citation` receive source audits and
+behavior fixtures. They remain `NOT_QUALIFIED` for formal routing in this
+release unless a real, comparable behavior result demonstrates a non-redundant
+capability that the existing core lacks.
+
+### Tier C: explicitly deferred
+
+No public-core integration of daily-push infrastructure, Feishu/Obsidian
+logging, paper-to-slide/patent utilities, promotional/product UI, bundled
+runtimes, installers, update systems, or unrelated desktop/web applications.
+
+## Architecture
+
+### 1. Publication Argument Graph
+
+Add a derived, machine-readable `publication_argument_graph.json` with stable
+IDs and explicit edges:
+
+```text
+RQ -> Contribution -> Claim -> EvidenceRequirement -> EvidenceAnchor
+   -> Result -> Figure/Table -> ManuscriptSection
+   -> AllowedInterpretation -> ForbiddenOverclaim
+```
+
+The graph complements, and never replaces, `claims.json`,
+`evidence_ledger.json`, `experiment_registry.json`, and `research_graph.json`.
+It is derived from those authoritative records plus explicit manuscript/figure
+links. It must support:
+
+- stable node IDs and typed node kinds;
+- edge IDs and relation types;
+- provenance for every derived link;
+- claim strength and evidence boundary;
+- validation of missing contribution support;
+- orphan major Results-section detection;
+- fail-closed detection when manuscript language exceeds mapped evidence;
+- deterministic rebuild without overwriting source-of-truth files.
+
+Planned files:
+
+- `assets/schemas/publication_argument_graph.schema.json`
+- `assets/templates/publication_argument_graph.json`
+- `scripts/publication_argument_graph.py`
+- `tests/test_publication_argument_graph.py`
+
+### 2. Adaptive publication profiles
+
+Replace universal depth assumptions with a profile resolver that starts from
+conservative fallback defaults and resolves requirements by:
+
+- domain;
+- study type;
+- claim type;
+- venue;
+- article type;
+- available research design.
+
+Each profile declares `required`, `recommended`, and `not_applicable`
+dimensions, an explicit justification for every N/A dimension, venue evidence,
+and domain-specific external-validity concepts. Examples include repositories,
+projects, developers, and commits for software engineering; workloads,
+hardware, scale, and competing systems for systems; and participant design and
+triangulation for HCI. Theory can mark dataset and experimental-baseline
+dimensions N/A only with a written design justification.
+
+The resolver must reject checklist gaming: an N/A dimension without a valid
+profile rule and justification remains a failure. Existing publication gates
+become fallback defaults rather than disappearing.
+
+Planned files:
+
+- `assets/schemas/publication_profile.schema.json`
+- `assets/templates/publication_profile.json`
+- `assets/registry/publication_profiles.json`
+- `scripts/publication_profiles.py`
+- `scripts/publication_sufficiency.py` (route profile-resolved dimensions,
+  preserve conservative fallback behavior)
+- `tests/test_publication_profiles.py`
+
+### 3. Capability-level provider integration
+
+Extend the existing provider registry/runtime rather than adding a second
+router. Every candidate provider record contains:
+
+- provider identity and capability;
+- exact upstream commit and selected source path;
+- local file hashes and license/notice decision;
+- permissions, network, credentials, subprocess, and write scope;
+- output contract and required checker;
+- qualification state and behavior-trial references;
+- comparison decision (`INTERNAL_BETTER`, `EXTERNAL_BETTER`,
+  `COMPLEMENTARY`, `FALLBACK_BUILT_IN`, `NOT_QUALIFIED`, `UNAVAILABLE`);
+- rollback/fallback provider.
+
+Resolution rules remain:
+
+1. qualified internal specialist first;
+2. qualified external provider only after exact pin, static audit, behavior
+   trial, typed output, and checker;
+3. complementary providers may be selected only for declared non-overlapping
+   capabilities;
+4. otherwise use PUBLIC_CORE;
+5. no provider can directly alter graph or evidence status.
+
+Planned files:
+
+- `assets/registry/v41_provider_registry.json`
+- `scripts/provider_runtime.py`
+- `scripts/v41_provider_adapters.py`
+- `scripts/vendor_skill_runtime.py` (selected-resource integrity loading only)
+- `tests/test_v41_provider_integration.py`
+
+### 4. Nature Reviewer workflow
+
+For formal high-stakes review, create one immutable review packet containing
+the manuscript, claims, evidence ledger, figures, protocol identity, and source
+hashes. When the host supports isolation, launch three independent reviewer
+contexts without shared reports; freeze each report before synthesis. If
+isolation is unavailable, record `isolation_status=UNAVAILABLE` and downgrade
+reviewer completeness instead of manufacturing independence.
+
+Each finding maps to claim IDs, evidence anchors, figure IDs, manuscript
+locations, and graph nodes where applicable. Synthesis is a checker-side
+operation and does not modify the packet or source-of-truth state.
+
+### 5. Nature Figure workflow
+
+The figure adapter accepts an explicit scientific question, panel roles,
+source-data map, uncertainty/missingness declarations, target dimensions, and
+output paths. It can produce a visual QA artifact with geometry, collision,
+legend, axis, accessibility, and final-size observations. The artifact is
+typed and hash-bound, but visual QA never upgrades scientific evidence or
+claim status.
+
+## Data flow and failure handling
+
+```text
+authoritative V4 state
+        |
+        v
+derived argument/profile/review packet
+        |
+        v
+provider resolution -> provider execution -> typed artifact
+        |                                      |
+        +-------------------------------> independent checker
+                                               |
+                              ACCEPTED / CONDITIONAL / REJECTED
+```
+
+- Missing or stale hashes: `REJECTED` and preserve the prior artifact.
+- Candidate without exact commit, license decision, or behavior evidence:
+  `NOT_QUALIFIED`; route to PUBLIC_CORE.
+- Provider output without required anchors: `CONDITIONAL` for advisory use,
+  never formal evidence.
+- Review isolation unavailable: record limitation and fail the relevant
+  completeness dimension; do not synthesize independence.
+- Argument graph orphan or claim-strength violation: fail the graph validation
+  and reopen the smallest owning node.
+- Profile N/A without domain/study/venue justification: fail closed.
+- Network/download/install attempt by a vendored provider: reject the
+  invocation and retain offline PUBLIC_CORE operation.
+
+## Behavior qualification
+
+Add a V4.1 benchmark manifest and deterministic fixtures for identical
+PUBLIC_CORE/candidate inputs covering:
+
+1. scientific figure construction;
+2. figure audit;
+3. manuscript argument reconstruction;
+4. contribution-to-results traceability;
+5. statistical reporting audit;
+6. literature evidence retrieval;
+7. adversarial peer review;
+8. full publication-package construction.
+
+Every result records provider ID, exact commit, input/output hashes, tool and
+network use, checker identity, and judge evidence. Counterbalanced order is
+required. Structural tests may pass without behavior qualification; the release
+manifest must keep `BEHAVIOR_BENCHMARK=NOT_RUN` or `FAIL` until real behavior
+evidence exists. Architecture alone cannot produce `EXTERNAL_BETTER`.
+
+Planned files:
+
+- `assets/evals/v41/specialist_integration_cases.json`
+- `scripts/v41_behavior_benchmark.py`
+- `tests/test_v41_behavior_benchmark.py`
+- `docs/v4.1-specialist-integration-audit.md`
+
+## Duplicate Skill routing
+
+The obsolete installation is not deleted. Before activating V4.1, preserve its
+current diff as a patch/backup and change only its frontmatter identity to
+`cs-nature-paper-v3-legacy` (or move it outside the active discovery path).
+Then verify that exactly one active installation resolves as `cs-nature-paper`.
+The backup path and post-change routing check are recorded in the audit.
+
+## Tests and release gates
+
+Implementation follows TDD. New tests must fail before production code is
+written and must cover:
+
+- duplicate routing elimination;
+- immutable upstream pinning and license/notice preservation;
+- selected file hashes and no runtime clone/download;
+- provider fallback and `NOT_QUALIFIED` behavior;
+- independent checker requirement;
+- argument graph schema, traceability, orphan Results, and claim-strength
+  violations;
+- adaptive profiles and justified domain-specific N/A dimensions;
+- reviewer isolation metadata;
+- figure, PaperSpine, and Nature adapter contracts;
+- release manifest fail-closed behavior and privacy lint;
+- all existing V4 regression tests.
+
+No existing test may be weakened. The final release manifest separates
+`SOFTWARE_INTEGRITY`, `PROVIDER_INTEGRITY`, `DETERMINISTIC_TESTS`,
+`BEHAVIOR_BENCHMARK`, `PUBLICATION_FIELD_REGRESSION`, `HOSTED_CI`, and
+`RELEASE_READINESS`.
+
+## Non-goals
+
+- No external provider becomes the authority for scientific truth.
+- No upstream whole-repository vendoring.
+- No automatic publication, submission, upload, or protocol replacement.
+- No fabricated model behavior, hosted CI, or scientific evidence.
+- No decorative agent/persona multiplication.
+- No deletion of the obsolete installation or its local user changes.
+
+## Acceptance criteria
+
+V4.1 is structurally complete when all planned contracts, adapters, tests,
+audits, and release bookkeeping are present and deterministic tests pass.
+It is behaviorally stronger only if the comparable benchmark shows a
+non-redundant improvement over PUBLIC_CORE. Until then, PUBLIC_CORE remains
+the default and `recommended_merge` remains `NO` when behavior evidence is
+missing.
