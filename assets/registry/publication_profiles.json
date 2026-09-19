@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "skill_version": "4.0.0",
+  "merge_order": ["fallback", "domain", "study_type", "claim_type", "venue", "article_type", "design"],
+  "profiles": [
+    {
+      "profile_id": "fallback:full-paper",
+      "layer": "fallback",
+      "version": "1.0.0",
+      "status": "PROFILE_ACTIVE",
+      "source_hash": "bd62da775b7b8413bc6abc76bf52e5ecf8dfc5238a1cb83fb689564926ca9a72",
+      "source_payload": {
+        "required": ["ablations", "dataset_coverage", "external_validation", "manuscript_depth", "mechanism_tests", "model_coverage", "modern_baselines", "related_work"],
+        "recommended": [],
+        "not_applicable": [],
+        "overrides": []
+      },
+      "provenance": {
+        "source_id": "fallback:full-paper",
+        "source_hash": "bd62da775b7b8413bc6abc76bf52e5ecf8dfc5238a1cb83fb689564926ca9a72",
+        "profile_version": "1.0.0"
+      },
+      "required": ["ablations", "dataset_coverage", "external_validation", "manuscript_depth", "mechanism_tests", "model_coverage", "modern_baselines", "related_work"],
+      "recommended": [],
+      "not_applicable": [],
+      "overrides": []
+    },
+    {
+      "profile_id": "design:registered-replication",
+      "layer": "design",
+      "scope": {"design": "registered-replication"},
+      "version": "1.0.0",
+      "status": "PROFILE_ACTIVE",
+      "source_hash": "08bd9daacc2e6fe6042ca2fbfc4ecd155e30c90e751d3bf091ba90db99464a3a",
+      "source_payload": {
+        "required": ["domain_specific_replication"],
+        "recommended": [],
+        "not_applicable": [],
+        "overrides": []
+      },
+      "provenance": {
+        "source_id": "design:registered-replication",
+        "source_hash": "08bd9daacc2e6fe6042ca2fbfc4ecd155e30c90e751d3bf091ba90db99464a3a",
+        "profile_version": "1.0.0"
+      },
+      "required": ["domain_specific_replication"],
+      "recommended": [],
+      "not_applicable": [],
+      "overrides": []
+    }
+  ]
+}

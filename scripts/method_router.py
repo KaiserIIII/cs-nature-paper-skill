@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.1.1"
+SKILL_VERSION = "4.0.0"
 ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "assets" / "registry" / "method_router.json"
 HIGH_RISK = {"causal", "human-subjects", "security-measurement", "survey", "systematic-review"}

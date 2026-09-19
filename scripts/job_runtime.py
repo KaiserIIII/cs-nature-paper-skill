@@ -15,6 +15,9 @@ from pathlib import Path
 from typing import Any
 
 
+SKILL_VERSION = "4.0.0"
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -28,7 +31,7 @@ def _write(path: Path, value: dict[str, Any]) -> None:
 
 
 def init(path: Path, command: str, outputs: list[str], retries: int = 2) -> dict[str, Any]:
-    value = {"schema_version": 1, "skill_version": "3.1.1", "job_id": path.stem, "command": command, "status": "READY", "created_utc": _now(), "checkpoints": [], "outputs": outputs, "bounded_retries": retries, "partial_output_quarantine": True, "completion": None}
+    value = {"schema_version": 1, "skill_version": SKILL_VERSION, "job_id": path.stem, "command": command, "status": "READY", "created_utc": _now(), "checkpoints": [], "outputs": outputs, "bounded_retries": retries, "partial_output_quarantine": True, "completion": None}
     _write(path, value); return {"operation": "init", "status": "PASS", "manifest": str(path), "job_id": value["job_id"]}
 
 

@@ -1,8 +1,8 @@
-name: cs-nature-paper-v3.1.1
+name: cs-nature-paper-v4
 
 on:
   push:
-    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening]
+    branches: [main, v1, v2, v3, v3.1, v3.1.1-hardening, v3.2, feat/cumcm-v32-final, feat/v32-provider-final, hotfix/v321-specialist-routing-final, feat/v4-vendored-research-team]
   pull_request:
   workflow_dispatch:
 
@@ -16,6 +16,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -33,10 +36,30 @@ jobs:
         run: python scripts/security_pressure_run.py --output .security-pressure-run
       - name: True local E2E smoke
         run: python scripts/smoke_run.py --output .ci-smoke-result.json
+      - name: CUMCM competition E2E smoke
+        run: python scripts/competition_smoke_run.py --output .competition-smoke-result.json
+      - name: Competition Director orchestration E2E
+        run: python scripts/competition_orchestration_e2e.py --output .competition-orchestration-e2e.json
+      - name: Validate Competition Director completion contract
+        run: python scripts/validate_release.py --competition-e2e .competition-orchestration-e2e.json
       - name: Reject stale E2E output
         run: python scripts/check_smoke.py .ci-smoke-result.json
-      - name: Resolve publisher release manifest
-        run: python scripts/resolve_release_manifest.py --source-commit "${{ github.sha }}" --output resolved_release_manifest.json
+      - name: Deterministic full-paper E2E
+        run: python scripts/full_paper_e2e.py --output .full-paper-e2e.json
+      - name: Director orchestration E2E
+        run: python scripts/director_orchestration_e2e.py --output .director-orchestration-e2e.json
+      - name: Generic research Provider orchestration E2E
+        run: python scripts/generic_research_orchestration_e2e.py --output .generic-research-orchestration-e2e.json
+      - name: Generic competition Provider orchestration E2E
+        run: python scripts/generic_competition_orchestration_e2e.py --output .generic-competition-orchestration-e2e.json
+      - name: Recorded Host Provider handoff lifecycle E2E
+        run: python scripts/host_provider_handoff_e2e.py --output .host-provider-handoff-e2e.json
+      - name: Native-unsupported recorded host research E2E
+        run: python scripts/generic_host_research_e2e.py --output .generic-host-research-e2e.json
+      - name: Native-unsupported recorded host competition E2E
+        run: python scripts/generic_host_competition_e2e.py --output .generic-host-competition-e2e.json
+      - name: Validate v3.2 completion contract
+        run: python scripts/validate_release.py --v32-e2e .full-paper-e2e.json
       - name: Graph rebuild and E2E artifact checks
         run: python scripts/validate_release.py
       - name: Upload runtime release artifacts
@@ -46,7 +69,15 @@ jobs:
           name: runtime-${{ matrix.os }}-py${{ matrix.python }}
           path: |
             .ci-smoke-result.json
-            resolved_release_manifest.json
+            .competition-smoke-result.json
+            .competition-orchestration-e2e.json
+            .full-paper-e2e.json
+            .director-orchestration-e2e.json
+            .generic-research-orchestration-e2e.json
+            .generic-competition-orchestration-e2e.json
+            .host-provider-handoff-e2e.json
+            .generic-host-research-e2e.json
+            .generic-host-competition-e2e.json
           include-hidden-files: true
           if-no-files-found: error
       - name: Quick skill validation when available
@@ -54,11 +85,51 @@ jobs:
         run: |
           if [ -f scripts/quick_validate.py ]; then python scripts/quick_validate.py .; else echo 'quick_validate.py not present; registry and schema validation still ran'; fi
 
+  release-integrity:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve exact-SHA Hosted CI manifest after matrix success
+        run: >-
+          python scripts/resolve_release_manifest.py
+          --source-commit "${{ github.sha }}"
+          --run-id "${{ github.run_id }}"
+          --workflow "cs-nature-paper-v4"
+          --branch "${{ github.ref_name }}"
+          --conclusion success
+          --matrix-status PASS
+          --output resolved_release_manifest.json
+      - name: Validate release identity and Hosted CI binding
+        run: >-
+          python scripts/validate_release.py
+          --manifest resolved_release_manifest.json
+          --expected-commit "${{ github.sha }}"
+          --expected-branch "${{ github.ref_name }}"
+          --expected-workflow "cs-nature-paper-v4"
+          --require-hosted-ci
+      - name: Upload exact-SHA release-integrity record
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-integrity-${{ github.sha }}
+          path: resolved_release_manifest.json
+          if-no-files-found: error
+
   model-eval:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

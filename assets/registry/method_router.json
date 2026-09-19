@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "3.1.1",
+  "skill_version": "4.0.0",
   "methods": [
     {"id":"descriptive","triggers":["counts","distribution","rate"],"required_definitions":["unit","denominator","scope"],"common_estimands":["proportion","median","mean"],"evidence_requirements":["fixed denominator","missingness"],"assumptions":["measurement is defined"],"failure_modes":["overgeneralizing sample"],"minimum_checks":["denominator audit"],"specialist_escalation":[],"forbidden_claims":["causal effect","population prevalence without sampling frame"]},
     {"id":"observational","triggers":["repository mining","logs","自然观察"],"required_definitions":["unit","exposure","outcome","sampling frame"],"common_estimands":["association","conditional rate"],"evidence_requirements":["confounders","dependence","missingness"],"assumptions":["measurement validity"],"failure_modes":["correlation as causation","selection bias"],"minimum_checks":["cluster sensitivity","alternative explanations"],"specialist_escalation":["causal"],"forbidden_claims":["intervention effect","mechanism proven by association"]},

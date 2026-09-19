@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "state": "V4.1_CANDIDATE_POOL_FROZEN",
+  "frozen": true,
+  "frozen_at": "2026-09-19T00:00:00Z",
+  "baseline_commit": "b71b892b5277c0d2cd7dbdf7cd7c4da732c03796",
+  "working_branch": "feat/v4.1-specialist-integration",
+  "audit_manifest": "assets/registry/v41_upstream_audits.json",
+  "included_candidates": [
+    {"id": "paperspine5", "tier": "TIER_A", "scope": "bounded contribution/results/publication-production providers"},
+    {"id": "nature_skills", "tier": "TIER_A", "scope": "nature-figure and nature-reviewer bounded providers"},
+    {"id": "arex_skill", "tier": "DISCOVERY_EVALUATION", "scope": "discovery-only AREX_DISCOVERY_PROVIDER"},
+    {"id": "systematic_literature_review", "tier": "DISCOVERY_EVALUATION", "scope": "native literature_recall_assurance methodology"},
+    {"id": "skilllens", "tier": "DISCOVERY_EVALUATION", "scope": "utility/security and reproducibility qualification methodology"},
+    {"id": "curie", "tier": "SYSTEM_ADAPTER", "scope": "subordinate frozen-contract experiment backend"},
+    {"id": "coral", "tier": "SYSTEM_ADAPTER", "scope": "subordinate frozen-objective parallel-search backend"},
+    {"id": "popper", "tier": "REFERENCE_METHODOLOGY", "scope": "native falsification_obligation inspiration only"},
+    {"id": "autoresearch_paper", "tier": "REFERENCE_METHODOLOGY", "scope": "runtime-invariant architecture adversary only"}
+  ],
+  "excluded_scopes": [
+    {"candidate": "arex_skill", "scope": "bulk catalog import, automatic download/install/execute, repository-level license inheritance", "reason": "untrusted per-Skill provenance and executable/security surface"},
+    {"candidate": "systematic_literature_review", "scope": "vendoring upstream code", "reason": "no repository license detected"},
+    {"candidate": "skilllens", "scope": "runtime and datasets", "reason": "methodology is sufficient; external hosted/sandbox assumptions are not V4 providers"},
+    {"candidate": "curie", "scope": "hypothesis/RQ/protocol/evidence control plane", "reason": "system adapter must remain subordinate"},
+    {"candidate": "coral", "scope": "Research Director, protocol, or evidence authority", "reason": "parallel search backend only"},
+    {"candidate": "popper", "scope": "source code/runtime", "reason": "no repository license detected"},
+    {"candidate": "autoresearch_paper", "scope": "second control plane or duplicate runtime", "reason": "overlaps V4 authority and is reference-only"}
+  ],
+  "deferred_to_v42_or_later": [
+    "Nature writing/statistics/search/data/citation provider qualification",
+    "daily-push, Feishu/Obsidian, paper-to-slide/patent, promotional/product UI",
+    "bundled runtimes, installers, update systems, unrelated desktop/web applications",
+    "any additional provider repository not listed in the final expansion-round audit"
+  ],
+  "freeze_rationale": "The final bounded audit covered only candidates with a plausible capability gap or qualification-method contribution. Remaining work is implementation and behavior benchmarking, not ecosystem search.",
+  "no_further_provider_search_needed": true,
+  "unfreeze_condition": "Only a critical security or functionality gap that none of PUBLIC_CORE or the frozen candidates can cover may reopen the pool, and that exception requires an author-visible V4.2 decision record."
+}

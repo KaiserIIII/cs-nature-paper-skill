@@ -1,0 +1,2376 @@
+{
+  "schema_version": 1,
+  "skill_version": "4.0.0",
+  "generated_utc": "2026-09-07T01:32:49Z",
+  "policy": "fail-closed licensing; no runtime download; control plane remains authoritative",
+  "skills": [
+    {
+      "name": "k-dense-research-lookup",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/research-lookup",
+      "local_path": "k-dense/research-lookup",
+      "capabilities": [
+        "literature-search",
+        "literature-retrieval"
+      ],
+      "assigned_specialists": [
+        "literature-evidence"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/research-lookup/README.md",
+          "sha256": "502279670369898188cca5a1562fb42475104a0bed61cd821b78bc378357f237"
+        },
+        {
+          "path": "k-dense/research-lookup/scripts/manuscript_packet.py",
+          "sha256": "8d7bbbdee631c9cb2d176b4dda9560c82ebf507ed453ad376c573f1498d323ba"
+        },
+        {
+          "path": "k-dense/research-lookup/scripts/research_lookup.py",
+          "sha256": "068f031b8aadb43e11c49b0eb15e2727bc34319ae5072f07bd5d5b15145a7b52"
+        },
+        {
+          "path": "k-dense/research-lookup/SKILL.md",
+          "sha256": "7288cf334db57f9d053a7a8175bf851c4e73faeac8069b976f71c62583f160f2"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [
+          "k-dense/research-lookup/scripts/research_lookup.py"
+        ],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-literature-review",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/literature-review",
+      "local_path": "k-dense/literature-review",
+      "capabilities": [
+        "literature-review",
+        "related-work-matrix"
+      ],
+      "assigned_specialists": [
+        "literature-evidence"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/literature-review/assets/review_template.md",
+          "sha256": "e9db0f8e00f894fc55c474ca0355a86fd72eb9bb5456e1253e740d3c06e74208"
+        },
+        {
+          "path": "k-dense/literature-review/references/citation_styles.md",
+          "sha256": "a62f97c9f1c50da0627033187da5632f9fec00679fc5e8c0e97b217210c0c79b"
+        },
+        {
+          "path": "k-dense/literature-review/references/core_workflow.md",
+          "sha256": "3e21d3a014a156e709550a5a79fccaa222a5db23e6309dce869619d8cba6c007"
+        },
+        {
+          "path": "k-dense/literature-review/references/database_strategies.md",
+          "sha256": "199c3b8e08c4df550ef71bf30667cfd70ca76f32e8c7121d35082b622494b660"
+        },
+        {
+          "path": "k-dense/literature-review/references/example_workflow.md",
+          "sha256": "56d9c06599269cc24648762a0390b4762ea1c1a2386c3c8b28daa62360ea0b6c"
+        },
+        {
+          "path": "k-dense/literature-review/references/search_and_citation.md",
+          "sha256": "b2c5628b14cd531931d25264d428c75a252ce0961d6e74e927fd72e13bc20bed"
+        },
+        {
+          "path": "k-dense/literature-review/scripts/generate_pdf.py",
+          "sha256": "dd561948e30101cda0955762a38f463b4ac588b13082b5717b938c3c1d772da3"
+        },
+        {
+          "path": "k-dense/literature-review/scripts/generate_schematic.py",
+          "sha256": "5cec9c14d164c9ea9ccf6425f2010c40f1b077dd0c9e30395564cdc793c334b2"
+        },
+        {
+          "path": "k-dense/literature-review/scripts/generate_schematic_ai.py",
+          "sha256": "af055204033d446cd8e4501de0a0d0aaa952bad7c365e559f2e3a80698704ce9"
+        },
+        {
+          "path": "k-dense/literature-review/scripts/search_databases.py",
+          "sha256": "4b572895633b765a0f0214ec455149dd6282c657f5659793213687003f3fa630"
+        },
+        {
+          "path": "k-dense/literature-review/scripts/verify_citations.py",
+          "sha256": "ab492d2670865cd3a632024121c7449bb7138dc1ca565fbd0c0e697635104d55"
+        },
+        {
+          "path": "k-dense/literature-review/SKILL.md",
+          "sha256": "950a6d0863ef657523813b985fe86599ac6bb99b695eee5953612d7e20c78011"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [
+          "k-dense/literature-review/scripts/generate_pdf.py",
+          "k-dense/literature-review/scripts/generate_schematic.py",
+          "k-dense/literature-review/scripts/generate_schematic_ai.py"
+        ],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-paper-lookup",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/paper-lookup",
+      "local_path": "k-dense/paper-lookup",
+      "capabilities": [
+        "literature-retrieval",
+        "full-text-retrieval"
+      ],
+      "assigned_specialists": [
+        "literature-evidence"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/paper-lookup/references/arxiv.md",
+          "sha256": "ebb9ed199687255963eb1f983e015b031851b2175b30196df4d14986435d066b"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/biorxiv.md",
+          "sha256": "c2a034ffcf8b37656af8422aea5df19f5fe52d17997619693af0d091891efc12"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/core.md",
+          "sha256": "f1dcb49a99431393efacd2a80b17092561be1e3054fe173aa387c1b6009c1402"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/crossref.md",
+          "sha256": "036a6419086426a97ada3360b1ee2a4c8fa3051d98320a8881fbabf3fe65ec68"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/europepmc.md",
+          "sha256": "225cbbbd391de8b28548e4dff2081eda6b743c333bc4c5083c920258d46a5c10"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/medrxiv.md",
+          "sha256": "f8175230eaf2772cfcd3ccd5fcce8bef7fc225b0c749dc1441c0df47a3ecb0c9"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/openalex.md",
+          "sha256": "df4a8b86174c37e07a3691f5fa627f8cb61cd60587ce1723a6608058547bda08"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/pmc.md",
+          "sha256": "77f31c9362acf40c50ebd32bedcd58fe80aa9a72a56db430bdd6bcba26d40bff"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/pubmed.md",
+          "sha256": "7f8650a8c47a435a83e346c147d166f31f3574c4696050d64a03cea790d7fc6f"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/semantic-scholar.md",
+          "sha256": "61a92ed728d3a0421ddf0e7430b025bfe3764816b1fff71bb77b8860d670936d"
+        },
+        {
+          "path": "k-dense/paper-lookup/references/unpaywall.md",
+          "sha256": "97d95863b2a73837070f48e1bf93ea3c2e920b1564eb7e5ac4ab4167ae77d4f1"
+        },
+        {
+          "path": "k-dense/paper-lookup/scripts/_common.py",
+          "sha256": "4c6962ddbcb8cb89adc6c6ac02199835310f04b2ab93ffab9855adef38efd369"
+        },
+        {
+          "path": "k-dense/paper-lookup/scripts/arxiv_atom.py",
+          "sha256": "ef8014d59380864973b5784bc76a954152eed81cb5e139755f050284d111cc89"
+        },
+        {
+          "path": "k-dense/paper-lookup/scripts/jats_to_text.py",
+          "sha256": "4c0cad352a4ab8642bb32929adf2d91386c45c1f2f8b19955b1ef504754449d0"
+        },
+        {
+          "path": "k-dense/paper-lookup/scripts/openalex_abstract.py",
+          "sha256": "ad1092c887ea61be4cefa7f94d261c84b50be7e1bbf076b53c6569b5955edb27"
+        },
+        {
+          "path": "k-dense/paper-lookup/scripts/paginate.py",
+          "sha256": "98bd6ead5a1ae5ce52dec5159f7e48701d05adeadabefae4bb275c1e9b526989"
+        },
+        {
+          "path": "k-dense/paper-lookup/SKILL.md",
+          "sha256": "ba47c3f7842221588cfc268e5ced742ddc122b7d0faf470ec85de087ede5b003"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-citation-management",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/citation-management",
+      "local_path": "k-dense/citation-management",
+      "capabilities": [
+        "citation-verification",
+        "bibliography-management"
+      ],
+      "assigned_specialists": [
+        "literature-evidence",
+        "reproducibility-integrity"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/citation-management/assets/bibtex_template.bib",
+          "sha256": "bf03cc646e6bc6aaba85d632b8e25b26c2830419892f3c17a7d844805d3a721e"
+        },
+        {
+          "path": "k-dense/citation-management/assets/citation_checklist.md",
+          "sha256": "305ff79e25b2654f1a5dc2163c03e7ab14e6c9578b1ea0f2d30f97195578d2c6"
+        },
+        {
+          "path": "k-dense/citation-management/references/best_practices.md",
+          "sha256": "925a5aa58b249006b3743f7d6df256ee8861f9dd97e0c27b5f5b4cfcf91f9b5f"
+        },
+        {
+          "path": "k-dense/citation-management/references/bibtex_formatting.md",
+          "sha256": "89fde5b4e04112ee62dcfe086780f000906681ec7b102c094c875c3656eaed6f"
+        },
+        {
+          "path": "k-dense/citation-management/references/citation_validation.md",
+          "sha256": "2428f93cc9b6bff8d8784f9a09063774df82225757a06a8213ebf2ef37aa522e"
+        },
+        {
+          "path": "k-dense/citation-management/references/core_workflow.md",
+          "sha256": "4d3cc7bfa74d9c3f9f5b34073b03eaa9ba11ad5104dac437ecca56774f886f2f"
+        },
+        {
+          "path": "k-dense/citation-management/references/example_workflows.md",
+          "sha256": "d1106cbd7c866cabb82dccd7b9763881d279ada64283016aa59d049c5bfda2f5"
+        },
+        {
+          "path": "k-dense/citation-management/references/google_scholar_search.md",
+          "sha256": "18e8af47001fd427692243d04b9c975c5454e9ce9929bfe42843775f3d845680"
+        },
+        {
+          "path": "k-dense/citation-management/references/metadata_extraction.md",
+          "sha256": "aa8be4ac76c6e274ce5ef2f034c6578e0f263baf71f030a0f2eeb92fcd810b45"
+        },
+        {
+          "path": "k-dense/citation-management/references/pubmed_search.md",
+          "sha256": "f25e7adf200fee05f83e3434e1a08b6ec25d1ee2563a19325b94e443ff7cde59"
+        },
+        {
+          "path": "k-dense/citation-management/references/script_reference.md",
+          "sha256": "e6f1a87d6cd25bd7043fc0e4c88693a327ad2a7019515408392c58cff408330d"
+        },
+        {
+          "path": "k-dense/citation-management/references/search_strategies.md",
+          "sha256": "a91bbd11c7246a5c03e64544bbc476d4089b397a55260f4979055ff177c9874f"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/_common.py",
+          "sha256": "87540160163671b972c2fccb4d0a42db3cca2603c664d26d5da3ca5dbc7dfdd2"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/doi_to_bibtex.py",
+          "sha256": "45dbdbc365e63c65dc7e32945186122dd1cd7cb003ca5fbe103876952b4d9171"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/extract_metadata.py",
+          "sha256": "d4922e47d21e38e8b414bfa9772eeac8c3df856b7179f33cd45f89ff777d4422"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/format_bibtex.py",
+          "sha256": "cc74fdc4d5819df8db3999e59f96469cebfb353ecf406a49a5a0fc60896707cb"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/search_google_scholar.py",
+          "sha256": "839228bc7a9b4c3b23e4b0d5c4c13ff024db423deeec4908b13261367b19b90e"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/search_openalex.py",
+          "sha256": "b98f276748a121b5fdd8a6a9066f4094b85f585b64ed292710ad589df2495a3f"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/search_pubmed.py",
+          "sha256": "a01a8034775939264ffb0b5454956b15c7915babea6f1af2fd822b95e1082884"
+        },
+        {
+          "path": "k-dense/citation-management/scripts/validate_citations.py",
+          "sha256": "b20abad7a10f722a7c404adc9884bec339fc960c82373698e73e49ba2015fba5"
+        },
+        {
+          "path": "k-dense/citation-management/SKILL.md",
+          "sha256": "24b73d1d84e34900c7c1556af4d7e6462cc846bcf6c5071112a77545ce258f73"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-hypothesis-generation",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/hypothesis-generation",
+      "local_path": "k-dense/hypothesis-generation",
+      "capabilities": [
+        "hypothesis-generation",
+        "mechanism-analysis",
+        "falsifier-design"
+      ],
+      "assigned_specialists": [
+        "innovation-prior-art",
+        "theory-mechanism"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/hypothesis-generation/assets/evidence_ledger_template.csv",
+          "sha256": "1ec5cc4ada96e05041c67865bcdfd3bb0a4f7cc92f24ca1ce7a826028a41d3de"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/falsification_controls_template.json",
+          "sha256": "beea4e2be3b5abdad1014934a7c2fe1f9f00f07b3270119cfeb8134a94603e26"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/hypothesis_record_template.json",
+          "sha256": "73f080a6696c415f228b38100bb7b0f6bc89ad2c7997bf50d62b585b0bc8fe0c"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/operationalization_template.json",
+          "sha256": "36ecdbd91c022554e60db646b548f5694d8409277a5b15fdf309d86f8c1e3070"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/prediction_rival_matrix_template.csv",
+          "sha256": "ccf6cb53c048a9f4d60788a8ec73c5d683ec549dab7df95b30282f6c0963653a"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/preregistration_scaffold_template.md",
+          "sha256": "570314aa6669b935a5c1fd91a0e55ef7035d219a23cc6703ddece0f6fbdd6f5d"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/search_boundary_template.json",
+          "sha256": "b885d4e252c0df7010d8fca3dab7e3fef49e9f386b7a1b15240531ce374bf6ec"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/assets/source_ledger.csv",
+          "sha256": "185f563d213a2254d3f9280bb12f7d1ff332c5e7e77f15b4839ca5f9a9d7740c"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/causal_inference_and_claims.md",
+          "sha256": "37fba9d9d72414fcb342faa231944b4dbc5ce3255f552482ea8298cf0909b0a4"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/concepts_and_workflow.md",
+          "sha256": "a86a8f464fb555212e79bf13e307f3c129e9c853069856eb3c93c3c8a60bb7fc"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/ethics_safety_and_ai.md",
+          "sha256": "f89c8c85cab8a84b0ac0c0e402942e596bbd66f293ebb7597217e1514cdffbe9"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/experimental_design_patterns.md",
+          "sha256": "83c0c75c7b1edadc92e4ae23607624277c19955fc6a71ee0313b6efc51e4e939"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/hypothesis_quality_criteria.md",
+          "sha256": "12698b549f77a6ee64807b959093f39628fe3d47aa9a00a9b235681bf0b09269"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/literature_search_strategies.md",
+          "sha256": "2a34fa0645f854093aea2d867059bae563c795f1935ba4b9c6d494bdc389fdcb"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/preregistration_and_open_science.md",
+          "sha256": "fd4f7ffe03d419bfd8b1b104637f508b9dad5ae868afc5c9307bb868f3920b16"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/security_validation.md",
+          "sha256": "39dffd9c0878e8da5fe2511678b4f69fab95143c17a4915f56033cb111c35572"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/source_ledger.md",
+          "sha256": "ff41a6f5e1d365eafdf6be130cf40733653587b6ec51be19ce0294df44d93919"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/references/tool_reference.md",
+          "sha256": "db305bec51a46a67c5d21baa47e2854110f0a3901f525ec7c9a7fe120b9d9c8b"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/_common.py",
+          "sha256": "a1e1390b9bac9440d5038ebe22705420c8831d669c90c9dcbc6647c2cd494e90"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/audit_evidence_ledger.py",
+          "sha256": "18fc0a947fec34ea573eb824f540ce6ccb351aed5e08fc80ae476c2150aef2bb"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/check_falsification_controls.py",
+          "sha256": "e56f67b92d15c93cbe9eb1b9fb89253239b6ac81328fb56fc96d9e2c3ec3ba32"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/check_operationalization.py",
+          "sha256": "efc093f4b58b23e095238e60badef04d34dfb012b7958e1326a1f7d58ed5edd6"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/generate_preregistration_scaffold.py",
+          "sha256": "f953e3af468cb69ebbba3ff9f3dbba3846a52e557698c03f78972e0b41fb5ba8"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/lint_causal_claims.py",
+          "sha256": "561186e71f7c0b573f7ba45ef0009460c1398048929ed55fad53a65cda56dafe"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/validate_hypothesis_schema.py",
+          "sha256": "63bc1b7752d20042c2845ecb2457448ec8e2d9bc8fe1337003b222f8f4620608"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/scripts/validate_prediction_matrix.py",
+          "sha256": "3888802496f4e6ece5955b4fe28d6b2e6d810c5107ce6ca45ebbd70acceed317"
+        },
+        {
+          "path": "k-dense/hypothesis-generation/SKILL.md",
+          "sha256": "8153fdc33e0a4cd012109931c6a822c0e0afe206769e1af3e7a3d07ea37e1137"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-scientific-critical-thinking",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/scientific-critical-thinking",
+      "local_path": "k-dense/scientific-critical-thinking",
+      "capabilities": [
+        "critical-reasoning",
+        "mechanism-analysis",
+        "adversarial-review"
+      ],
+      "assigned_specialists": [
+        "theory-mechanism",
+        "adversarial-review-board"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/scientific-critical-thinking/references/common_biases.md",
+          "sha256": "99f608c86075f1a1ab115a1cf4ecd54fe482266cb5e47761172894f21829f6cf"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/references/core_capabilities.md",
+          "sha256": "ed5e62032737893ef7eda9f60f6b3355f9081daa91bbfddb9340194bc8253351"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/references/evidence_hierarchy.md",
+          "sha256": "e58b6fbbd080938719c1c1ed08acb3b4c056e12e8ed9ef2ff250b8e9ebf9b74c"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/references/experimental_design.md",
+          "sha256": "99023cfb10e455349f5e57fff75d34f80f3bba8842c48f5385ad7d0586f01b11"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/references/logical_fallacies.md",
+          "sha256": "7911abe82bc05c8f513591e9b00572f21e5a631783cc00cd9dbf644b5eae28ce"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/references/scientific_method.md",
+          "sha256": "09e709bdc7919a2b21825175aff5e0f9c26117a02ec654bfdb347fc8fa7ad0b7"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/references/statistical_pitfalls.md",
+          "sha256": "c525ed590c36eef9dfca95c9c8bc2ab3e228e9247aa476a2c2ddcf07ffc62172"
+        },
+        {
+          "path": "k-dense/scientific-critical-thinking/SKILL.md",
+          "sha256": "20880f5c2c2a03b6b40f15161c4f92c1ecfc7219252c44e9af3958cebb23c683"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-exploratory-data-analysis",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/exploratory-data-analysis",
+      "local_path": "k-dense/exploratory-data-analysis",
+      "capabilities": [
+        "data-dataset",
+        "dataset-audit"
+      ],
+      "assigned_specialists": [
+        "data-dataset"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/exploratory-data-analysis/assets/report_template.md",
+          "sha256": "0f967f7b0d203816a683bbf536b9e4dec46c35e7f1d332d7f77e61ac40f13c7a"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/references/bioinformatics_genomics_formats.md",
+          "sha256": "e296b5e61204e4a4de0e3f4490d08e94438f65e63851d29445780d7150e6eddd"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/references/chemistry_molecular_formats.md",
+          "sha256": "077a97025a52904730f2bb2b39f96106520efef1057d637d66dca8eeab13de26"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/references/general_scientific_formats.md",
+          "sha256": "42727d3b5fb6577f8c7137e4ffa6d59fec433b4360ad114e334f8bd3b885b7fb"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/references/microscopy_imaging_formats.md",
+          "sha256": "6d425e81bedcd12965f8b7626d42177651a860682e5a26049fb6eb8f96493e82"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/references/proteomics_metabolomics_formats.md",
+          "sha256": "6225a355973ab9a296e152845cc5f8e6bf76f734c51dfbd55b0f944ffc1f07e3"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/references/spectroscopy_analytical_formats.md",
+          "sha256": "297f124f69281f884c33addd658b90b66c88a7bebc8bed6dea12284fb6897466"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/__init__.py",
+          "sha256": "87539288ce5d4caf24fc9fca14e5d70c41730c9d4285106ac4db0c4b5cefd60c"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/_capabilities.py",
+          "sha256": "58d431522bd302345e61dca1926d5cc4c0b21c0d63577cdeb127509a72c7fee8"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/_common.py",
+          "sha256": "62f572df67792eaff8ddaa53f9938e27fbb55175442d18fcc432b66a31242b1b"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/_structured.py",
+          "sha256": "afe279b590f2fff35a1b779b5c814b28b000b19b0c2203c6d7c6fb50ab39c149"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/_tabular.py",
+          "sha256": "9c25736f9e0ddcc2c74a51e9ac8e11caa9fea47b8026d3ddd047673f2f49de17"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/capability_manifest.py",
+          "sha256": "1e52e1db668ebce919751a75b53ad959c36749e4b1695f59d8ac2d6c8eda4abf"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/distribution_sensitivity.py",
+          "sha256": "ca6e9f3dd59cfb382b1ff0874e709933c136ec942085a0437d4000bbf7f1f3c8"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/eda_analyzer.py",
+          "sha256": "6532b28ad3f28dd9f58acecb54361c8271d2755584a54ecb0be34da74d1e5d20"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/image_inspector.py",
+          "sha256": "bf25687da27c67eb33b976d11bfb23a40f847b635aca941374efa1133184144d"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/missingness_leakage_audit.py",
+          "sha256": "28458714e80ee31db636c0265ba21e1623ba27816d31e236fdc9b873a5b78ffc"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/report_scaffold.py",
+          "sha256": "4d745592384bfceb0ec7384eecfc5e8ba49ebfa4ec55be75a99ce7c7e102f60b"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/sequence_inspector.py",
+          "sha256": "6f821c8e3b2897ad178a1c684670226b17c1afce37cd083c4f77a1daabb0340f"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/scripts/tabular_profile.py",
+          "sha256": "78cd139292c18e31d17de882762948db7b51fdc3278546f994270a287d0149db"
+        },
+        {
+          "path": "k-dense/exploratory-data-analysis/SKILL.md",
+          "sha256": "71506b29ce46a6257332c95ac12a7c8bc3c18e35544d47fc3d870f94a82a65fe"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-experimental-design",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/experimental-design",
+      "local_path": "k-dense/experimental-design",
+      "capabilities": [
+        "experimental-design",
+        "ablation-planning"
+      ],
+      "assigned_specialists": [
+        "data-dataset",
+        "experimental-design"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/experimental-design/references/design_types.md",
+          "sha256": "8c00ac63142f91db9e010082d491b0af25019aba0f161c72497a5df2c6ff8c55"
+        },
+        {
+          "path": "k-dense/experimental-design/references/factorial_and_doe.md",
+          "sha256": "2db506065a0fd36b699ad70063ce6a099055b9e676efc36790e098ed43319e0e"
+        },
+        {
+          "path": "k-dense/experimental-design/references/randomization_and_blocking.md",
+          "sha256": "b4298ef74a5c744fa986507e158fa48044f0c762c3b404c0a0b063a0dbac3dca"
+        },
+        {
+          "path": "k-dense/experimental-design/references/sequential_and_adaptive.md",
+          "sha256": "bfffc806da8d84116535c4fd2f3b50f94e16e7addd38cca0b502c19df368b475"
+        },
+        {
+          "path": "k-dense/experimental-design/scripts/doe_designs.py",
+          "sha256": "50d9078c06c3609713ec48546f39685716757ab30a84fefe35b20883f7bf49c6"
+        },
+        {
+          "path": "k-dense/experimental-design/scripts/randomization.py",
+          "sha256": "f0cf8bf7ba27a3381366b9cf03e30506d34a70670537d046e851c340187060f8"
+        },
+        {
+          "path": "k-dense/experimental-design/SKILL.md",
+          "sha256": "8d1e072e96c40dea985deac2d67d2cb800bb8db1cb18b31db0e623ca66e66741"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-statistical-power",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/statistical-power",
+      "local_path": "k-dense/statistical-power",
+      "capabilities": [
+        "statistical-power",
+        "experimental-design"
+      ],
+      "assigned_specialists": [
+        "experimental-design",
+        "statistics"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/statistical-power/references/closed_form_recipes.md",
+          "sha256": "6194841e8477d027cae631c557a90826cd4d613d98e98749e6f40714a1da3b0b"
+        },
+        {
+          "path": "k-dense/statistical-power/references/effect_sizes.md",
+          "sha256": "19f243ac6aeacfbbb7a83a1e621dc5a8248b98278499c4efd34db412d2c964db"
+        },
+        {
+          "path": "k-dense/statistical-power/references/simulation_based_power.md",
+          "sha256": "5841de90e01a4e4617ce84c9ced9791f1ca3b3e0727c80f73f3ea5b9f339b469"
+        },
+        {
+          "path": "k-dense/statistical-power/scripts/power.py",
+          "sha256": "4bb073160c59469eed4398eee0fa3c6686c1df1c2ebf7bdddfe7853d7c94914c"
+        },
+        {
+          "path": "k-dense/statistical-power/scripts/simulate_power.py",
+          "sha256": "a3eb6fefe1af0aa9d67fe8762efab47df13a0ff57a35480a59c0fc4e18c404df"
+        },
+        {
+          "path": "k-dense/statistical-power/SKILL.md",
+          "sha256": "51ca6017ecaf5a6ec427d80f511063f570a983785399eedbd24c6fc4b9fd12f5"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-statistical-analysis",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/statistical-analysis",
+      "local_path": "k-dense/statistical-analysis",
+      "capabilities": [
+        "statistical-analysis",
+        "statistical-modeling"
+      ],
+      "assigned_specialists": [
+        "statistics"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/statistical-analysis/references/assumptions_and_diagnostics.md",
+          "sha256": "b8fdccb2d2f160c78bd11415e30c50a0dea755f046e936b8c85b23333d1b47f8"
+        },
+        {
+          "path": "k-dense/statistical-analysis/references/bayesian_statistics.md",
+          "sha256": "c6b994b512c38009f26aed3913884aa85fef2bdcefd8a9858b124deed3a05f70"
+        },
+        {
+          "path": "k-dense/statistical-analysis/references/effect_sizes_and_power.md",
+          "sha256": "6de003ff25fe3613322f5cfbd4d042327b17a381c034bc2dbbe068212ecce732"
+        },
+        {
+          "path": "k-dense/statistical-analysis/references/reporting_standards.md",
+          "sha256": "6854623fb5e8080e7d02b6c713ee44cb4a4cf03757d97840764118af54137a88"
+        },
+        {
+          "path": "k-dense/statistical-analysis/references/test_selection_guide.md",
+          "sha256": "64f5d93f87d83431b767a24d6b32c0ed82f2cbd32b1bd07476b49b5ac6a858a5"
+        },
+        {
+          "path": "k-dense/statistical-analysis/scripts/assumption_checks.py",
+          "sha256": "3fabf359ab0128bbfc498dadb53a4782431cde473c0a6681ea7298a605757018"
+        },
+        {
+          "path": "k-dense/statistical-analysis/SKILL.md",
+          "sha256": "1b1d63fd667ef454a8e0cadf32457a511883d3308dcc79c47c48bc565d9a23f7"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-statsmodels",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/statsmodels",
+      "local_path": "k-dense/statsmodels",
+      "capabilities": [
+        "statistical-analysis",
+        "regression-modeling"
+      ],
+      "assigned_specialists": [
+        "statistics"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/statsmodels/references/discrete_choice.md",
+          "sha256": "4b98bdcb525daf2ea33dc9e7bc5cb952fbdb6ed7f256ee63e7f7a7ec645d22a8"
+        },
+        {
+          "path": "k-dense/statsmodels/references/glm.md",
+          "sha256": "5a86120443b90c3feac508070b1a46c4ee7af60a2bbb3548bd954d972517ce85"
+        },
+        {
+          "path": "k-dense/statsmodels/references/linear_models.md",
+          "sha256": "b260fcc1d604592a1b960249cd835d1cb67f510f054e0270a5939dceb33aafaf"
+        },
+        {
+          "path": "k-dense/statsmodels/references/model_selection.md",
+          "sha256": "0a49d88b034794a147c6b050f19d895133131534344fb8f0e3bb672d0279cf83"
+        },
+        {
+          "path": "k-dense/statsmodels/references/modeling_capabilities.md",
+          "sha256": "ff1cd9ae7e0694ca2af2caacd0c962e3ecd8c24ef9b4ae079232f4ddfbefbf82"
+        },
+        {
+          "path": "k-dense/statsmodels/references/quick_start_guide.md",
+          "sha256": "65eb44f1c349d41f89aa2d2a647fed319064905f7d30b1278f01e829a1313574"
+        },
+        {
+          "path": "k-dense/statsmodels/references/stats_diagnostics.md",
+          "sha256": "f4d8ec3c6b149af355ae3cb33f29bea1776b873867dcc035906753b2b47d5620"
+        },
+        {
+          "path": "k-dense/statsmodels/references/time_series.md",
+          "sha256": "f84020f9d70396c0af6e4eceb6fc001967d5631f230fa06b2ec987fa13b27415"
+        },
+        {
+          "path": "k-dense/statsmodels/SKILL.md",
+          "sha256": "e9f981de460cc8641c376757859366d53064e1a2bb27e296870e7e42cefe7676"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-pymc",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/pymc",
+      "local_path": "k-dense/pymc",
+      "capabilities": [
+        "statistical-analysis",
+        "bayesian-modeling"
+      ],
+      "assigned_specialists": [
+        "statistics"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/pymc/assets/hierarchical_model_template.py",
+          "sha256": "487a6f47f78cdb7daea115e57d9c886d356a0f8a76e944d4c8f702ebade57b5e"
+        },
+        {
+          "path": "k-dense/pymc/assets/linear_regression_template.py",
+          "sha256": "843dda9b920c3a4ffcc57ea3ae58b9e3d6238dd55edbdbb898108c4aa07749be"
+        },
+        {
+          "path": "k-dense/pymc/references/distributions.md",
+          "sha256": "f10dd0af8779ca4860293647feb01fa02219b6aec7383644814be891b74fb05a"
+        },
+        {
+          "path": "k-dense/pymc/references/model_patterns.md",
+          "sha256": "606522f8805fdf6c9b5eea4993dd48ef27c2d635a84112355043f6e3dad1c48c"
+        },
+        {
+          "path": "k-dense/pymc/references/sampling_inference.md",
+          "sha256": "089d13246f2e48444b1be62c25aa1da91a6a18049cc3024a4f763be9960cb8ed"
+        },
+        {
+          "path": "k-dense/pymc/references/standard_workflow.md",
+          "sha256": "60d0874b060c798e36162553dee9b09233c9b1522ecc1230bd46c23a5ddc6422"
+        },
+        {
+          "path": "k-dense/pymc/references/workflows.md",
+          "sha256": "2f1322b3e193e7d67dfccf233176f9c1fa10160e5ccbeac998f7ff8b4fdfcaec"
+        },
+        {
+          "path": "k-dense/pymc/scripts/model_comparison.py",
+          "sha256": "b0160e058654df48cf08ebfd96426c44a6cd8a5f34cefcb0f4331f6d610ac6df"
+        },
+        {
+          "path": "k-dense/pymc/scripts/model_diagnostics.py",
+          "sha256": "95dca9203c1cde89412e0a9feaf749c5d2d5193056bdcd50569d44709748550a"
+        },
+        {
+          "path": "k-dense/pymc/SKILL.md",
+          "sha256": "fbb93459b2a0cd2170f637f95a850cf5049ea8300ee0b9921d3299ac28a8a8d1"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-scientific-visualization",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/scientific-visualization",
+      "local_path": "k-dense/scientific-visualization",
+      "capabilities": [
+        "scientific-visualization",
+        "figure-audit"
+      ],
+      "assigned_specialists": [
+        "scientific-visualization"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/scientific-visualization/assets/color_palettes.py",
+          "sha256": "173d95887be654867db3602430ade84f6362ae80477c5373de0b44ce40375f57"
+        },
+        {
+          "path": "k-dense/scientific-visualization/assets/nature.mplstyle",
+          "sha256": "1c0c6bcb4d6add27247f43541d8e588aa562f21c4c88c7eaa673a2eac63dfb35"
+        },
+        {
+          "path": "k-dense/scientific-visualization/assets/presentation.mplstyle",
+          "sha256": "db47ccdf7267a39407a959141b851d72295a66489f01c9a23ec8e963a02144c8"
+        },
+        {
+          "path": "k-dense/scientific-visualization/assets/publication.mplstyle",
+          "sha256": "45973599d92b27e5b156b4a23aa794795b5d83173633acb47e55658af304f999"
+        },
+        {
+          "path": "k-dense/scientific-visualization/assets/publisher_profiles.json",
+          "sha256": "12633ca62d1b7539b40fa31c01aa5b266546a25734961a41fc79250a5b328b9b"
+        },
+        {
+          "path": "k-dense/scientific-visualization/references/color_palettes.md",
+          "sha256": "9b6e7d74922d64e333aff67fd41c0b53891736f5d37b01f11e96225d2dc1bfc1"
+        },
+        {
+          "path": "k-dense/scientific-visualization/references/journal_requirements.md",
+          "sha256": "17d36a91d5afc4975682038f36a3b13470e886f64d53b23100b3ea5688e07daa"
+        },
+        {
+          "path": "k-dense/scientific-visualization/references/matplotlib_examples.md",
+          "sha256": "0f603898a5ac91757fec3dccd62bb5ee2e24e254fdebfb97f8d2b3ecec167dd5"
+        },
+        {
+          "path": "k-dense/scientific-visualization/references/publication_guidelines.md",
+          "sha256": "abfd60dbf157dcf87d396e5859d100b8d98a25bfe8b802bfcc149b049300dc20"
+        },
+        {
+          "path": "k-dense/scientific-visualization/references/sources.md",
+          "sha256": "186544985dba77fe948393483cd2c7fd2c4b543c04c1fc1bcc652190d0fb9cd0"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/_common.py",
+          "sha256": "1bbbfb48500af7dd6df98076584085b2b2a24aee3024a7d9ce91dcb27ebd4b15"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/export_plan.py",
+          "sha256": "29e33fbb4a8a4f558e0a190afda50721f7bcb0fabf39a4f2b8f465152d9f20bf"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/figure_export.py",
+          "sha256": "5fc7dd947621b861b12fad2c053f80f465f686b92258c9a7991db618d62b8627"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/image_metadata.py",
+          "sha256": "bd8df685ae0a31f92ab10ac5e5ac7472275d06a62e1543adb94a4de6bfe78693"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/palette_audit.py",
+          "sha256": "3a90b3c9a4a39dde6a341dc3de7b99cd2bca4773c66564fc90cdc2706a5a8165"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/style_presets.py",
+          "sha256": "3c811ecb16c012691b69e9f27993ef096977754c3a6e73d247e816a674efff21"
+        },
+        {
+          "path": "k-dense/scientific-visualization/scripts/style_preview.py",
+          "sha256": "f96f2ec01b86423418446eebdd2ed887da83f0a1b54f499d920191d56a3542c0"
+        },
+        {
+          "path": "k-dense/scientific-visualization/SKILL.md",
+          "sha256": "f7c7f9a2350ea02db2db55cd28921a54c74b089f6762f1b0b63a13b8f6eeec33"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-matplotlib",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/matplotlib",
+      "local_path": "k-dense/matplotlib",
+      "capabilities": [
+        "scientific-visualization"
+      ],
+      "assigned_specialists": [
+        "scientific-visualization"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/matplotlib/references/api_reference.md",
+          "sha256": "7db16c836bf62d9ac1bf952a70f3ffed785cfe51f76d806ded428a125ec9f1b5"
+        },
+        {
+          "path": "k-dense/matplotlib/references/common_issues.md",
+          "sha256": "36d5439972718697be22222ba8a53e0e52d474153eaaa999c349f41b54e01cb5"
+        },
+        {
+          "path": "k-dense/matplotlib/references/plot_types.md",
+          "sha256": "99b4c3c5c6c4d6590b722b6de7e414c2e443402df51cf99c3616b9f366a04c44"
+        },
+        {
+          "path": "k-dense/matplotlib/references/styling_guide.md",
+          "sha256": "e53cb0f55fd1c4b07122cf67c0aabcc3114a686598667e62856c9d797a6e7f35"
+        },
+        {
+          "path": "k-dense/matplotlib/scripts/plot_template.py",
+          "sha256": "24b362b1c2a96d4eda19ed8f4a913f356029e836069aab564e0cfb4ac2b84a1b"
+        },
+        {
+          "path": "k-dense/matplotlib/scripts/style_configurator.py",
+          "sha256": "5839cebb22b21f7612c6d169b9f63f20316910d1d7a3f0eb68c2b79cc43e1b0d"
+        },
+        {
+          "path": "k-dense/matplotlib/SKILL.md",
+          "sha256": "57c8fb3c504a7d11c338800d8dc2124d04176d9ec5d0428622d05bb498e3e8e4"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-scientific-writing",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/scientific-writing",
+      "local_path": "k-dense/scientific-writing",
+      "capabilities": [
+        "evidence-bound-writing",
+        "evidence-bound-revision",
+        "publication-editing"
+      ],
+      "assigned_specialists": [
+        "scientific-writing",
+        "publication-editor"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/scientific-writing/assets/authorship_template.json",
+          "sha256": "04a590ac47ed61dcc7cd88a26d51243cf178fe6ada99d4000ca225e1b5f6f20a"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/claim_evidence_template.csv",
+          "sha256": "cfb7a9f44cd1e5ef47ccdb3e32ac0a25b72d30e51343faace9bf07c00e3a0659"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/consistency_manifest_template.json",
+          "sha256": "2ea6f468ab6fab45c4db3616fbaddcc2ae706b3a26d6745b4cf74ddb53266872"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/manuscript_manifest_template.json",
+          "sha256": "914052ff25b44072a07dce2ae8171524b717894ad7d2103054356115b9dd6c22"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/manuscript_scaffold.md",
+          "sha256": "55305ba311ff4e2459a31a99b3f1b9da44d79499332399a9216b5f92cb412ab2"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/REPORT_FORMATTING_GUIDE.md",
+          "sha256": "2bb69499426ed6727c1701bae752c2e902151cbf69963f8bcf25b9e54cc20724"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/reporting_coverage_template.json",
+          "sha256": "886ca599622c1dfaedde7649ec47e973b4fbe6081cac6a6afaf24ace899d46a9"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/reporting_guidelines.json",
+          "sha256": "9b3aacde9e4875bfb69a78688b0bf7988b5d22c464e21e5552f6e98d77af68d2"
+        },
+        {
+          "path": "k-dense/scientific-writing/assets/source_manifest_template.json",
+          "sha256": "fc6f65a8571b717691ac717f325825a608190f271e8b79650b711cc95f5b0a36"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/authorship_ai_confidentiality.md",
+          "sha256": "b02b3aee6ab0d3e925f5c0333288d29f8ee4aac103c10c9aefff2e604d436c63"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/citation_styles.md",
+          "sha256": "64401454dc70dc9603224495b62d241b18cb055134aeda55002b89e9e15e0c85"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/cli_reference.md",
+          "sha256": "68390eea5952ee8b1c87142fc1be877fbbccde9efed4cb8c09aa77bba1eb616c"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/evidence_workflow.md",
+          "sha256": "c7db56a223978307f9f43921eb393d87fef8c051a492c3d7e3c016c62b9e1409"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/figures_tables.md",
+          "sha256": "212d10f3e7a01325d2518c4aab54a4fc04a67e4aa94e959cead199c425a0f4d6"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/imrad_structure.md",
+          "sha256": "8a1201f8e58a045736a5bc65a47f239c894be6946716e969c0b77aa90a7e8e39"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/journal_policies.md",
+          "sha256": "88461292ebde06f0db0e756b8e3c776cc2017eb313a8593636be264af2578ff1"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/professional_report_formatting.md",
+          "sha256": "c269fd256bda6a9389bfd5ffefa8eff8876b96d92f8391e8a01fa80910bb35d3"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/reporting_guidelines.md",
+          "sha256": "4a74d4613742bb26fe3d74596998b9e75ea8a2694a012222b6d9636e121a1f0d"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/research_integrity_open_science.md",
+          "sha256": "f8f91010537acf4b78616d7410d23b85030f94d66e9d36db03d6e632ffb56100"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/source_ledger.md",
+          "sha256": "cc2b3c801f4a350cab7e0b5261e4edda7e8d20274944e8b5590e62f0da42a0f6"
+        },
+        {
+          "path": "k-dense/scientific-writing/references/writing_principles.md",
+          "sha256": "58d4b32f63446c0b082f163314fdcf0d41a50568ad392d34ba992e24fadae764"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/_common.py",
+          "sha256": "ef5f301a8bd71e8ca170299d44bf37f083ba4e1be88a8c193b75b30e74c3bc3d"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/audit_claims.py",
+          "sha256": "6457413cfdc12317852f35cecaacb3e11e821d25d5925125f1a9af886eeb6d9a"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/check_consistency.py",
+          "sha256": "5bd1f0dcbcccdac31e422b5a7b220d1ab1272a7eed906a62c0a5f2518e495d87"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/check_references.py",
+          "sha256": "a262d6e935e69ec1c1f25a36b8a12b6905b3f3dee0a11d94557d3f69857c5f07"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/lint_manuscript.py",
+          "sha256": "08ff45315c4dadd1c91104e3639b6bec7a6086c000830dc9d0b2b965895b3398"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/scaffold_manuscript.py",
+          "sha256": "69e9a82c7d0608646872c0f4ad08b538f0c67175b48601d9d52ea527334ce4ae"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/select_reporting_guidelines.py",
+          "sha256": "d130036ab1df6486cb54431a168207af03a52c626459ba7471041b0ee5aab567"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/validate_authorship.py",
+          "sha256": "7e1f44ac8ad7c232cf1c34f4c51d54190ffb24230a6a0b9ceeddf6d58a2ff89d"
+        },
+        {
+          "path": "k-dense/scientific-writing/scripts/validate_manifest.py",
+          "sha256": "06c827653a095455cbf7d8a80a7a818018ed55076d3421863cff3dcb5e031750"
+        },
+        {
+          "path": "k-dense/scientific-writing/SKILL.md",
+          "sha256": "f6026e7d79cd3133e9343a7d6e6c5e06f4ad061888efb6a73fcb95e073eebf67"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-peer-review",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/peer-review",
+      "local_path": "k-dense/peer-review",
+      "capabilities": [
+        "adversarial-review",
+        "reviewer-completeness"
+      ],
+      "assigned_specialists": [
+        "adversarial-review-board",
+        "publication-editor"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/peer-review/assets/citation_references_template.csv",
+          "sha256": "e00b259742a0716661d8adba1e81fc7ca722cea32c3cfe5a5e29509844ed742b"
+        },
+        {
+          "path": "k-dense/peer-review/assets/claim_evidence_matrix_template.csv",
+          "sha256": "06e1215c998a978bdbbe30008040536902abe138e0f790b243ecaee1f21b7da7"
+        },
+        {
+          "path": "k-dense/peer-review/assets/reporting_checklist_template.csv",
+          "sha256": "02709793bc1702fadc760e7089398eb28351b22885a08cbea6c85f135e931ee1"
+        },
+        {
+          "path": "k-dense/peer-review/assets/reporting_guidelines.json",
+          "sha256": "a3684d48498168775ed3f3a8315b01a53f925e38d952d70baf0ec0f2ced105fa"
+        },
+        {
+          "path": "k-dense/peer-review/assets/review_intake_template.json",
+          "sha256": "14d7e00cdc710b8235c80faa71f4c5712c1db1a0a2d734fd4fa9807bbc960438"
+        },
+        {
+          "path": "k-dense/peer-review/assets/review_scaffold_template.md",
+          "sha256": "4e320c9a6238ac7ea2494a4c486e93d1eaf2c5239aab80fcd8eea70a6e359102"
+        },
+        {
+          "path": "k-dense/peer-review/assets/source_ledger.csv",
+          "sha256": "a73e02a696c470eab2765aa563492866b1baeeb2071fd9cc0777fcf7ea39a7cb"
+        },
+        {
+          "path": "k-dense/peer-review/assets/statistical_reproducibility_template.json",
+          "sha256": "071bfc0b1e1edb9d09c539b5c6e291e43e8d719cbe50cfdeac1044fe8f0b69a3"
+        },
+        {
+          "path": "k-dense/peer-review/assets/study_profile_template.json",
+          "sha256": "bc0c19b9ad478c78c4b5111bcd913faca8046e0833815b1bd579a046f737df40"
+        },
+        {
+          "path": "k-dense/peer-review/references/common_issues.md",
+          "sha256": "6a0979d6d64e07f769db8ee9ab82ad3190aebaca4294838f338f5c4b51b596f6"
+        },
+        {
+          "path": "k-dense/peer-review/references/ethical_review_practice.md",
+          "sha256": "7a1b1cf1e02f85b9bf6f0e90d729d7fc4a2819922e1037b5e9543a7670236a24"
+        },
+        {
+          "path": "k-dense/peer-review/references/reporting_standards.md",
+          "sha256": "96ae056f803407671ff7f73d3a29719472698563b85db58e42f21f0c9eeb13f3"
+        },
+        {
+          "path": "k-dense/peer-review/references/security_validation.md",
+          "sha256": "43b0b64acd16544e25aae9b3ed37a78118decd5352975b2e5935704772910a27"
+        },
+        {
+          "path": "k-dense/peer-review/references/statistical_reproducibility.md",
+          "sha256": "1075d96ade7fbcc21c216a22084d74bf497b93a08b7d5f06925594abc62fb5e7"
+        },
+        {
+          "path": "k-dense/peer-review/references/tool_reference.md",
+          "sha256": "ea9490c4e0675702b9e118fe73ff524b84bb55aea5b9883e673969200b110e81"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/_common.py",
+          "sha256": "78e751bd8024d4df69a6a7ab82497424d58da06d751f4cb97ba4fc75eb9044db"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/audit_citations.py",
+          "sha256": "9521d624dce092b93f36e3c4c7dd9cab151b24d2e623d0b299adbef239100e47"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/audit_statistics_reproducibility.py",
+          "sha256": "8daf60d78a2758665b5c676d1d68e52c57c5c1988249fdbbaba62d31a49c495b"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/generate_review_scaffold.py",
+          "sha256": "3c2d6dc36e8e5fdd0313422d30da8c31a7ca808618818db376e348fe8d38fd2c"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/lint_review.py",
+          "sha256": "623878c26ede3d74f2ddf0e0a15acbade40d10009c66ab334550b814b2361e75"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/select_reporting_guidelines.py",
+          "sha256": "9ccbbdeca6df01f2f4e1c86b98db0e9ab0a43685c6726e1abfdb9bbaa2b92ae3"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/validate_claim_evidence.py",
+          "sha256": "93490b289f288ed686a8eb300bf40693e7caf148b5022b180077f0db22acbe2b"
+        },
+        {
+          "path": "k-dense/peer-review/scripts/validate_review_intake.py",
+          "sha256": "bbea9af9a86c937956818c1e6b84be0754a9851a5c5e27f6073f2cadd8367b2a"
+        },
+        {
+          "path": "k-dense/peer-review/SKILL.md",
+          "sha256": "3422beafc240aa7d2703e71fe16e3400269a5ea17045d8b390a30efe58c3de67"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "k-dense-scholar-evaluation",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "source_path": "skills/scholar-evaluation",
+      "local_path": "k-dense/scholar-evaluation",
+      "capabilities": [
+        "reviewer-completeness",
+        "research-evaluation"
+      ],
+      "assigned_specialists": [
+        "adversarial-review-board"
+      ],
+      "exact_commit": "1e5eeffbdad3749125afe7ab48a39694e27f181c",
+      "license": "MIT",
+      "license_file": "k-dense/LICENSE.md",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "k-dense/scholar-evaluation/assets/evaluation_template.json",
+          "sha256": "8b77953138471a80b2f2a6d20ab5b5a2dc7670afa492a74d92975e9f86ec4ce0"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/assets/evidence_manifest_template.json",
+          "sha256": "51512b9f307db9fb451c03f90be399e42d3216dcaecc22e67e037ceda3e5b0cb"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/assets/process_checklist_template.json",
+          "sha256": "de0897b2404f6fd32a0a9aa22406d7830f912f6ab39f3cac4dc34bdce5af8ac3"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/assets/ratings_template.csv",
+          "sha256": "0c518d16760d551a28ae474f65c79ded02b4a97b8121b0ef3d907201b65b1ba6"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/assets/rubric_template.json",
+          "sha256": "3d596eb5186692c82487a338ba5f1bb151fb6f0e487f68ac303beadf44baba84"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/references/evaluation_framework.md",
+          "sha256": "b1d2a381f60bbdaad0ec85e909a77fbcf5d31594bb2261ca7630f1533726c506"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/references/local_tooling.md",
+          "sha256": "3490ea8227bc83644856779518524f6ad82d63b9c509619be2a7e5a3e84b1969"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/references/responsible_assessment.md",
+          "sha256": "f87e3da8624475bb8e0e8a697affcf9b872bc412c10aa14cbda0aa894bc38e1c"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/references/security_validation.md",
+          "sha256": "ffbe10c98411a2a769e448f656d7d09210f468ad63b2775e1044ea1389b12115"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/references/source_ledger.md",
+          "sha256": "400dfa4999fba55d143b6d357c8f7f03396c54f7da629871743260ac7a69f592"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/_common.py",
+          "sha256": "77f2c1776edf1ac4d464d00bd634e275da3c1125009bb6971b72a385e7dee177"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/calculate_scores.py",
+          "sha256": "07a1cd73cca097edd15acebe65531d9254e6e9f316b4a30e1eca5fd252cb697b"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/check_process.py",
+          "sha256": "a296cf1eeb3e1df2fa4d26e399e3c4d350ac1e83846c849cdea7e8e43e528ecb"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/check_traceability.py",
+          "sha256": "29f68f2f842981b3ade8ebbe1c83c73cbcb2c8a23c68653b2114e8336ba7b88a"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/generate_report_scaffold.py",
+          "sha256": "4231b29d4b71968e2d62704c4323a563ece0c7615b618afa2acf4b98ccb8328e"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/summarize_agreement.py",
+          "sha256": "82e0e36c78758357aabf3dd35d4c4a5475147e169b47bb6b3fae5b6ca6f5b5a0"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/validate_rubric.py",
+          "sha256": "843244f4728b93b07e1c7d51ca2f22e7a6d9215af0f83247afe181920e120821"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/scripts/weight_sensitivity.py",
+          "sha256": "4a5ecd515e6a296ab32830d86290dde79f0a02f67d1da081e618fe8ddb82d9a9"
+        },
+        {
+          "path": "k-dense/scholar-evaluation/SKILL.md",
+          "sha256": "50f2225d18288d5b4a720f85e0467bd3f8d99b96829e0ca80d0ab5ec14d1f289"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "research-engineering-suite",
+      "repository": "JoeyJin-NJU/research-engineering-suite",
+      "source_path": ".",
+      "local_path": "research-engineering-suite",
+      "capabilities": [
+        "research-director",
+        "research-engineering",
+        "software-implementation",
+        "reproducibility"
+      ],
+      "assigned_specialists": [
+        "research-director",
+        "research-engineering-compute",
+        "implementation",
+        "reproducibility-integrity"
+      ],
+      "exact_commit": "670d0be50c52595f9e13b684ebd995dff5831fb7",
+      "license": "MIT",
+      "license_file": "research-engineering-suite/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "research-engineering-suite/.gitignore",
+          "sha256": "44514ebf05f0b6bb4e0799ca8ef7d1655cf284256bf3ae9e91403b0758dcd5ca"
+        },
+        {
+          "path": "research-engineering-suite/agents/openai.yaml",
+          "sha256": "8cc96097db08b6e383dca7adedbaf06f0f698f609cfa2517768e0cdc8fd73255"
+        },
+        {
+          "path": "research-engineering-suite/docs/ARCHITECTURE.zh-CN.md",
+          "sha256": "5da206c37a44a2f26b774614b3cb0e7f1cd554a0d53b9b2f953f4944c355d74f"
+        },
+        {
+          "path": "research-engineering-suite/docs/SETUP.zh-CN.md",
+          "sha256": "7b752cab8c1d18e2c91cee06ecd5a1bb732553a1ef5dc44de5d671dc0d791b97"
+        },
+        {
+          "path": "research-engineering-suite/examples/prompts.zh-CN.md",
+          "sha256": "fe547375e170b10dabf13d96030e4327d204d377412741bcf7a0f71e6f7db1e1"
+        },
+        {
+          "path": "research-engineering-suite/LICENSE",
+          "sha256": "eb1707016203508068a32d5b807e7f9b080dfd08e15eb064db072b1a7e48d379"
+        },
+        {
+          "path": "research-engineering-suite/README.md",
+          "sha256": "c451c745363d4b9bef644fac91045b1b2db6b037bfaed42e671e87ba03009477"
+        },
+        {
+          "path": "research-engineering-suite/README.zh-CN.md",
+          "sha256": "dee5d50cf09333982f7a561174e1b032b61ac2cd3183a03ff940822c4872ba98"
+        },
+        {
+          "path": "research-engineering-suite/SKILL.md",
+          "sha256": "b9d4c13bdc0ff746dce05f99d103a2b8d56beea4274851d58a829569e619113d"
+        },
+        {
+          "path": "research-engineering-suite/VERSION",
+          "sha256": "1f930dd1f133c1f97a94fe3acb8db34372cf4c01ffdb2b3ff4ca72f9494121e9"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "research-lab-notebook",
+      "repository": "osteele/agent-skills",
+      "source_path": "skills/research-lab-notebook",
+      "local_path": "research-lab-notebook/skill",
+      "capabilities": [
+        "research-engineering",
+        "experiment-provenance",
+        "reproducibility"
+      ],
+      "assigned_specialists": [
+        "research-engineering-compute",
+        "reproducibility-integrity"
+      ],
+      "exact_commit": "290d9680060b5446567e502206233645c2d91758",
+      "license": "MIT",
+      "license_file": "research-lab-notebook/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "research-lab-notebook/skill/agents/openai.yaml",
+          "sha256": "27999a9f2d38291f680331ba45b8dad3146fc2ced42c2bf54885205af1e2563d"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/.gitignore",
+          "sha256": "de0d2a6d1b0e4c2f88d12857fcfca5797e07c198b2ada1f50e6844457b09b2cb"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/BIBLIOGRAPHY.md",
+          "sha256": "d1578c28ac5580d38c08991f7751ddaeb8d28fb4fc3fa59ff39daf62978bb463"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/CHANGELOG.md",
+          "sha256": "c65d030199714f82a65114335cd731a68a1901a441ac4579a14d2c3d7c09e920"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/experiments/README.md",
+          "sha256": "0999763f81b1c54a581d282ff4b7ee33e4b0acc0fa45c3e1d8d7082f9a241b29"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/findings/README.md",
+          "sha256": "286c13982af148de7bcd590707fca30cfa0b38e56e82f91a69a3ce8ae9686f94"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/GLOSSARY.md",
+          "sha256": "13dcd5873405f6ac865c104d95c774a76dc35af942190e2fccf41f52995bc2ad"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/PRIORITIES.md",
+          "sha256": "be9d60975b8673ba54102c23249c4a98158e0ec256fa85a19de122b1fa781086"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/QUESTIONS.md",
+          "sha256": "37d74162e000f8ab72f902128379c30019c3a8b904db79f0740e324d879c8c3b"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/references/README.md",
+          "sha256": "c1c443015b56667864ec8b367574d205f48543d943bfc294b0104eb754b13892"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/RUNNER.md",
+          "sha256": "5397cfc28519c712f7a471310967df0851c16d37e87be2df64a852ecef4700c7"
+        },
+        {
+          "path": "research-lab-notebook/skill/assets/lab-notebook/STATUS.md",
+          "sha256": "99d13d0940e3bb872ad99dcc1f3a9c3215a5405935b105769f1c6cd61a88dfeb"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/experiments.md",
+          "sha256": "c6a882e5c1b280fc2982c648b87de7c69ecb09dc9476069181bf7ffb1759f536"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/findings.md",
+          "sha256": "56acce2b2ef4cd78142dc42c7ba85e782dbf742e10e64a494538f5fac8d09588"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/job-runners.md",
+          "sha256": "84bd28a0926c5724b26451a1be0be490a8a947282265b7f0fab0e2618bee9160"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/notebook-discipline.md",
+          "sha256": "3d1d50367c7032c2cb170f4a6ec24412975b6cdc07efc4ed719ac0e02ca7f32c"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/notebook-files.md",
+          "sha256": "4282aaf5d07130e73a4d4e9d1468931c47d487c707109d3530a116cf47271213"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/notebook-schema.json",
+          "sha256": "a54b6702b4fe630f7ae55f3ed7f0f139571b7bbaa736dbf691d6c2f6f59b2709"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/notebook-structure.md",
+          "sha256": "ece2caf2751071be98c2ff78bdbc0213a71fa5ddbeb67cf161c02c9413b18d7d"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/plans.md",
+          "sha256": "0a8bccf6b01684f78d2f4943a83f010d88c2356d5a19e12f130125d7a055a011"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/processed-job-ledger.md",
+          "sha256": "65cc0ad08aa08a419629f03b7f87023edaf91aef493c7238fe07a6638132f96a"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/project-instructions.md",
+          "sha256": "c241c28501f9ee1a49e5f68655ea225fcec1688c062f84bf626a8ee409755ce2"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/publication.md",
+          "sha256": "ad6d606d525193c7cdfb50a681a89c5beb880f9be2de843798866e3006087a96"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/research-methodology.md",
+          "sha256": "94d61d8e0d23ad50f1126a63d3b2305b6ecfc5a9be77a625b852195dd6f30217"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/runner-adapters.md",
+          "sha256": "9b9609d6d0a282a199ac2c77cc3d3d49ccc23d4afa8cc6e1a42e5ceb48562de3"
+        },
+        {
+          "path": "research-lab-notebook/skill/references/setup.md",
+          "sha256": "7c129a740203aefe6a82bc7a442737a1b12feacde30ddd296af0b4e0633c3238"
+        },
+        {
+          "path": "research-lab-notebook/skill/scripts/validate-notebook.py",
+          "sha256": "ba7d15f5c25db7482eb516ae6df044ca26b074fbc1cd9bf8395c493d7f0b3cb3"
+        },
+        {
+          "path": "research-lab-notebook/skill/SKILL.md",
+          "sha256": "2510a145165671965039ecbc1359699f65d20b6f689ee3b0745fce2b711a51a0"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "lab-notes",
+      "repository": "eins78/agent-skills",
+      "source_path": "skills/lab-notes",
+      "local_path": "lab-notes/skill",
+      "capabilities": [
+        "research-engineering",
+        "experiment-provenance"
+      ],
+      "assigned_specialists": [
+        "research-engineering-compute",
+        "reproducibility-integrity"
+      ],
+      "exact_commit": "acd4988e911965b98295e6fb6eec202ce3d4a376",
+      "license": "MIT",
+      "license_file": "lab-notes/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "lab-notes/skill/README.md",
+          "sha256": "98663afb1962e2307d51135c64b5ba9ab209bf61d5c2d1f7b4779194408c313b"
+        },
+        {
+          "path": "lab-notes/skill/references/nci-lab-records-guide.md",
+          "sha256": "d5d731f7f4e87221bdbd96e4347e3a5b870f0f49ceeee936d5ce9e7ac1a330b1"
+        },
+        {
+          "path": "lab-notes/skill/SKILL.md",
+          "sha256": "6727bf69c520691c19e1c881234b46e804efaffe004a55c8d10db83d3dde6c67"
+        },
+        {
+          "path": "lab-notes/skill/templates/log.md",
+          "sha256": "4d073a1064fdb4639de54f7f15e193044c2bd14d420e110c3a9dd8431451f7d7"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "snl-paper-writing",
+      "repository": "SNL-UCSB/paper-writing-skill",
+      "source_path": ".",
+      "local_path": "paper-writing-skill",
+      "capabilities": [
+        "evidence-bound-writing",
+        "publication-editing",
+        "adversarial-review"
+      ],
+      "assigned_specialists": [
+        "scientific-writing",
+        "publication-editor"
+      ],
+      "exact_commit": "676f8520bba54208eb4fe1d41620e365d9af6a24",
+      "license": "MIT",
+      "license_file": "paper-writing-skill/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "paper-writing-skill/.DS_Store",
+          "sha256": "6a65040e46c6159ce85da808b06380802a9f644395a62839137390f7223dd55a"
+        },
+        {
+          "path": "paper-writing-skill/.gitignore",
+          "sha256": "d695c9482d9d6db2b9d057cbe39f53056e4515a91ab1ab80531f132c7351279c"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/compression_patterns.md",
+          "sha256": "caa08cadf565ea36e124a3b942ee6474e231cd4afe79b9ec91faabce0767384a"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/craft_reference.md",
+          "sha256": "048d7d98440cf9de9bac2d1493a3edbfdb8a3b020c47221c8b2667e623052fda"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/editorial_principles.md",
+          "sha256": "3e33ffccd221327181c30fed53681adc9b7a03019b052ae7e306b7f12c3be421"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/gate_mechanical.md",
+          "sha256": "2e46f4d275aa673e7b990c245c85e6adb2bf946cf2f87c0a6bd731cb5d1a9ff9"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/gate_semantic.md",
+          "sha256": "ea463da77f4a318a021fade2d3a3d112fc5a949a6f4246a2d57e6e992686422f"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/intervention_types.md",
+          "sha256": "f9901c0b6bc312fa30c25eb98b9c7f0ddfd5ead9974a6d49b196b302f8212ba9"
+        },
+        {
+          "path": "paper-writing-skill/author_profile/rhetorical_moves.md",
+          "sha256": "9d3390b0abcddae7147e9919a27fef16ba9548411edd474d3883bb6d0f920dd5"
+        },
+        {
+          "path": "paper-writing-skill/brainstorming_guide.md",
+          "sha256": "16e68afa654affc8cc5f38774756a77a32a8817f82dce5f35f165878bce61e3b"
+        },
+        {
+          "path": "paper-writing-skill/CHANGELOG.md",
+          "sha256": "0efdfe02a5bdc00e2e97153b2bb36f9cadfd3b27be37d2633e7657ccc4ce7b51"
+        },
+        {
+          "path": "paper-writing-skill/CLAUDE.md",
+          "sha256": "35af4d2b624eec75a3428b127a1745f21f359364e6d5024c1030d90e02f94f35"
+        },
+        {
+          "path": "paper-writing-skill/DESIGN.md",
+          "sha256": "c9738c7d267cf0538872c8f9196156661eec74669607629259fc1a93d9eca72f"
+        },
+        {
+          "path": "paper-writing-skill/examples/netburst_project_context.md",
+          "sha256": "af8659fc6ca82d0a67412e6264b85f0884221e0bdbd6f2989a85b24c60e6e99b"
+        },
+        {
+          "path": "paper-writing-skill/examples/project_context.md",
+          "sha256": "39d7c1aa12ac5c7421afb55f3d46bfa0b8ddbc8e12b2671a459a47c9a1ca9155"
+        },
+        {
+          "path": "paper-writing-skill/figure_synthesis_guide.md",
+          "sha256": "ac8fb85500212c862bde6bf900ece265470cb9d17daa7c99005f878bf3e451dd"
+        },
+        {
+          "path": "paper-writing-skill/figure_templates/figure_spec_template.md",
+          "sha256": "d6adf533baaf6bc34ba2f48ac2b6b357a6a2b65926457ec835e6398d313d1474"
+        },
+        {
+          "path": "paper-writing-skill/figure_templates/prompt_templates.md",
+          "sha256": "bb890a41fc0bfa40f37b0763f36d4edb5734074fa47a34a89a3c5cb12e4cab58"
+        },
+        {
+          "path": "paper-writing-skill/figure_templates/tikz_skeletons.md",
+          "sha256": "6916a3b82702b634bf97c6e56e50405351f69f625b0df830cb697b8ffdb8e40b"
+        },
+        {
+          "path": "paper-writing-skill/figure_templates/venue_styles.md",
+          "sha256": "1f3ab5d8489e12fbcb9fae85a4d1a941d91b9c100b450cafed6a582a596fef84"
+        },
+        {
+          "path": "paper-writing-skill/LICENSE",
+          "sha256": "fc77d94f189de62812da4eacdd5d666d2e2ca404a903cc0e23ae2a9c84d3c3ca"
+        },
+        {
+          "path": "paper-writing-skill/loop_mode.md",
+          "sha256": "25a5df478c02a113d1e0b649c242da129c1d2761da385a0ed8804834b1be07ac"
+        },
+        {
+          "path": "paper-writing-skill/README.md",
+          "sha256": "d3bbaa05722bfb72a4a3189979310d493838f4ae3a90dbebdd77b91fbb813801"
+        },
+        {
+          "path": "paper-writing-skill/red_team_protocol.md",
+          "sha256": "7be846a63bf851f16dc685342c2037b0cfe8de317dd118e34cc8118e18bbbdc8"
+        },
+        {
+          "path": "paper-writing-skill/section_rhetorical_moves/design.md",
+          "sha256": "c9a091a0e9825c84310daf6d82d46128602de1a019daea7d1f9af5255a5ff587"
+        },
+        {
+          "path": "paper-writing-skill/section_rhetorical_moves/evaluation.md",
+          "sha256": "9ad3902ddbfca73eb8dc0cc5fee374b2e9ec30a4c91634664f0b042bf360fa29"
+        },
+        {
+          "path": "paper-writing-skill/section_rhetorical_moves/introduction.md",
+          "sha256": "03ca9eb0aaa1ab5d5913b7b624c77494b8f0bb82e7263a2f5fa7e1c58c06abf7"
+        },
+        {
+          "path": "paper-writing-skill/section_rhetorical_moves/related_work.md",
+          "sha256": "8c4e378f471d7896e0d6224a10b9a5cbf6c180bf1d503ab20860306a57cabdc1"
+        },
+        {
+          "path": "paper-writing-skill/setup",
+          "sha256": "52385192037f31640e418121c3ac2634c2c2131b03586fe7a92654941f3c72dc"
+        },
+        {
+          "path": "paper-writing-skill/SKILL.md",
+          "sha256": "d20cb6ae23d19e644cd5022ad9bdf8d79306413a295174f5bae42c1b1751cb36"
+        },
+        {
+          "path": "paper-writing-skill/writing_checklists/design_questions.md",
+          "sha256": "dae22aa04aa1dccd193dd7baa7caf47e5c025a388d56dff02476c46d78ba4251"
+        },
+        {
+          "path": "paper-writing-skill/writing_checklists/evaluation_questions.md",
+          "sha256": "4ae3d68cb8c12842617005c8bd3c030605c2a4220dc2c85357198b13e0c39d86"
+        },
+        {
+          "path": "paper-writing-skill/writing_checklists/intro_questions.md",
+          "sha256": "a69da2050f6ca93239badfdead8f50bdb9be544e9965528e6b41e998579b409b"
+        },
+        {
+          "path": "paper-writing-skill/writing_checklists/related_work_questions.md",
+          "sha256": "7261a70fbaa9b3e319f40fa4434b5f6ba8cf92da9b1ac29a8d83cc2e3c60200b"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "sisyphus-assumption-excavator",
+      "repository": "argahv/sisyphus-academica",
+      "source_path": "skills/assumption-excavator",
+      "local_path": "sisyphus-academica/assumption-excavator",
+      "capabilities": [
+        "hypothesis-generation",
+        "assumption-audit"
+      ],
+      "assigned_specialists": [
+        "innovation-prior-art",
+        "theory-mechanism"
+      ],
+      "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8",
+      "license": "MIT",
+      "license_file": "sisyphus-academica/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "sisyphus-academica/assumption-excavator/SKILL.md",
+          "sha256": "1418c0288d1f6fd52f0a78f5effda10a1d0714e60f18d3070352cfb74a456679"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "sisyphus-counterfactual-generator",
+      "repository": "argahv/sisyphus-academica",
+      "source_path": "skills/counterfactual-generator",
+      "local_path": "sisyphus-academica/counterfactual-generator",
+      "capabilities": [
+        "hypothesis-generation",
+        "counterfactual-reasoning"
+      ],
+      "assigned_specialists": [
+        "innovation-prior-art"
+      ],
+      "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8",
+      "license": "MIT",
+      "license_file": "sisyphus-academica/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "sisyphus-academica/counterfactual-generator/SKILL.md",
+          "sha256": "38679b39c2a7461074552d3d9202e7d26e3bcfdbbe6f243a72462aacbb603eaa"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "sisyphus-methodologist",
+      "repository": "argahv/sisyphus-academica",
+      "source_path": "skills/methodologist",
+      "local_path": "sisyphus-academica/methodologist",
+      "capabilities": [
+        "experimental-design",
+        "adversarial-review"
+      ],
+      "assigned_specialists": [
+        "experimental-design",
+        "adversarial-review-board"
+      ],
+      "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8",
+      "license": "MIT",
+      "license_file": "sisyphus-academica/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "sisyphus-academica/methodologist/SKILL.md",
+          "sha256": "5c753bc34900e2092a7b0aab822d137ce5e89f48cc38d3b900f2591ab09f6ad7"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "sisyphus-skeptic",
+      "repository": "argahv/sisyphus-academica",
+      "source_path": "skills/skeptic",
+      "local_path": "sisyphus-academica/skeptic",
+      "capabilities": [
+        "novelty-analysis",
+        "adversarial-review"
+      ],
+      "assigned_specialists": [
+        "innovation-prior-art",
+        "adversarial-review-board"
+      ],
+      "exact_commit": "5fc165211d6a0c8f1a4ff1243311314ad26847b8",
+      "license": "MIT",
+      "license_file": "sisyphus-academica/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "sisyphus-academica/skeptic/SKILL.md",
+          "sha256": "c59241a32bef96ae1620f2de6378b48dff3689e9fa0f8ec24098483946da948d"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "eureka-claims-audit",
+      "repository": "jeonnoin-alt/Eureka",
+      "source_path": "skills/claims-audit",
+      "local_path": "eureka/claims-audit",
+      "capabilities": [
+        "claim-tracing",
+        "adversarial-review"
+      ],
+      "assigned_specialists": [
+        "reproducibility-integrity",
+        "adversarial-review-board"
+      ],
+      "exact_commit": "9f3d28a14b0b35010d8da6f2116aa3b4b8b790ff",
+      "license": "MIT",
+      "license_file": "eureka/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "eureka/claims-audit/SKILL.md",
+          "sha256": "50abd15cee594995c5bb64e37535294d779b578b7c8ca291553cbec327792bd6"
+        },
+        {
+          "path": "eureka/claims-audit/traceability-auditor-prompt.md",
+          "sha256": "77dabd49748dabc29ba0a1419ef35a2c819a90887d8d5b8440e7154e04d68be7"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "eureka-novelty-competitive-audit",
+      "repository": "jeonnoin-alt/Eureka",
+      "source_path": "skills/novelty-competitive-audit",
+      "local_path": "eureka/novelty-competitive-audit",
+      "capabilities": [
+        "novelty-analysis",
+        "prior-art-analysis"
+      ],
+      "assigned_specialists": [
+        "innovation-prior-art"
+      ],
+      "exact_commit": "9f3d28a14b0b35010d8da6f2116aa3b4b8b790ff",
+      "license": "MIT",
+      "license_file": "eureka/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "eureka/novelty-competitive-audit/novelty-audit-reviewer-prompt.md",
+          "sha256": "b0c9c913a7cf2e520a4c51c86311772da25818e9f56b3899b6492133e81cdeef"
+        },
+        {
+          "path": "eureka/novelty-competitive-audit/SKILL.md",
+          "sha256": "5d57c79ddfaeb861b082dbf7234c896f3b9c9ba18d675e56e3e6800c1a280f1e"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "eureka-submission-readiness",
+      "repository": "jeonnoin-alt/Eureka",
+      "source_path": "skills/submission-readiness",
+      "local_path": "eureka/submission-readiness",
+      "capabilities": [
+        "publication-editing",
+        "submission-readiness"
+      ],
+      "assigned_specialists": [
+        "publication-editor"
+      ],
+      "exact_commit": "9f3d28a14b0b35010d8da6f2116aa3b4b8b790ff",
+      "license": "MIT",
+      "license_file": "eureka/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "eureka/submission-readiness/SKILL.md",
+          "sha256": "78bc72147dd48a5b6b7bac70ea9f8f17611b026a6a03acffd6a6cbc80b3608cc"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    },
+    {
+      "name": "eureka-verification-before-publication",
+      "repository": "jeonnoin-alt/Eureka",
+      "source_path": "skills/verification-before-publication",
+      "local_path": "eureka/verification-before-publication",
+      "capabilities": [
+        "reproducibility",
+        "submission-readiness"
+      ],
+      "assigned_specialists": [
+        "reproducibility-integrity",
+        "publication-editor"
+      ],
+      "exact_commit": "9f3d28a14b0b35010d8da6f2116aa3b4b8b790ff",
+      "license": "MIT",
+      "license_file": "eureka/LICENSE",
+      "redistribution_allowed": true,
+      "modified": false,
+      "local_modifications": "none; directory copied byte-for-byte from the pinned source archive",
+      "vendored_files": [
+        {
+          "path": "eureka/verification-before-publication/SKILL.md",
+          "sha256": "3f3bec53b24fa94d3be6ee2c9277e8ab49de2eda05d17f985bfc778d2cefbc9d"
+        }
+      ],
+      "security_audit": {
+        "status": "PASS",
+        "audit": "static-pattern-review",
+        "default_execution": "DENIED",
+        "network": "DENIED_UNLESS_CONTROL_PLANE_AUTHORIZES",
+        "noted_script_paths": [],
+        "reason": "vendored resources are inert guidance; scripts require explicit host authorization and existing control-plane checks"
+      },
+      "behavior_trial": {
+        "status": "PASS",
+        "trial": "offline-frontmatter-and-resource-closure",
+        "findings": []
+      }
+    }
+  ],
+  "rejected_candidates": [
+    {
+      "repository": "Imbad0202/academic-research-skills-codex",
+      "exact_commit": "925975e933a20893b81681d925a3404e3b7f73b7",
+      "license": "CC-BY-NC-4.0",
+      "decision": "DO_NOT_VENDOR",
+      "reason": "non-commercial restriction is incompatible with unrestricted redistribution"
+    },
+    {
+      "repository": "Imbad0202/experiment-agent",
+      "exact_commit": "e291e7dc7ca268b2de7e1a9cf23bc2eef5dc0651",
+      "license": "CC-BY-NC-4.0",
+      "decision": "DO_NOT_VENDOR",
+      "reason": "non-commercial restriction is incompatible with unrestricted redistribution"
+    }
+  ]
+}

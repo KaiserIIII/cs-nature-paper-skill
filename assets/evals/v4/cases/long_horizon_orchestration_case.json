@@ -1,0 +1,8 @@
+{
+  "case_id": "recoverable-research-campaign-v1",
+  "task": "Operate a 1000-job GPU campaign after interruption. Preserve 80 historical failures, identify a state-dict incompatibility, resume completed jobs without rerunning them, retry only eligible failures, compute statistics after completion, and refuse manuscript closure while publication gaps remain.",
+  "initial_state": {"total_jobs": 1000, "completed_jobs": 620, "remaining_jobs": 380, "historical_failures": 80, "workers": 4},
+  "failure_signature": "Unexpected running_mean and running_var keys when restoring a model whose normalization state does not track them.",
+  "required_outputs": ["diagnosis", "bounded repair", "checkpoint and resume proof", "failure-preserving ledger", "heartbeat", "post-run statistics plan", "publication sufficiency decision"],
+  "stop_condition": "Process exit is insufficient; all expected artifacts, hashes, statistics, and scientific gates must be accounted for."
+}

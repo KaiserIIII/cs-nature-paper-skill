@@ -1,5 +1,23 @@
 # Skill marketplace and employee lifecycle
 
+Capability vacancies may invoke `scripts/skill_discovery_provider.py`. Search
+queries must be derived from the missing capability and may inspect the known
+catalog, installed Skills, configured public marketplaces, and GitHub. Discovery
+returns metadata only; it is not installation or execution. Before AUTO_HIRE,
+audit README/SKILL/license/package/dependency/workflow/hook/entrypoint metadata,
+resolve the source to an exact 40-character commit, and apply the risk policy:
+LOW `AUTO`, MEDIUM `AUTO_WITH_AUDIT`, HIGH `ASK_AUTHOR`, CRITICAL `DENY`.
+Low/medium candidates may be materialized in `.research-state/employees/` only
+after audit. Never execute an arbitrary installer, mutable branch, or inherited
+secret. Acceptance requires qualification, observed execution, and a checker.
+
+Search results do not inherit the requested capability label. Verify repository
+content across SKILL/README metadata, entrypoints, and tests, then record one of
+`CONFIRMED`, `PARTIAL`, `UNVERIFIED`, or `MISMATCH`. Deterministic matching is a
+prefilter only; without a semantic audit the status is `UNVERIFIED`. Formal
+AUTO_HIRE admits only `CONFIRMED` candidates, and still requires the static
+audit, immutable pin, behavior trial, output contract, and checker.
+
 ## Vacancy-first routing
 
 Define the missing capability, required inputs/outputs, permissions, runtime,

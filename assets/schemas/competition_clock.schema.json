@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "competition", "contest_start_utc", "submission_deadline_utc", "contest_duration_seconds", "manual_time_offset_seconds", "clock_status", "time_source", "official_source", "source_verified_utc", "elapsed_seconds", "remaining_seconds", "elapsed_ratio", "current_phase", "control_mode", "stop_rule_active", "hard_freeze_active", "authoritative_deadline"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "skill_version": {"type": "string"},
+    "competition": {"type": "string"},
+    "contest_start_utc": {"type": "string"},
+    "submission_deadline_utc": {"type": "string"},
+    "contest_duration_seconds": {"type": "integer"},
+    "manual_time_offset_seconds": {"type": "integer"},
+    "clock_status": {"type": "string"},
+    "time_source": {"type": "string"},
+    "official_source": {"type": "string"},
+    "source_verified_utc": {"type": "string"},
+    "elapsed_seconds": {"type": "integer"},
+    "remaining_seconds": {"type": "integer"},
+    "elapsed_ratio": {"type": "number"},
+    "current_phase": {"type": "string"},
+    "control_mode": {"type": "string"},
+    "stop_rule_active": {"type": "boolean"},
+    "hard_freeze_active": {"type": "boolean"},
+    "authoritative_deadline": {"type": "boolean"}
+  }
+}

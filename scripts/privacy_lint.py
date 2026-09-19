@@ -10,10 +10,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP_DIRS = {".git", "__pycache__", ".research-state", ".research-state-v3", ".research-state-v31", ".eval", "runs", "prepared"}
+SKIP_DIRS = {".git", "__pycache__", ".research-state", ".research-state-v3", ".research-state-v31", ".eval", "runs"}
 PATTERNS = {
     "windows-user-path": re.compile(r"[A-Za-z]:\\Users\\[^\s\"']+", re.I),
     "windows-absolute-path": re.compile(r"(?<![A-Za-z])[A-Za-z]:\\[^\s\"']+", re.I),
+    "windows-forward-absolute-path": re.compile(r"(?<![A-Za-z])[A-Za-z]:/(?!/)[^\s\"']+", re.I),
     "posix-home-path": re.compile(r"/(?:home|Users)/[^\s\"']+", re.I),
     "secret-assignment": re.compile(r"(?i)\b(?:api[_ -]?key|access[_ -]?token|password|secret)\s*[:=]\s*[^\s,}\"]+"),
     "github-token": re.compile(r"\b(?:ghp|github_pat|sk)-[A-Za-z0-9_-]{12,}\b"),
@@ -53,7 +54,7 @@ def lint(paths: list[Path], root: Path = ROOT) -> dict[str, object]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("paths", nargs="*", type=Path, default=[ROOT / "benchmarks", ROOT / "release_manifest.json"])
+    parser.add_argument("paths", nargs="*", type=Path, default=[ROOT / "benchmarks", ROOT / "docs", ROOT / "release_manifest.json"])
     args = parser.parse_args(argv)
     result = lint(args.paths)
     print(json.dumps(result, indent=2, ensure_ascii=False))

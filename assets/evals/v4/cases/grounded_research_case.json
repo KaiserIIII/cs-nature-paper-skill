@@ -1,0 +1,45 @@
+{
+  "case_id": "bn-mechanism-grounded-synthesis-v1",
+  "title": "What explains the optimization benefits of batch normalization?",
+  "task": "Use only the supplied source records to synthesize the evidence, identify the closest competing explanations, draft a structured research manuscript, attack its claims, detect the unsupported decoy, and revise it.",
+  "source_records": [
+    {
+      "id": "ioffe2015",
+      "title": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+      "authors": "Sergey Ioffe and Christian Szegedy",
+      "year": 2015,
+      "url": "https://proceedings.mlr.press/v37/ioffe15.html",
+      "supported_facts": ["introduces batch normalization", "frames internal covariate shift as a training problem", "reports faster training on the studied models"]
+    },
+    {
+      "id": "santurkar2018",
+      "title": "How Does Batch Normalization Help Optimization?",
+      "authors": "Shibani Santurkar, Dimitris Tsipras, Andrew Ilyas, and Aleksander Madry",
+      "year": 2018,
+      "url": "https://proceedings.neurips.cc/paper/2018/hash/905056c1ac1dad141560467e0a99e1cf-Abstract.html",
+      "supported_facts": ["questions internal covariate shift as the main explanation", "links batch normalization to a smoother optimization landscape", "provides empirical and theoretical analysis"]
+    },
+    {
+      "id": "bjorck2018",
+      "title": "Understanding Batch Normalization",
+      "authors": "Nils Bjorck, Carla Gomes, Bart Selman, and Kilian Weinberger",
+      "year": 2018,
+      "url": "https://proceedings.neurips.cc/paper/2018/hash/36072923bfc3cf47745d704feb489480-Abstract.html",
+      "supported_facts": ["studies why batch normalization enables larger learning rates", "examines interactions with initialization and optimization"]
+    },
+    {
+      "id": "lian2019",
+      "title": "Towards Understanding Generalization of Batch Normalization in Neural Networks",
+      "authors": "Xiangru Lian and colleagues",
+      "year": 2019,
+      "url": "https://arxiv.org/abs/1810.05492",
+      "supported_facts": ["analyzes generalization properties of batch-normalized networks", "does not establish universal out-of-distribution calibration gains"]
+    }
+  ],
+  "required_closest_work": ["santurkar2018", "bjorck2018"],
+  "unsupported_decoy": {
+    "id": "unsupported_ood_claim",
+    "claim": "Batch normalization always improves out-of-distribution calibration for every architecture and shift."
+  },
+  "scope_rule": "Do not add facts, citations, experiments, or numerical results that are absent from the packet."
+}

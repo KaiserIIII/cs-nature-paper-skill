@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "categories"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "skill_version": {"type": "string"},
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "problem_type", "triggers", "candidate_models", "recommended_baseline", "recommended_primary_model", "optional_improvement", "why", "main_assumptions", "failure_risks", "validation_plan", "complexity_upgrade_condition"]
+      }
+    }
+  }
+}

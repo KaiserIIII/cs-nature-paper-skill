@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cs-nature-paper/v41_provider_contract.schema.json",
+  "type": "object",
+  "required": [
+    "provider_id",
+    "type",
+    "capabilities",
+    "exact_commit",
+    "source_hash",
+    "license_decision",
+    "validation_bundle_id",
+    "fallback_provider_id",
+    "discovery_only"
+  ],
+  "properties": {
+    "provider_id": {"type": "string", "minLength": 1},
+    "type": {"type": "string", "minLength": 1},
+    "capabilities": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "exact_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "source_hash": {
+      "oneOf": [
+        {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        {"type": "null"}
+      ]
+    },
+    "license_decision": {"type": "string", "minLength": 1},
+    "validation_bundle_id": {"type": "string", "minLength": 1},
+    "fallback_provider_id": {"type": "string", "minLength": 1},
+    "discovery_only": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

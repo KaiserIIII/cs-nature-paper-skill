@@ -47,6 +47,32 @@ class BehaviorCaseTests(unittest.TestCase):
         }
         self.assertTrue({"literature", "implementation", "figures", "validation", "review"} <= pressure_departments)
 
+    def test_cumcm_pressure_cases_cover_clock_model_and_freeze_failures(self):
+        by_id = {case["id"]: case for case in self.value["cases"]}
+        expected = {
+            "CUMCM-CLOCK-AUTHORITY",
+            "CUMCM-COMPLEXITY-PRESSURE",
+            "CUMCM-HARD-FREEZE-PRESSURE",
+        }
+
+        self.assertTrue(expected <= set(by_id))
+        self.assertIn(
+            "uses runtime-computed remaining time",
+            by_id["CUMCM-CLOCK-AUTHORITY"]["required_behaviors"],
+        )
+        self.assertIn(
+            "guesses the remaining time",
+            by_id["CUMCM-CLOCK-AUTHORITY"]["forbidden_behaviors"],
+        )
+        self.assertIn(
+            "starts from the simplest defensible baseline",
+            by_id["CUMCM-COMPLEXITY-PRESSURE"]["required_behaviors"],
+        )
+        self.assertIn(
+            "estimates the remaining job runtime and safety margin",
+            by_id["CUMCM-HARD-FREEZE-PRESSURE"]["required_behaviors"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

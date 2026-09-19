@@ -1,9 +1,9 @@
-# CS Nature Paper V3.1.1
+# CS Nature Paper V4.0.0
 
 An executable, student-first, evidence-bound research operating system for
 computer science.
 
-[中文](README_zh.md) | [Release v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
+[中文](README_zh.md) | [Historical release v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
 
 ## What this project is
 
@@ -19,8 +19,26 @@ or automatic publisher. Its job is to keep research questions, protocols,
 experiments, claims, evidence, figures, writing, and review connected by explicit
 records instead of allowing polished prose to outrun the evidence.
 
-The stable release is `v3.1.1` at commit
-`081aa693b907d8cc07104d1b8251d46301094ef7`.
+Formal `full`/`full-paper` and submission-targeted workflows automatically mark
+analysis, figures, writing, review, and revision as load-bearing. This removes
+the need for a separate project configuration list before specialist routing
+can enforce the formal evidence gate.
+
+V4 includes 29 audited third-party research Skills from seven MIT-licensed
+repositories at exact commits. They form a fourteen-role built-in publication
+team and remain usable offline. Online discovery is a quality upgrade: a
+candidate must prove it is better or complementary before it can replace or
+augment the internal baseline.
+
+Submission readiness now requires five separate results: Scientific Validity,
+Evidence Sufficiency, Publication Sufficiency, Reviewer Completeness, and
+Submission Readiness. Narrow evidence and repeated runs cannot substitute for
+dataset, model, baseline, ablation, mechanism, external-validation, literature,
+or manuscript depth.
+
+The `v3.1.1` tag and V3.2.1 branch remain historical. V4 is developed from the
+accepted V3.2.1 commit `6f13161601854763b500cdb596dbe52df3a0fd19` on
+`feat/v4-vendored-research-team`.
 
 ## How it works
 
@@ -214,16 +232,119 @@ threats, and report the smallest defensible repairs. Do not predict acceptance.
 | `copilot` | Default: execute routine work and stop at material checkpoints |
 | `guided` | Explain each major gate before asking for a decision |
 | `autopilot` | Continue within an explicit budget and permission envelope |
+| `maximum-autonomy` | Continue bounded local work with standing authorization, resumable sessions, and fail-closed completion checks |
 | `plan` | Positioning, gap, research questions, protocol, and resources |
 | `execute` | Code, data, experiments, analysis, and provenance |
 | `write` | Evidence-bound manuscript and LaTeX/document work |
 | `revision` | Reviewer concerns, bounded amendments, and resubmission |
 | `review` | Adversarial, threat-selected assessment |
 | `preflight` | Current venue rules and package-readiness audit |
+| `competition` | Execute an already selected CUMCM problem through preflight |
+| `competition-autopilot` | Auto-select and run the full competition lifecycle |
+| `competition-review` | Red-team a contest paper and submission package |
 
 Autopilot does not remove author control. It stops at contradictory evidence,
 missing provenance, budget limits, ethics issues, unqualified capabilities,
 protocol amendments, and external actions.
+
+Maximum autonomy uses `scripts/autonomy.py` as the single policy and
+authorization boundary. Ordinary reversible research work is automatic;
+network research, bounded protocol amendments, and medium-risk hires run with
+hash-chained audit records. Only fundamental scientific scope changes, ethics,
+credentials, payment, privileged/global installation, private-data transfer,
+irreversible external actions, publication, and submission require the author.
+`scripts/director_loop.py` dispatches real executors and transitions graph nodes
+only after artifacts and evidence pass their contracts. Project completion is
+`READY_FOR_SUBMISSION`; software release readiness is validated separately.
+
+## Provider-driven execution
+
+V3.2.1 separates four validation layers that must not be conflated:
+
+- **Deterministic runtime:** graph, authorization, commands, artifact hashes,
+  checkers, evidence, provenance, freshness, and dependency invalidation.
+- **Host Provider:** the current Codex/Claude-style host may search, read, code,
+  execute, write, or review through a neutral typed request/handoff contract.
+  A request enters `HOST_EXECUTION_REQUIRED`; a separate invocation/checker must
+  receive and accept a real artifact before graph PASS. Python does not generate
+  a substitute host answer.
+- **External Skill Provider:** a capability vacancy can trigger catalog,
+  installed-Skill, marketplace, and GitHub discovery. Candidates are statically
+  audited, pinned to an exact 40-character commit, isolated, qualified, run
+  without inherited secrets, checked, and only then accepted.
+- **Model Behavior:** host/model quality is a separate evaluation. It remains
+  `NOT_RUN` when no genuinely isolated host-backed adapter was executed.
+
+Host availability uses `HOST_AVAILABLE`, `HOST_REQUEST_CAPABLE`, and
+`HOST_BEHAVIOR_QUALIFIED`. Recorded CI handoffs validate the lifecycle, not a
+live model. GitHub discovery results likewise remain `MISMATCH`, `PARTIAL`, or
+`UNVERIFIED` unless repository content, a semantic audit, and a checked behavior
+trial establish `CONFIRMED`; formal AUTO_HIRE accepts only `CONFIRMED`.
+
+`scripts/research_executor.py` and `scripts/competition_executor.py` are now
+Provider adapters. `constant_mean`/`linear_trend` and the bounded competition
+method families remain transparent native baselines. Native-unsupported work
+routes to problem-specific host modeling/coding, followed by deterministic
+execution and checking. This architecture supports host/tool/Skill execution;
+general model-backed autonomous behavior remains `NOT_RUN` until separately
+evaluated. Legacy research and logistics examples live only in explicit fixture
+providers.
+
+Literature retrieval distinguishes `METADATA_ONLY`, `FULLTEXT_RETRIEVED`,
+`EXACT_REGION_VERIFIED`, and `UNAVAILABLE`. Metadata is useful for discovery and
+identity, but a load-bearing novelty, closest-work, method, or factual claim
+requires full text and an independently verified exact region.
+
+## CUMCM competition overlay
+
+Competition mode is a policy overlay on the same Research Graph, evidence
+ledger, claims, experiments, artifacts, provenance, and handoffs used by the
+general Research OS. It does not create a second scientific state system.
+The runtime may rank, temporarily block, freeze, or release generic graph
+nodes according to the clock, scientific and scoring risk, decision relevance,
+information gain, ETA, and paper/validation/complexity debt. Temporary policy
+blocks remain overlay state and never pollute the canonical scientific graph.
+
+The only authoritative time boundaries are timezone-aware ISO-8601
+`contest_start_utc` and `submission_deadline_utc`. The runtime converts them
+to UTC and computes the actual duration, elapsed time, remaining time, phase,
+STOP RULE, and HARD FREEZE from the system clock. A configured clock remains
+`UNVERIFIED` until a person explicitly records the current official source.
+While it is unverified, the runtime does not authorize deadline-based jobs or
+claim that official rules are confirmed. Manual offset, pause, and resume
+operations require an actor and reason and are appended to a SHA-256 chained
+event log; `competition_clock.json` is only the latest derived snapshot.
+
+Typical requests are:
+
+```text
+Use $cs-nature-paper in competition mode.
+Execute this selected CUMCM problem through baseline, formal solve, validation,
+sensitivity, figures, paper, review, repair, and submission preflight. Continue
+while author action is NONE.
+```
+
+```text
+Use $cs-nature-paper in competition-autopilot mode.
+Read the supplied contest problems and current competition state. Verify the
+official rules and clock source, decompose and compare every problem, and
+auto-select a clear winner. Run the full Director lifecycle and stop only at
+COMPETITION_SUBMISSION_READY or a genuine author-only boundary.
+```
+
+```text
+Use $cs-nature-paper in competition-review mode.
+Audit this contest paper and submission package. Return severity-ordered,
+evidence-anchored findings and the ten-axis score radar. Do not predict an
+award or invent current official rules.
+```
+
+The default CUMCM profile uses the approved 72-hour phase boundaries. Other
+durations are mapped proportionally unless the profile supplies explicit
+boundaries. `SUBMISSION_FREEZE` is a planned phase; the absolute six-hour
+`FINALIZATION_MODE` and two-hour `HARD_FREEZE` override normal scheduling.
+Every new executable job must satisfy the runtime ETA plus the stage-specific
+safety margin before it can start.
 
 ## Minimal CLI workflow
 
@@ -245,6 +366,36 @@ python "$SkillRoot\scripts\research_graph.py" advance $Project
 python "$SkillRoot\scripts\evidence_anchor.py" ledger $Project --deep
 ```
 
+Initialize and operate the competition overlay:
+
+```powershell
+python "$SkillRoot\scripts\research_state.py" init $Project `
+  --study-type algorithmic --mode competition-autopilot `
+  --domain mathematical-modeling
+
+python "$SkillRoot\scripts\competition_runtime.py" configure-clock $Project `
+  --start "2026-09-10T10:00:00Z" `
+  --deadline "2026-09-13T10:00:00Z" `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" verify-clock $Project `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" dashboard $Project
+python "$SkillRoot\scripts\competition_runtime.py" status $Project
+python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
+python "$SkillRoot\scripts\competition_method_router.py" route `
+  "Minimize facility cost subject to capacity constraints"
+python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+python "$SkillRoot\scripts\competition_director.py" $Project `
+  --input competition_input.json
+```
+
+`configure-clock` records candidate boundaries but does not verify their
+authority. Re-check the real event's official source before `verify-clock`.
+For a documented clock correction, use `adjust-clock --offset-seconds ...
+--reason ... --actor ...`; never edit the snapshot or event log by hand.
+
 Resolve a capability or methods playbook without confusing selection with
 execution:
 
@@ -262,6 +413,19 @@ validation, reviews, handoffs, dashboards, privacy checks, security pressure
 cases, behavior cases, and release validation. Run any script with `--help` to
 inspect its exact contract.
 
+When a Director pauses for host work, inspect and receive the real handoff, then
+resume the same session:
+
+```powershell
+python "$SkillRoot\scripts\host_provider_runtime.py" pending $Project
+python "$SkillRoot\scripts\host_provider_runtime.py" receive $Project host-handoff.json `
+  --checker deterministic-output-checker
+python "$SkillRoot\scripts\director_loop.py" resume $Project
+```
+
+The current host should normally perform this loop automatically. See
+[the Host Provider contract](references/core/host-provider.md).
+
 ## Validation status
 
 The `v3.1.1` release passed 57 unit and integration tests and the required
@@ -273,7 +437,10 @@ The validation layers have deliberately different meanings:
 1. Schema and deterministic tests check local invariants.
 2. Workflow integration checks state, graph, routing, migration, and provenance.
 3. Answer-hidden behavior cases define safety and user-facing expectations.
-4. A public synthetic smoke workflow checks that the runtime can execute end to end.
+4. A public synthetic smoke workflow checks infrastructure integration.
+5. The competition orchestration E2E advances all 16 nodes through the normal
+   Director and actually executes code, validation, figures, paper, review,
+   repair, and preflight; ten corruption/policy cases must fail closed.
 
 The synthetic workflow is classified as `HARNESS_SELF_TEST`; it is not
 scientific evidence and not an evaluation of a research model. Model-backed
@@ -288,7 +455,32 @@ python scripts/validate_registry.py
 python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
+python scripts/competition_smoke_run.py --output .competition-smoke-result.json
+python scripts/competition_orchestration_e2e.py
+python scripts/generic_research_orchestration_e2e.py
+python scripts/generic_competition_orchestration_e2e.py
+python scripts/host_provider_handoff_e2e.py
+python scripts/generic_host_research_e2e.py
+python scripts/generic_host_competition_e2e.py
 ```
+
+The competition smoke uses a finite synthetic facility-selection fixture and
+standard-library enumeration. It tests runtime integration only. Its class is
+`HARNESS_SELF_TEST`, and model-backed behavior evaluation remains `NOT_RUN`.
+The orchestration E2E is a deterministic runtime orchestration test, not a
+model-behavior evaluation; `MODEL_BEHAVIOR_EVAL` remains `NOT_RUN` unless an
+authorized model adapter is supplied.
+
+The generic research E2E uses a small CSV, compares two transparent candidate
+methods, executes generated project code, analyzes the observed output, writes
+from the evidence state, reviews, repairs, and reaches `READY_FOR_SUBMISSION`.
+The generic competition E2E runs the same production providers on three
+different structures. These deterministic tests demonstrate routing and
+artifact contracts, not universal scientific validity or host-model quality.
+The recorded Host E2Es add native-unsupported classification and graph-network
+tasks, exercise real request/receive/check/resume transitions, and execute the
+returned code. Their model behavior label is `RECORDED_HANDOFF`; the separate
+model behavior evaluation remains `NOT_RUN`.
 
 ## What this project does not claim
 

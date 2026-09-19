@@ -1,0 +1,9 @@
+{
+  "case_id": "recurrent-tta-confirmatory-design-v1",
+  "task": "Design a preregistered comparison of source, Tent, CoTTA, SAR, periodic reset, and a candidate controller under recurrent corruption sequences.",
+  "factors": {"datasets": ["CIFAR-10-C", "CIFAR-100-C"], "sequence_families": ["ABA", "ABCA"], "seeds": [0, 1, 2, 3, 4], "severity": [1, 3, 5]},
+  "primary_outcome": "paired mean online error over the full sequence",
+  "secondary_outcomes": ["recovery after recurrence", "calibration error", "parameter drift", "runtime", "memory"],
+  "required_outputs": ["frozen hypothesis", "estimand", "unit of analysis", "paired design", "power or precision rationale", "multiplicity plan", "stopping rule", "failure policy", "analysis code specification"],
+  "scope_rule": "Formal outcomes may not be inspected before the protocol and analysis plan are frozen."
+}

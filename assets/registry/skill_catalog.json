@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "3.1.1",
+  "skill_version": "4.0.0",
   "last_reviewed_utc": "2026-08-27T00:00:00Z",
   "skills": [
     {"skill_id":"cs-nature-paper-native","source":"local://cs-nature-paper-skill","exact_ref":"v3.1.1-hardening","license":"MIT","host_support":["Codex","Claude Code","generic-agent-skills"],"capabilities":["gap-analysis","protocol-to-code","evidence-bound-writing","artifact-reproduction","adversarial-review"],"inputs":["research_task","state"],"outputs":["research_state","handoff"],"permissions":{"network":false,"credentials":false,"writes":["project-local"],"executes_scripts":true},"network":false,"credentials":false,"write_scope":["project-local"],"runtime":"native","context_cost":"medium","estimated_tool_cost":"low","known_risks":["host model interpretation"],"adoption_status":"REFERENCED","runtime_status":"APPROVED","qualification_state":"FORMAL_QUALIFIED","last_reviewed":"2026-08-27T00:00:00Z","behavior_trials":["V31.1-HARNESS-SELF-TEST","V31.1-E2E-SELF-TEST"],"allowed_activation_scope":["advisory","exploratory","formal"],"rollback":"use v3.1 branch"},

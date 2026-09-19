@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "3.1.1"
+SKILL_VERSION = "4.0.0"
 FIELDS = ("experiment_id", "claim_ids", "threat", "hypothesis_or_question", "design", "stage", "formal_status", "inputs", "expected_results", "interpretation_positive", "interpretation_negative", "interpretation_null", "stop_rule", "dependencies", "outputs", "evidence_anchors")
 EXCEPTIONS = {"reproducibility", "required venue artifact", "safety", "diagnostic"}
 BANDS = {"HIGH", "MEDIUM", "LOW"}

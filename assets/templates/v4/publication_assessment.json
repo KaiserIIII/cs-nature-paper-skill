@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "skill_version": "4.0.0",
+  "scientific_validity": {"status": "UNASSESSED"},
+  "evidence_sufficiency": {"status": "UNASSESSED"},
+  "publication_sufficiency": {"status": "UNASSESSED", "findings": []},
+  "reviewer_completeness": {"status": "UNASSESSED", "required": [], "completed": [], "missing": []},
+  "submission_readiness": {"status": "UNASSESSED"},
+  "research_depth_profile": {},
+  "research_expansion_plan": [],
+  "disposition": "EXPAND_RESEARCH"
+}
+

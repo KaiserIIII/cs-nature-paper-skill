@@ -1,0 +1,106 @@
+{
+  "schema_version": 4,
+  "required_files": [
+    "STATUS.md",
+    "QUESTIONS.md",
+    "PRIORITIES.md",
+    "CHANGELOG.md",
+    "experiments/README.md",
+    "findings/README.md"
+  ],
+  "experiment_statuses": [
+    "proposed",
+    "planned",
+    "queued",
+    "running",
+    "in-progress",
+    "pilot-complete",
+    "completed",
+    "abandoned"
+  ],
+  "experiment_id": {
+    "pattern": "^[A-Z][A-Z0-9]*-[A-Z0-9]+$",
+    "examples": ["EXP-001", "ACC-E1"]
+  },
+  "finding_statuses": [
+    "supported",
+    "provisional",
+    "blocked",
+    "refuted"
+  ],
+  "claim": {
+    "columns": ["ID", "Role", "Claim", "Status", "Evidence", "Paper"],
+    "roles": ["major", "candidate major", "supporting"],
+    "statuses": ["supported", "provisional", "blocked", "refuted", "retired"],
+    "evidence_requires_experiment": true,
+    "paper_required": true,
+    "promotion_requires_human_review": true
+  },
+  "plan": {
+    "statuses": ["draft", "active", "blocked", "gated", "backlog", "superseded", "completed", "abandoned"],
+    "terminal_statuses": ["superseded", "completed", "abandoned"],
+    "required_frontmatter": ["status", "summary", "next_action", "created", "updated"],
+    "optional_frontmatter": [
+      "owner",
+      "reviewer",
+      "current_phase",
+      "gate",
+      "revisit_when",
+      "promote_when",
+      "superseded_by",
+      "abandoned_because"
+    ],
+    "required_frontmatter_by_status": {
+      "gated": ["gate"],
+      "superseded": ["superseded_by"],
+      "abandoned": ["abandoned_because"]
+    },
+    "one_of_frontmatter_by_status": {
+      "gated": ["revisit_when", "promote_when"],
+      "backlog": ["revisit_when", "promote_when"]
+    },
+    "status_directories": {
+      "draft": "draft",
+      "active": ".",
+      "blocked": "blocked",
+      "gated": "gated",
+      "backlog": "backlog",
+      "superseded": "superseded",
+      "completed": "completed",
+      "abandoned": "abandoned"
+    },
+    "required_sections": [
+      "Objective",
+      "Existing evidence",
+      "Phases",
+      "Risks and controls",
+      "Terminal conditions"
+    ],
+    "terminal_sections": ["Disposition", "Evidence"]
+  },
+  "human_review": {
+    "checkpoints": [
+      {"id": "plan-before-execution", "label": "Plan approval", "when": "before plan execution"},
+      {"id": "experiment-design", "label": "Experiment design review", "when": "before preregistration"},
+      {"id": "preregistration", "label": "Preregistration review", "when": "before outcome inspection"},
+      {"id": "analysis-interpretation", "label": "Analysis and interpretation review", "when": "before synthesis"},
+      {"id": "plan-after-execution", "label": "Plan gate review", "when": "after each executed phase"},
+      {"id": "gated-follow-up", "label": "Follow-up approval", "when": "before a gated follow-up"},
+      {"id": "claim-promotion", "label": "Claim promotion review", "when": "before strengthening a claim"}
+    ]
+  },
+  "ledger": {
+    "schema_version": 1,
+    "terminal_statuses": ["succeeded", "failed", "canceled"],
+    "required_fields": [
+      "schema_version",
+      "backend",
+      "job_id",
+      "experiment_id",
+      "terminal_status",
+      "processed_at",
+      "evidence",
+      "notebook_revision"
+    ]
+  }
+}

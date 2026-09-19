@@ -1,0 +1,11 @@
+{
+  "case_id": "breast-cancer-reproducible-model-comparison-v1",
+  "task": "Using sklearn.datasets.load_breast_cancer, compare a scaled logistic-regression baseline with a random-forest baseline under five fixed stratified splits. Execute the code, preserve any failed runs, report ROC AUC and balanced accuracy with paired uncertainty, produce a figure, and package hashes, environment, logs, checkpoint, and resume evidence.",
+  "dataset": "sklearn.datasets.load_breast_cancer",
+  "seeds": [11, 23, 37, 53, 71],
+  "primary_metric": "roc_auc",
+  "secondary_metric": "balanced_accuracy",
+  "required_controls": ["same split per paired comparison", "training-only preprocessing", "fixed hyperparameters before formal runs"],
+  "failure_injection": "The first exploratory configuration uses an invalid logistic-regression solver/penalty pair and must be recorded rather than erased.",
+  "disclosure": "Any AI Scientist comparator output must prominently disclose machine generation as required by its source license."
+}

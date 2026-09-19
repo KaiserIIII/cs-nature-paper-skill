@@ -1,34 +1,103 @@
 {
-  "source_version": "3.1.1",
+  "source_version": "4.0.0",
+  "base_commit": "6f13161601854763b500cdb596dbe52df3a0fd19",
   "source_commit": "release-process-injected",
   "source_commit_mode": "publisher-injected",
-  "generated_at": "2026-08-27T00:00:00Z",
+  "source_branch": "feat/v4-vendored-research-team",
+  "generated_at": "2026-09-08T06:10:30Z",
+  "release_status": "RC_NOT_RELEASED",
+  "tag": null,
+  "e2e_commit": null,
   "deterministic_tests": {
-    "unit": "PASS",
-    "integration": "PASS",
-    "registry": "PASS",
-    "manifest": "PASS",
-    "privacy": "PASS",
-    "security_harness": "PASS",
-    "stale_benchmark_detection": "PASS"
+    "v4_internal_specialists": "PASS",
+    "v4_vendor_runtime": "PASS",
+    "publication_sufficiency": "PASS",
+    "research_expansion": "PASS",
+    "private_ultra_registry_and_routing": "PASS",
+    "multi_system_benchmark_gate": "NOT_RUN",
+    "full_regression": "PASS"
   },
-  "hosted_ci": "PASS",
-  "hosted_ci_run_id": 33106678347,
-  "hosted_ci_matrix": {
-    "ubuntu-latest / Python 3.10": "PASS",
-    "ubuntu-latest / Python 3.11": "PASS",
-    "ubuntu-latest / Python 3.12": "PASS",
-    "windows-latest / Python 3.10": "PASS",
-    "windows-latest / Python 3.11": "PASS",
-    "windows-latest / Python 3.12": "PASS"
+  "hosted_ci": {
+    "run_id": null,
+    "workflow": null,
+    "branch": null,
+    "head_sha": null,
+    "conclusion": null,
+    "matrix": {}
   },
   "model_behavior_eval": "NOT_RUN",
-  "e2e_status": "PASS",
+  "benchmark_suite": {
+    "status": "NOT_RUN",
+    "run_root": "benchmarks/v4/runs",
+    "systems": [
+      "ars",
+      "ars_codex",
+      "k_dense",
+      "orchestra_skills",
+      "orchestra_autoresearch",
+      "eureka",
+      "sisyphus_academica",
+      "snl_paper_writing",
+      "research_engineering_suite",
+      "opencite",
+      "neuromechanist_research_skills",
+      "experiment_agent",
+      "hermes_research_writing",
+      "paper_orchestra",
+      "ai_scientist_v2",
+      "agent_laboratory",
+      "deer_flow"
+    ],
+    "multi_system_parity_gate": "FAIL",
+    "ars_parity_gate": "FAIL",
+    "v4_superiority_gate": "FAIL",
+    "recommended_merge": "NO"
+  },
+  "private_ultra": {
+    "status": "IMPLEMENTED_NOT_BEHAVIOR_QUALIFIED",
+    "candidate_count": 18,
+    "role_count": 14,
+    "selection_policy": "BEST_QUALIFIED_PROVIDER_OR_BEST_COMPLEMENTARY_ENSEMBLE",
+    "qualified_external_providers": [],
+    "fallback": "PUBLIC_CORE",
+    "missing_behavior_evidence": "FAIL_CLOSED"
+  },
+  "tta_field_regression": {
+    "project": "external-project:ccta_tta",
+    "thin_draft_detection": "PASS",
+    "expansion_campaign_generation": "PASS",
+    "gpu_smoke": "PASS",
+    "formal_campaign": "COMPLETED",
+    "formal_campaign_snapshot": {
+      "total_jobs": 1000,
+      "completed_jobs": 1000,
+      "remaining_jobs": 0,
+      "current_failed_jobs": 0,
+      "preserved_historical_failures": 80,
+      "workers": 4,
+      "observed_at": "2026-09-08T10:45:36+08:00"
+    },
+    "postprocess": {
+      "status": "PASS",
+      "completed_jobs": 1000,
+      "failed_jobs": 0,
+      "analysis_status": "PASS_WITH_METADATA_ALIAS",
+      "mechanism_status": "NOT_SUPPORTED",
+      "usb_sync": "PASS"
+    },
+    "publication_sufficiency": "FAIL",
+    "reviewer_completeness": "FAIL"
+  },
+  "e2e_status": "CONDITIONAL",
   "known_limitations": [
-    "source_commit is injected by the publisher or CI because a commit cannot hash a file that contains its own final hash",
-    "model-backed behavior evaluation is NOT_RUN when the host cannot provide an isolated model invocation",
-    "live venue pages, paywalled sources, and external skill HEADs require activation-time verification",
-    "the local E2E is a public synthetic fixture and does not establish a scientific result or venue outcome"
+    "The 17-target multi-system behavior comparison has not yet run; parity and superiority remain failed.",
+    "PRIVATE_ULTRA has no behavior-qualified external provider yet, so PUBLIC_CORE remains selected.",
+    "The TTA field project remains publication-insufficient until cross-dataset formal runs, published modern baselines, ablations, statistics, adversarial review, and revision complete.",
+    "Hosted CI has not run against an exact committed V4 SHA.",
+    "The completed formal_v2 analysis records a single explicit frozen-runner metadata alias; raw shards remain unchanged.",
+    "The formal_v2 mechanism screen is NOT_SUPPORTED; fresh held seeds 5-9 and a preregistered prospective analysis are required.",
+    "System-level comparators require adapters and are not treated as ordinary Skills."
   ],
-  "release_disposition": "V3.1.1 RELEASE CANDIDATE READY; model behavior evaluation remains NOT_RUN and requires an authorized isolated model adapter"
+  "recommended_merge": "NO",
+  "release_disposition": "V4.0.0 RC FAIL; required behavior comparisons, formal field expansion, and exact-SHA Hosted CI are incomplete"
 }

@@ -1,5 +1,105 @@
 # Changelog
 
+## 4.0.0 - 2026-09-07
+
+### Added
+
+- Vendored 29 complete research Skills from seven MIT-licensed repositories at
+  immutable 40-character commits, with file hashes, notices, security audits,
+  behavior trials, capability mappings, and assigned specialists.
+- Added a fourteen-role publication-grade internal team and offline Skill
+  loader that preserves control-plane, evidence, protocol, and checker authority.
+- Added built-in-first provider decisions and `QUALITY_UPGRADE_DISCOVERY` with
+  explicit internal/external comparison and automatic built-in fallback.
+- Added independent Scientific Validity, Evidence Sufficiency, Publication
+  Sufficiency, Reviewer Completeness, Research Depth, Research Expansion, and
+  Submission Readiness gates.
+- Added the `ccta_tta` field regression, which preserves bounded scientific
+  validity while requiring research expansion for missing breadth and depth.
+
+### Changed
+
+- Formal full-paper and submission-targeted completion now fails closed when
+  publication depth or reviewer coverage is insufficient.
+- Active runtime, registry, template, schema, and release metadata now declares
+  V4.0.0 while legacy state remains readable.
+
+## 3.2.1 - 2026-09-05
+
+### Fixed
+
+- Added explicit provider quality levels and conservative quality mapping for
+  deterministic native writing, review, innovation, statistics, and figure
+  helpers.
+- Load-bearing specialist tasks now trigger specialist discovery even when a
+  weak native provider exists; matching formally qualified specialists remain
+  preferred, while Host execution exposes handoff, checker, and evidence
+  requirements.
+- Formal `full`/`full-paper` and submission-targeted workflows automatically
+  promote core scientific nodes to load-bearing without a manual node list.
+- Active V3.2 runtime, schema, template, provider, and release metadata is
+  aligned on `3.2.1`; the historical V3.1.1 compatibility surface is retained.
+- Added task-aware routing for specialized statistics and eight regression
+  tests covering routing, fail-closed AUTO_HIRE, and legacy evidence behavior.
+- Completed the canonical specialist employment handoff: discovery candidates
+  now pass through AUTO_HIRE verification, immutable isolated employment,
+  provider re-resolution, external-skill execution, checking, and acceptance;
+  failed or disabled hires retain the Host fallback.
+
+## 3.2.0 - 2026-08-28
+
+### Added
+
+- Added a real resumable Host Provider lifecycle: request creation,
+  `HOST_EXECUTION_REQUIRED`, typed handoff receipt, independent checking,
+  acceptance/rejection, Director resume, and downstream invalidation. Recorded
+  CI handoffs validate this protocol while model behavior remains `NOT_RUN`.
+- Reclassified the built-in research and competition algorithms as bounded
+  native baselines. Native-unsupported classification and graph-network E2Es
+  now route through problem-specific host coding/modeling and then execute the
+  returned code with deterministic runtimes.
+- Added semantic Skill capability states (`CONFIRMED`, `PARTIAL`, `UNVERIFIED`,
+  `MISMATCH`) and restricted formal AUTO_HIRE to content-audited, behavior-
+  trialed, checked `CONFIRMED` candidates.
+- Added literature retrieval sufficiency states and required materialized full
+  text plus independently verified exact regions for load-bearing claims.
+- Added a host-neutral Provider Runtime with qualification-aware routing,
+  typed host handoffs, independent checking, artifact freshness, and
+  dependency invalidation while retaining the existing control plane.
+- Added capability-driven catalog/GitHub Skill discovery, static audit,
+  immutable commit resolution, isolated materialization, no-secrets execution,
+  and the full DISCOVERY-to-ACCEPT AUTO_HIRE lifecycle.
+- Split legacy research and logistics solvers into explicit fixture providers;
+  production research and competition executors now route to project-aware
+  literature, coding, analysis, writing, review, and mixed-method providers.
+- Added input-derived generic research orchestration and three-structure
+  competition orchestration E2Es. Host model behavior remains separately
+  classified and is `NOT_RUN` without an isolated host adapter.
+- Added bounded `maximum-autonomy` mode with one policy/authorization API,
+  expiring and revocable standing authorizations, and an AUTO_HIRE risk gate.
+- Added a canonical hash-chained autonomy audit log, resumable director loop,
+  deterministic recovery budget, and dashboard projections.
+- Added fail-closed completion contracts and a deterministic full-paper
+  `HARNESS_SELF_TEST` that executes a public fixture through provenance,
+  evidence, graph, writing, validation, review, and package stages.
+- Added real Director executor dispatch, checked artifacts/evidence, per-node
+  recovery budgets, a full isolated AUTO_HIRE lifecycle, and explicit
+  `HARNESS_SELF_TEST` / `DIRECTOR_ORCHESTRATION_E2E` / `MODEL_BEHAVIOR_EVAL`
+  separation.
+- Integrated the CUMCM competition clock, scheduler, method router, review, and
+  deterministic E2E as a maximum-autonomy overlay. Temporary freeze and ETA
+  blocks no longer overwrite canonical graph status.
+- Finalized the CUMCM Competition Director with qualitative automatic problem
+  selection, full question/dependency decomposition, mixed-method routing,
+  baseline-first real code execution, solver/unit/numeric checks, sensitivity,
+  traceable figures, Chinese paper generation, automatic review/repair, strict
+  official-rule preflight, and a 16-node orchestration E2E with ten fail-closed
+  corruption and policy cases.
+- Bound release readiness to the exact Hosted CI workflow, branch, head SHA,
+  successful conclusion, and complete Ubuntu/Windows Python 3.10-3.12 matrix.
+- Preserved the v3.1.1 provenance/evidence/research-graph/scientific-gate and
+  regression contracts; no dependency or skill installation was added.
+
 ## 3.1.1 - 2026-08-27
 
 ### Fixed

@@ -1,8 +1,8 @@
-# CS Nature Paper V3.1.1
+# CS Nature Paper V4.0.0
 
 面向计算机科学研究、以学生为中心、受证据约束的可执行科研操作系统。
 
-[English](README.md) | [v3.1.1 正式版](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
+[English](README.md) | [v3.1.1 历史正式版](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
 
 ## 这个项目是什么
 
@@ -16,8 +16,23 @@ CS Nature Paper 是一个 Agent Skill，帮助你把研究想法、代码库、�
 研究问题、协议、实验、主张、证据、图表、写作与审查始终通过明确记录
 相互连接，避免论文文字跑到真实证据前面。
 
-当前稳定版本为 `v3.1.1`，对应提交：
-`081aa693b907d8cc07104d1b8251d46301094ef7`。
+正式 `full`/`full-paper` 或面向投稿的工作流会自动将 analysis、figures、
+writing、review、revision 标记为 load-bearing，无需用户另外配置节点列表，
+即可强制执行 specialist 正式证据门禁。
+
+V4 内置 29 个经过审计的第三方科研 Skill，来自 7 个 MIT 仓库并固定到
+40 位 commit SHA，断网时仍可加载。它们组成 14 个角色的完整投稿团队。
+在线发现只用于质量升级；外部候选只有在证明 `EXTERNAL_BETTER` 或
+`COMPLEMENTARY` 后才能替换或补充内置基线。
+
+面向投稿的工作流必须分别通过 Scientific Validity、Evidence Sufficiency、
+Publication Sufficiency、Reviewer Completeness 和 Submission Readiness。
+窄范围证据与大量重复运行不能替代数据集、模型、基线、消融、机制、
+外部验证、文献和论文深度。
+
+`v3.1.1` tag 与 V3.2.1 分支保留为历史版本。V4 从已验收提交
+`6f13161601854763b500cdb596dbe52df3a0fd19` 建立在
+`feat/v4-vendored-research-team` 分支。
 
 ## 系统如何工作
 
@@ -205,15 +220,103 @@ git -C ~/.codex/skills/cs-nature-paper rev-parse HEAD
 | `copilot` | 默认模式：执行常规工作，在重要检查点停下 |
 | `guided` | 在请求决策前解释每个主要科研门 |
 | `autopilot` | 在明确的预算和权限范围内持续推进 |
+| `maximum-autonomy` | 在 standing authorization 允许的有限本地范围内持续执行，支持 session resume、自愈和 fail-closed completion contract |
 | `plan` | 定位、gap、研究问题、协议和资源规划 |
 | `execute` | 代码、数据、实验、分析与 provenance |
 | `write` | 受证据约束的论文与 LaTeX/文档工作 |
 | `revision` | 审稿问题、有界修订与转投 |
 | `review` | 对抗性、威胁驱动的独立审查 |
 | `preflight` | 当前 venue 规则与投稿包就绪检查 |
+| `competition` | 将已选定的 CUMCM 赛题自动执行到提交预检 |
+| `competition-autopilot` | 自动选题并执行完整竞赛生命周期 |
+| `competition-review` | 对竞赛论文和提交包做红队审查 |
 
 Autopilot 不会取消作者控制权。遇到证据矛盾、provenance 缺失、预算边界、
 伦理问题、未审核能力、协议修订或外部操作时，它必须停止。
+
+Maximum autonomy 使用 `scripts/autonomy.py` 作为统一 policy/authorize 边界：
+普通、可逆科研工作默认自动执行；网络科研、有界协议修订和中风险 Skill 招聘
+会自动执行并写入 hash-chain audit。只有根本性科研范围变化、伦理、credentials、
+付费、全局/管理员安装、私有数据外传、不可逆外部操作、公开发布和投稿才询问
+作者。`scripts/director_loop.py` 调用真实 executor，并且只在 artifact 与 evidence
+通过 output contract 后推进 graph。项目完成语义为 `READY_FOR_SUBMISSION`；
+软件 release readiness 由独立流程验证。
+
+## Provider 驱动执行
+
+V3.2.1 明确区分四层，不能混为一谈：
+
+- **Deterministic Runtime**：科研图、授权、真实命令、artifact hash、checker、
+  evidence、provenance、freshness 和依赖失效。
+- **Host Provider**：当前 Codex/Claude 类 host 可通过中立的 typed
+  request/handoff 执行搜索、读取、编码、运行、写作和审查；独立 checker 接受
+  artifact 后 graph 才能 PASS。请求会先进入 `HOST_EXECUTION_REQUIRED`，Python
+  不会生成 JSON 来冒充 host 已执行。
+- **External Skill Provider**：能力缺口可触发 catalog、已安装 Skill、公共
+  marketplace 和 GitHub 搜索。候选必须静态审计、解析为 40 位 immutable SHA、
+  隔离 materialize、qualification、无 secrets 执行、检查，最后才能接受。
+- **Model Behavior**：host/model 质量属于独立评测；没有真正隔离的 host-backed
+  adapter 时必须诚实记录为 `NOT_RUN`。
+
+Host 可用性状态为 `HOST_AVAILABLE`、`HOST_REQUEST_CAPABLE` 和
+`HOST_BEHAVIOR_QUALIFIED`。CI 的 recorded handoff 只验证 lifecycle，不验证真实
+model。GitHub 搜索结果也不能自动继承请求能力；仓库内容、semantic audit 和经
+checker 的 behavior trial 只能得到 `CONFIRMED`、`PARTIAL`、`UNVERIFIED` 或
+`MISMATCH`，formal AUTO_HIRE 只接受 `CONFIRMED`。
+
+`scripts/research_executor.py` 与 `scripts/competition_executor.py` 现在只是
+Provider adapter。`constant_mean`/`linear_trend` 与有限比赛方法族保留为透明的
+native baseline；native 不支持的任务会路由到 problem-specific host modeling/
+coding，再由 deterministic runtime 执行和检查。该架构支持 host/tool/Skill
+执行，但通用 model-backed 自主行为在单独评测前仍为 `NOT_RUN`。旧科研示例与
+物流求解器只存在于显式 fixture provider。
+
+文献检索明确区分 `METADATA_ONLY`、`FULLTEXT_RETRIEVED`、
+`EXACT_REGION_VERIFIED` 与 `UNAVAILABLE`。Metadata 只能用于发现和身份核验；
+承担创新性、closest-work、方法或重要事实主张的来源必须有全文和独立核验的
+精确区域。
+
+## CUMCM 比赛覆盖层
+
+比赛模式是通用 Research Graph 上的 policy overlay，继续使用原有的 evidence
+ledger、claims、experiments、artifacts、provenance 和 handoffs，不建立第二套
+科研状态系统。Runtime 只能根据时钟、科学/评分风险、决策相关性、预期信息
+增益、ETA 以及论文/验证/复杂度债务对通用图节点进行排序、临时限制、冻结或
+放行。临时 policy block 始终保留在 overlay，不污染 canonical 科研图。
+
+唯一权威的时间边界是带时区的 ISO-8601 `contest_start_utc` 和
+`submission_deadline_utc`。Runtime 统一转换为 UTC，并根据系统时钟计算实际
+比赛时长、已用时间、剩余时间、阶段、STOP RULE 和 HARD FREEZE。仅配置时间
+后，状态仍是 `UNVERIFIED`；必须由人工明确记录当届官方来源后才能核验。
+未核验期间，Runtime 不得用截止时间授权新 job，也不得声称官方规则已确认。
+人工偏移、暂停和恢复都必须填写 actor 与 reason，并追加到 SHA-256 哈希链
+event log；`competition_clock.json` 只是当前派生快照。
+
+三种典型调用方式：
+
+```text
+Use $cs-nature-paper in competition mode.
+把已选定的 CUMCM 赛题自动推进到 baseline、正式求解、验证、敏感性、图表、
+论文、审稿、修复和提交预检；只要 Author action required 为 NONE 就继续。
+```
+
+```text
+Use $cs-nature-paper in competition-autopilot mode.
+读取全部赛题和当前 competition state，核验当届官方规则与时钟来源，拆解并
+比较所有题目，明显占优时自动选题。运行完整 Director 生命周期，仅在达到
+COMPETITION_SUBMISSION_READY 或真正的作者专属边界时停止。
+```
+
+```text
+Use $cs-nature-paper in competition-review mode.
+审查这份竞赛论文和提交包，输出按严重性排序且有 evidence anchor 的问题，
+以及十轴评分雷达。不要预测奖项，也不要编造当届官方规则。
+```
+
+默认 CUMCM profile 使用既定 72 小时阶段边界；其他时长按比例映射，除非
+profile 给出显式边界。`SUBMISSION_FREEZE` 是正常计划阶段；绝对剩余 6 小时
+触发的 `FINALIZATION_MODE` 和剩余 2 小时触发的 `HARD_FREEZE` 会覆盖普通
+调度。任何新执行 job 都必须先通过 ETA 加当前阶段 safety margin 的门禁。
 
 ## 最小 CLI 工作流
 
@@ -235,6 +338,36 @@ python "$SkillRoot\scripts\research_graph.py" advance $Project
 python "$SkillRoot\scripts\evidence_anchor.py" ledger $Project --deep
 ```
 
+初始化并操作比赛覆盖层：
+
+```powershell
+python "$SkillRoot\scripts\research_state.py" init $Project `
+  --study-type algorithmic --mode competition-autopilot `
+  --domain mathematical-modeling
+
+python "$SkillRoot\scripts\competition_runtime.py" configure-clock $Project `
+  --start "2026-09-10T10:00:00Z" `
+  --deadline "2026-09-13T10:00:00Z" `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" verify-clock $Project `
+  --official-source "https://official.example/rules" --actor "team-captain"
+
+python "$SkillRoot\scripts\competition_runtime.py" dashboard $Project
+python "$SkillRoot\scripts\competition_runtime.py" status $Project
+python "$SkillRoot\scripts\competition_runtime.py" schedule $Project
+python "$SkillRoot\scripts\competition_method_router.py" route `
+  "Minimize facility cost subject to capacity constraints"
+python "$SkillRoot\scripts\competition_review.py" audit competition-review.json
+python "$SkillRoot\scripts\competition_director.py" $Project `
+  --input competition_input.json
+```
+
+`configure-clock` 只记录候选边界，不会自动证明其权威性。执行
+`verify-clock` 前必须重新检查真实比赛的当届官方来源。需要有记录的时钟
+校正时，使用 `adjust-clock --offset-seconds ... --reason ... --actor ...`；
+不要手工编辑快照或 event log。
+
 解析能力或方法手册时，要把“选中了什么”与“实际执行了什么”区分开：
 
 ```powershell
@@ -249,6 +382,18 @@ python "$SkillRoot\scripts\method_router.py" route `
 验证、审查、交接、dashboard、隐私检查、安全压力用例、行为用例和发布
 验证运行时。对任一脚本执行 `--help` 可以查看准确接口。
 
+Director 因 host 工作暂停时，读取请求、接收真实 handoff，然后恢复同一会话：
+
+```powershell
+python "$SkillRoot\scripts\host_provider_runtime.py" pending $Project
+python "$SkillRoot\scripts\host_provider_runtime.py" receive $Project host-handoff.json `
+  --checker deterministic-output-checker
+python "$SkillRoot\scripts\director_loop.py" resume $Project
+```
+
+当前 host 通常应自动完成这套循环。详见
+[Host Provider contract](references/core/host-provider.md)。
+
 ## 验证状态
 
 `v3.1.1` 正式版通过了 57 个单元与集成测试；必要的
@@ -260,7 +405,10 @@ python "$SkillRoot\scripts\method_router.py" route `
 1. Schema 和确定性测试检查局部不变量。
 2. 工作流集成测试检查状态、科研图、路由、迁移和 provenance。
 3. Answer-hidden 行为用例定义安全和用户交互预期。
-4. 公开安全的合成 smoke workflow 检查运行时能否端到端执行。
+4. 公开安全的合成 smoke workflow 检查 infrastructure 集成。
+5. Competition orchestration E2E 通过正常 Director 推进全部 16 个节点，并实际
+   执行代码、验证、图表、论文、审稿、修复和预检；十类破坏/policy 用例必须
+   fail closed。
 
 合成流程的分类是 `HARNESS_SELF_TEST`；它不是科学证据，也不是对研究模型
 的评测。Model-backed behavior evaluation 仍为 `NOT_RUN`。不得把 harness
@@ -274,7 +422,30 @@ python scripts/validate_registry.py
 python scripts/validate_release.py
 python scripts/smoke_run.py --output .ci-smoke-result.json
 python scripts/check_smoke.py .ci-smoke-result.json
+python scripts/competition_smoke_run.py --output .competition-smoke-result.json
+python scripts/competition_orchestration_e2e.py
+python scripts/generic_research_orchestration_e2e.py
+python scripts/generic_competition_orchestration_e2e.py
+python scripts/host_provider_handoff_e2e.py
+python scripts/generic_host_research_e2e.py
+python scripts/generic_host_competition_e2e.py
 ```
+
+Competition smoke 使用有限的合成选址 fixture 和标准库穷举，只验证 runtime
+集成。它的分类是 `HARNESS_SELF_TEST`，model-backed behavior evaluation 仍为
+`NOT_RUN`。
+Competition orchestration E2E 是确定性的 runtime orchestration 测试，不是模型
+行为评测；没有授权 model adapter 时 `MODEL_BEHAVIOR_EVAL` 仍为 `NOT_RUN`。
+
+通用科研 E2E 使用小型 CSV、比较两个透明候选方法、真实执行生成代码、分析
+观测输出、从 evidence state 写作、审稿和修复，最终达到
+`READY_FOR_SUBMISSION`。通用比赛 E2E 让同一组生产 Provider 处理三种不同
+结构。这些确定性测试证明路由与 artifact contract，不证明任意科研结论或
+host model 行为质量。
+Recorded Host E2E 另外覆盖 native 不支持的 classification 与 graph-network
+任务，验证真实 request/receive/check/resume，并实际执行 handoff 返回的代码。
+其行为标签是 `RECORDED_HANDOFF`，独立的 model behavior evaluation 仍为
+`NOT_RUN`。
 
 ## 这个项目不声称什么
 

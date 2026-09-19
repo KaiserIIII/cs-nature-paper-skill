@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cs-nature-paper/review_synthesis.schema.json",
+  "type": "object",
+  "required": [
+    "status",
+    "packet_id",
+    "producer_id",
+    "checker_id",
+    "reviewer_producer_ids",
+    "source_report_hashes",
+    "source_finding_ids",
+    "findings",
+    "synthesis_hash"
+  ],
+  "properties": {
+    "status": {"enum": ["SYNTHESIS_PRODUCED", "SYNTHESIS_ACCEPTED", "SYNTHESIS_CONDITIONAL", "SYNTHESIS_REJECTED"]},
+    "packet_id": {"type": "string", "minLength": 1},
+    "producer_id": {"type": "string", "minLength": 1},
+    "checker_id": {"type": "string", "minLength": 1},
+    "reviewer_producer_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "source_report_hashes": {"type": "array", "items": {"type": "string"}},
+    "source_finding_ids": {"type": "array", "items": {"type": "string"}},
+    "findings": {"type": "array", "items": {"type": "object"}},
+    "synthesis_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "graph_transition_authorized": {"const": false},
+    "publication_pass": {"const": false}
+  },
+  "additionalProperties": true
+}
