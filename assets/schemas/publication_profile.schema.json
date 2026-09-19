@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "layer",
+    "version",
+    "status",
+    "source_hash",
+    "source_payload",
+    "provenance",
+    "required",
+    "recommended",
+    "not_applicable",
+    "overrides"
+  ],
+  "properties": {
+    "profile_id": {"type": "string", "minLength": 1},
+    "layer": {
+      "enum": [
+        "fallback",
+        "domain",
+        "study_type",
+        "claim_type",
+        "venue",
+        "article_type",
+        "design"
+      ]
+    },
+    "version": {"type": "string", "minLength": 1},
+    "status": {"enum": ["PROFILE_ACTIVE", "PROFILE_DEPRECATED"]},
+    "source_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_payload": {
+      "type": "object",
+      "required": ["required", "recommended", "not_applicable", "overrides"],
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "recommended": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "not_applicable": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "dimension",
+              "from",
+              "to",
+              "justification",
+              "scope"
+            ],
+            "properties": {
+              "dimension": {"type": "string", "minLength": 1},
+              "from": {
+                "enum": ["required", "recommended", "not_applicable"]
+              },
+              "to": {
+                "enum": ["required", "recommended", "not_applicable"]
+              },
+              "justification": {"type": "string", "minLength": 1},
+              "scope": {"type": "object"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "na_justifications": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source_id", "source_hash", "profile_version"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "source_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "profile_version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "required": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "recommended": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "not_applicable": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "na_justifications": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dimension",
+          "from",
+          "to",
+          "justification",
+          "scope",
+          "source_id",
+          "source_hash",
+          "profile_version"
+        ],
+        "properties": {
+          "dimension": {"type": "string", "minLength": 1},
+          "from": {"enum": ["required", "recommended", "not_applicable"]},
+          "to": {"enum": ["required", "recommended", "not_applicable"]},
+          "justification": {"type": "string", "minLength": 1},
+          "scope": {"type": "object"},
+          "source_id": {"type": "string", "minLength": 1},
+          "source_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "profile_version": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

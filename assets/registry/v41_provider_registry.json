@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "release_line": "4.1",
+  "providers": [
+    {
+      "provider_id": "paperspine:contribution-and-publication",
+      "type": "EXTERNAL_SKILL",
+      "capabilities": [
+        "publication-argument",
+        "results-validation",
+        "publication-production"
+      ],
+      "exact_commit": "99a84fe452ab7681e30cd81387fcb6263a676125",
+      "source_hash": null,
+      "license_decision": "CLEAR_FOR_BOUNDED_ADAPTER",
+      "validation_bundle_id": "paperspine:contribution-and-publication:v1",
+      "fallback_provider_id": "internal-specialist:publication-editor",
+      "discovery_only": false
+    },
+    {
+      "provider_id": "nature:figure-and-reviewer",
+      "type": "EXTERNAL_SKILL",
+      "capabilities": [
+        "figure-audit",
+        "adversarial-review"
+      ],
+      "exact_commit": "9cecfef6ac683fa59d7d15d2e22f98fa71dacaf5",
+      "source_hash": null,
+      "license_decision": "CLEAR_FOR_BOUNDED_ADAPTER",
+      "validation_bundle_id": "nature:figure-and-reviewer:v1",
+      "fallback_provider_id": "internal-specialist:publication-editor",
+      "discovery_only": false
+    }
+  ]
+}

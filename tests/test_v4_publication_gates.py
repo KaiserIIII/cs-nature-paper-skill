@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +18,74 @@ def load(name):
 
 
 publication = load("publication_sufficiency")
+profiles = load("publication_profiles")
+
+
+def publication_layer(layer_name, profile_id, *, overrides=None, **fields):
+    overrides = overrides or []
+    payload = {
+        "required": sorted(set(fields.get("required", []))),
+        "recommended": sorted(set(fields.get("recommended", []))),
+        "not_applicable": sorted(set(fields.get("not_applicable", []))),
+        "overrides": sorted(
+            overrides,
+            key=lambda item: json.dumps(item, sort_keys=True, separators=(",", ":")),
+        ),
+        **(
+            {"na_justifications": fields["na_justifications"]}
+            if "na_justifications" in fields
+            else {}
+        ),
+    }
+    source_hash = profiles.canonical_hash(payload)
+    return {
+        "profile_id": profile_id,
+        "layer": layer_name,
+        "version": "1.0.0",
+        "status": "PROFILE_ACTIVE",
+        "source_hash": source_hash,
+        "source_payload": payload,
+        "provenance": {
+            "source_id": profile_id,
+            "source_hash": source_hash,
+            "profile_version": "1.0.0",
+        },
+        "required": fields.get("required", []),
+        "recommended": fields.get("recommended", []),
+        "not_applicable": fields.get("not_applicable", []),
+        "overrides": [
+            {
+                **item,
+                "source_id": profile_id,
+                "source_hash": source_hash,
+                "profile_version": "1.0.0",
+            }
+            for item in overrides
+        ],
+        **({"scope": fields["scope"]} if "scope" in fields else {}),
+        **(
+            {"na_justifications": fields["na_justifications"]}
+            if "na_justifications" in fields
+            else {}
+        ),
+    }
+
+
+def trusted_profiles():
+    registry = json.loads(
+        (ROOT / "assets" / "registry" / "publication_profiles.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    return registry["profiles"]
+
+
+def resolved_registered_profile():
+    result = profiles.resolve_profile(
+        {"design": "registered-replication"}, trusted_profiles()
+    )
+    assert result["status"] == "PROFILE_RESOLVED", result
+    return result
 
 
 def make_thin_project(root: Path) -> Path:
@@ -37,6 +106,64 @@ def make_thin_project(root: Path) -> Path:
 
 
 class V4PublicationSufficiencyTests(unittest.TestCase):
+    def test_joint_registry_and_manifest_rewrite_cannot_authorize_submission(self):
+        dimensions = list(publication.DEPTH_DIMENSIONS)
+        forged_fallback = publication_layer(
+            "fallback",
+            "fallback:forged-empty",
+            not_applicable=dimensions,
+            na_justifications={
+                dimension: "attacker-authored exemption" for dimension in dimensions
+            },
+        )
+        forged_registry = {"profiles": [forged_fallback]}
+        forged_registry_bytes = (
+            json.dumps(forged_registry, ensure_ascii=False, indent=2) + "\n"
+        ).encode("utf-8")
+        registry_path = ROOT / "assets" / "registry" / "publication_profiles.json"
+        manifest_path = ROOT / "SHA256SUMS.txt"
+        forged_digest = __import__("hashlib").sha256(forged_registry_bytes).hexdigest()
+        forged_manifest = "\n".join(
+            forged_digest + "  assets/registry/publication_profiles.json"
+            if line.endswith("  assets/registry/publication_profiles.json")
+            else line
+            for line in manifest_path.read_text(encoding="utf-8").splitlines()
+        ) + "\n"
+        artifact = profiles.resolve_profile({}, forged_registry["profiles"])
+        self.assertEqual(artifact["status"], "PROFILE_RESOLVED", artifact)
+
+        real_read_bytes = Path.read_bytes
+        real_read_text = Path.read_text
+
+        def attacked_read_bytes(path):
+            if path.resolve() == registry_path.resolve():
+                return forged_registry_bytes
+            return real_read_bytes(path)
+
+        def attacked_read_text(path, *args, **kwargs):
+            if path.resolve() == registry_path.resolve():
+                return forged_registry_bytes.decode("utf-8")
+            if path.resolve() == manifest_path.resolve():
+                return forged_manifest
+            return real_read_text(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_bytes", attacked_read_bytes), mock.patch.object(
+            Path, "read_text", attacked_read_text
+        ):
+            result = publication.assess(
+                {
+                    "scientific_validity": "PASS",
+                    "evidence_sufficiency": "PASS",
+                    "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+                    "publication_profile": artifact,
+                }
+            )
+
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertEqual(result["publication_sufficiency"]["status"], "FAIL")
+        self.assertEqual(result["submission_readiness"]["status"], "FAIL")
+        self.assertNotEqual(result["disposition"], "READY_FOR_SUBMISSION")
+
     def test_strong_narrow_evidence_does_not_imply_publication_sufficiency(self):
         profile = {
             "scientific_validity": "PASS",
@@ -130,6 +257,206 @@ class V4PublicationSufficiencyTests(unittest.TestCase):
         result = publication.assess(complete)
         self.assertEqual(result["submission_readiness"]["status"], "PASS", result)
         self.assertEqual(result["disposition"], "READY_FOR_SUBMISSION")
+
+    def test_registered_non_fallback_profile_is_authoritatively_consumed(self):
+        resolved_profile = resolved_registered_profile()
+        complete = {
+            "scientific_validity": "PASS", "evidence_sufficiency": "PASS",
+            "dataset_count": 3, "dataset_kinds": ["benchmark", "real-world"],
+            "model_count": 3, "modern_baseline_count": 4,
+            "ablation_dimension_count": 3, "external_validation_count": 2,
+            "mechanism_test_count": 2, "related_work_depth": "ADEQUATE",
+            "manuscript_pages": 12, "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+            "publication_profile": resolved_profile,
+        }
+        result = publication.assess(complete)
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_RESOLVED")
+        self.assertEqual(result["publication_sufficiency"]["status"], "FAIL")
+        self.assertIn(
+            "domain_specific_replication",
+            result["research_depth_profile"]["failed_dimensions"],
+        )
+
+    def test_self_hashed_profile_without_replayable_provenance_is_rejected(self):
+        forged = {
+            "status": "PROFILE_RESOLVED",
+            "required": ["mechanism_tests", "related_work", "manuscript_depth"],
+            "recommended": [],
+            "not_applicable": [
+                "dataset_coverage",
+                "model_coverage",
+                "modern_baselines",
+                "ablations",
+                "external_validation",
+            ],
+            "na_justifications": {
+                key: "self-authored exemption"
+                for key in (
+                    "dataset_coverage",
+                    "model_coverage",
+                    "modern_baselines",
+                    "ablations",
+                    "external_validation",
+                )
+            },
+            "conflicts": [],
+        }
+        forged["canonical_output_hash"] = profiles.canonical_hash(forged)
+        result = publication.assess(
+            {
+                "scientific_validity": "PASS",
+                "evidence_sufficiency": "PASS",
+                "mechanism_test_count": 1,
+                "related_work_depth": "ADEQUATE",
+                "manuscript_pages": 12,
+                "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+                "publication_profile": forged,
+            }
+        )
+        self.assertEqual(result["publication_sufficiency"]["status"], "FAIL")
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertTrue(
+            any(
+                item["code"] == "UNREPLAYABLE_PROFILE_PROVENANCE"
+                for item in result["profile_resolution"]["conflicts"]
+            )
+        )
+
+    def test_replayed_profile_requires_the_shipped_trusted_fallback(self):
+        untrusted = publication_layer(
+            "fallback", "attacker:fallback", required=["mechanism_tests"]
+        )
+        artifact = profiles.resolve_profile({}, [untrusted])
+        self.assertEqual(artifact["status"], "PROFILE_RESOLVED", artifact)
+        result = publication.assess(
+            {
+                "scientific_validity": "PASS",
+                "evidence_sufficiency": "PASS",
+                "mechanism_test_count": 1,
+                "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+                "publication_profile": artifact,
+            }
+        )
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertTrue(
+            any(
+                item["code"] == "UNTRUSTED_FALLBACK"
+                for item in result["profile_resolution"]["conflicts"]
+            )
+        )
+
+    def test_trusted_fallback_does_not_trust_self_signed_design_exemptions(self):
+        dimensions = list(publication.DEPTH_DIMENSIONS)
+        overrides = [
+            {
+                "dimension": dimension,
+                "from": "required",
+                "to": "not_applicable",
+                "justification": "self-signed exemption",
+                "scope": {"design": "attacker-controlled"},
+            }
+            for dimension in dimensions
+        ]
+        design = publication_layer(
+            "design",
+            "design:self-signed-exemption",
+            overrides=overrides,
+            scope={"design": "attacker-controlled"},
+        )
+        artifact = profiles.resolve_profile(
+            {"design": "attacker-controlled"}, trusted_profiles() + [design]
+        )
+        self.assertEqual(artifact["status"], "PROFILE_RESOLVED", artifact)
+        self.assertEqual(artifact["required"], [])
+        self.assertEqual(sorted(artifact["not_applicable"]), sorted(dimensions))
+
+        result = publication.assess(
+            {
+                "scientific_validity": "PASS",
+                "evidence_sufficiency": "PASS",
+                "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+                "publication_profile": artifact,
+            }
+        )
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertTrue(
+            any(
+                item["code"] == "UNTRUSTED_APPLIED_PROFILE"
+                for item in result["profile_resolution"]["conflicts"]
+            )
+        )
+        self.assertEqual(result["publication_sufficiency"]["status"], "FAIL")
+        self.assertEqual(result["submission_readiness"]["status"], "FAIL")
+        self.assertEqual(result["disposition"], "EXPAND_RESEARCH")
+
+    def test_every_applied_non_fallback_profile_must_be_in_shipped_registry(self):
+        overlay = publication_layer(
+            "domain",
+            "domain:self-signed",
+            recommended=["untrusted_advice"],
+            scope={"domain": "machine-learning"},
+        )
+        artifact = profiles.resolve_profile(
+            {"domain": "machine-learning"}, trusted_profiles() + [overlay]
+        )
+        self.assertEqual(artifact["status"], "PROFILE_RESOLVED", artifact)
+        result = publication.assess(
+            {
+                "publication_profile": artifact,
+                "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+            }
+        )
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertTrue(
+            any(
+                item["code"] == "UNTRUSTED_APPLIED_PROFILE"
+                for item in result["profile_resolution"]["conflicts"]
+            )
+        )
+
+    def test_recomputed_self_hash_cannot_hide_replay_mismatch(self):
+        artifact = resolved_registered_profile()
+        artifact["required"] = []
+        artifact["canonical_output_hash"] = profiles.canonical_hash(
+            {key: value for key, value in artifact.items() if key != "canonical_output_hash"}
+        )
+        result = publication.assess(
+            {
+                "scientific_validity": "PASS",
+                "evidence_sufficiency": "PASS",
+                "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+                "publication_profile": artifact,
+            }
+        )
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertTrue(
+            any(
+                item["code"] == "PROFILE_REPLAY_MISMATCH"
+                for item in result["profile_resolution"]["conflicts"]
+            )
+        )
+
+    def test_conflicted_profile_fails_closed(self):
+        result = publication.assess({
+            "scientific_validity": "PASS", "evidence_sufficiency": "PASS",
+            "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+            "publication_profile": {"status": "PROFILE_CONFLICT", "conflicts": [{"code": "CROSS_CATEGORY_ASSIGNMENT"}]},
+        })
+        self.assertEqual(result["publication_sufficiency"]["status"], "FAIL")
+        self.assertEqual(result["profile_resolution"]["status"], "PROFILE_CONFLICT")
+        self.assertEqual(result["disposition"], "EXPAND_RESEARCH")
+
+    def test_unknown_required_profile_dimension_fails_without_crashing(self):
+        resolved_profile = resolved_registered_profile()
+        self.assertEqual(resolved_profile["status"], "PROFILE_RESOLVED", resolved_profile)
+        result = publication.assess({
+            "scientific_validity": "PASS", "evidence_sufficiency": "PASS",
+            "reviewer_roles_completed": list(publication.REQUIRED_REVIEWERS),
+            "publication_profile": resolved_profile,
+        })
+        self.assertEqual(result["publication_sufficiency"]["status"], "FAIL")
+        self.assertIn("domain_specific_replication", result["research_depth_profile"]["failed_dimensions"])
+        self.assertTrue(any(item["dimension"] == "domain_specific_replication" for item in result["research_expansion_plan"]))
 
     def test_completion_contract_cannot_bypass_publication_gates(self):
         completion = load("completion_contract")

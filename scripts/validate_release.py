@@ -57,6 +57,8 @@ SCHEMA_INSTANCES = {
     "competition_risks": "assets/templates/competition/competition_risks.json",
     "competition_rules": "assets/templates/competition/competition_rules.json",
     "competition_state": "assets/templates/competition/competition_state.json",
+    "falsification_obligation": "assets/templates/falsification_obligation.json",
+    "publication_profile": "assets/templates/publication_profile.json",
 }
 
 
@@ -75,13 +77,41 @@ def _type_ok(value: Any, kind: str) -> bool:
     return {"object": isinstance(value, dict), "array": isinstance(value, list), "string": isinstance(value, str), "integer": isinstance(value, int) and not isinstance(value, bool), "number": isinstance(value, (int, float)) and not isinstance(value, bool), "boolean": isinstance(value, bool), "null": value is None}.get(kind, True)
 
 
+def _json_equal(left: Any, right: Any) -> bool:
+    if isinstance(left, bool) or isinstance(right, bool):
+        return isinstance(left, bool) and isinstance(right, bool) and left == right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        return left == right
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, list):
+        return len(left) == len(right) and all(
+            _json_equal(item, other) for item, other in zip(left, right)
+        )
+    if isinstance(left, dict):
+        return set(left) == set(right) and all(
+            _json_equal(left[key], right[key]) for key in left
+        )
+    return left == right
+
+
 def validate_instance(value: Any, schema: dict[str, Any], path: str = "$", *, findings: list[str] | None = None) -> list[str]:
     findings = findings if findings is not None else []
     declared = schema.get("type")
     if declared:
         kinds = declared if isinstance(declared, list) else [declared]
         if not any(_type_ok(value, kind) for kind in kinds): findings.append(f"{path}: expected type {kinds}"); return findings
+    if "const" in schema and not _json_equal(value, schema["const"]):
+        findings.append(f"{path}: value does not match const")
     if "enum" in schema and value not in schema["enum"]: findings.append(f"{path}: value is not in enum")
+    if "oneOf" in schema:
+        matches = sum(
+            not validate_instance(value, branch, path)
+            for branch in schema["oneOf"]
+            if isinstance(branch, dict)
+        )
+        if matches != 1:
+            findings.append(f"{path}: expected exactly one oneOf branch, matched {matches}")
     if isinstance(value, str):
         if "minLength" in schema and len(value) < schema["minLength"]: findings.append(f"{path}: string is shorter than minLength")
         if "pattern" in schema and not re.fullmatch(schema["pattern"], value): findings.append(f"{path}: pattern mismatch")
@@ -108,15 +138,99 @@ def validate_json_assets() -> list[str]:
         if stem in {"evidence_anchor", "review_finding"}:
             continue
         candidate = schema_instance_path(stem, ROOT)
-        if candidate.exists():
-            try: validate_instance(_read(candidate), schema, str(candidate), findings=findings)
-            except (OSError, json.JSONDecodeError) as exc: findings.append(f"{candidate}: {exc}")
+        if not candidate.exists():
+            if stem in SCHEMA_INSTANCES:
+                findings.append(f"{candidate}: required schema instance for {stem} is missing")
+            continue
+        try: validate_instance(_read(candidate), schema, str(candidate), findings=findings)
+        except (OSError, json.JSONDecodeError) as exc: findings.append(f"{candidate}: {exc}")
     for template_path in sorted(template_dir.glob("*.json")):
         try: value = _read(template_path)
         except (OSError, json.JSONDecodeError) as exc: findings.append(f"{template_path}: {exc}"); continue
         if not isinstance(value, dict): findings.append(f"{template_path}: root must be an object")
         elif value.get("skill_version") != SKILL_VERSION:
             findings.append(f"{template_path}: skill_version must be {SKILL_VERSION}")
+    return findings
+
+
+def validate_source_manifest(root: Path | None = None) -> list[str]:
+    root = root or ROOT
+    manifest_path = root / "SHA256SUMS.txt"
+    try:
+        current = manifest_path.read_text(encoding="utf-8")
+        module_path = Path(__file__).with_name("build_manifest.py")
+        spec = importlib.util.spec_from_file_location("build_manifest_release", module_path)
+        if spec is None or spec.loader is None:
+            return ["SOURCE_MANIFEST_UNAVAILABLE: build_manifest runtime cannot be loaded"]
+        runtime = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runtime)
+        expected = runtime.render(root)
+    except (OSError, UnicodeDecodeError, ImportError, AttributeError, TypeError) as exc:
+        return [f"SOURCE_MANIFEST_UNREADABLE: {exc}"]
+    if current != expected:
+        return ["SOURCE_MANIFEST_MISMATCH: release-controlled source differs from SHA256SUMS.txt"]
+    return []
+
+
+def validate_release_trust_assets() -> list[str]:
+    module_path = Path(__file__).with_name("release_trust.py")
+    try:
+        spec = importlib.util.spec_from_file_location("release_trust_validator", module_path)
+        if spec is None or spec.loader is None:
+            return ["RELEASE_TRUST_UNAVAILABLE: verifier cannot be loaded"]
+        trust = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(trust)
+        result = trust.validate_release_trust()
+    except (OSError, ImportError, AttributeError, TypeError, ValueError) as exc:
+        return [f"RELEASE_TRUST_UNAVAILABLE: {exc}"]
+    if result.get("status") != "PASS":
+        return [
+            "RELEASE_TRUST_FAILURE: " + str(item)
+            for item in result.get("findings", ["unknown trust failure"])
+        ]
+    registry = trust.load_trusted_json("assets/registry/v41_provider_registry.json")
+    qualification = trust.load_trusted_json(
+        "assets/registry/v41_provider_qualification.json"
+    )
+    findings: list[str] = []
+    if not isinstance(registry, dict) or not isinstance(registry.get("providers"), list):
+        findings.append("V41_PROVIDER_REGISTRY_INVALID: providers must be an array")
+        return findings
+    if not isinstance(qualification, dict) or not isinstance(
+        qualification.get("bundles"), list
+    ):
+        findings.append("V41_PROVIDER_QUALIFICATION_INVALID: bundles must be an array")
+        return findings
+    try:
+        schema = _read(ROOT / "assets" / "schemas" / "v41_provider_contract.schema.json")
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"V41_PROVIDER_SCHEMA_UNAVAILABLE: {exc}"]
+    providers = registry["providers"]
+    provider_ids = [
+        item.get("provider_id") for item in providers if isinstance(item, dict)
+    ]
+    if len(provider_ids) != len(providers) or len(provider_ids) != len(set(provider_ids)):
+        findings.append("V41_PROVIDER_REGISTRY_INVALID: provider identities are missing or ambiguous")
+    for index, provider in enumerate(providers):
+        validate_instance(
+            provider,
+            schema,
+            f"assets/registry/v41_provider_registry.json.providers[{index}]",
+            findings=findings,
+        )
+    bundle_ids = [
+        item.get("bundle_id")
+        for item in qualification["bundles"]
+        if isinstance(item, dict)
+    ]
+    if len(bundle_ids) != len(qualification["bundles"]) or len(bundle_ids) != len(
+        set(bundle_ids)
+    ):
+        findings.append("V41_PROVIDER_QUALIFICATION_INVALID: bundle identities are missing or ambiguous")
+    if qualification.get("status") not in {"PENDING_FINAL_REVIEW", "PASS"}:
+        findings.append("V41_PROVIDER_QUALIFICATION_INVALID: status is not fail-closed")
+    if qualification.get("status") == "PASS" and not qualification["bundles"]:
+        findings.append("V41_PROVIDER_QUALIFICATION_INVALID: PASS has no checked bundles")
     return findings
 
 
@@ -519,7 +633,7 @@ def validate(
     expected_workflow: str = EXPECTED_WORKFLOW,
     require_hosted_ci: bool = False,
 ) -> dict[str, Any]:
-    findings = validate_json_assets() + validate_behavior_cases() + validate_benchmark_suite_assets() + validate_long_run_assets() + validate_private_ultra_assets() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
+    findings = validate_json_assets() + validate_source_manifest() + validate_release_trust_assets() + validate_behavior_cases() + validate_benchmark_suite_assets() + validate_long_run_assets() + validate_private_ultra_assets() + validate_release_manifest(manifest_path, expected_commit=expected_commit, expected_branch=expected_branch, expected_workflow=expected_workflow, require_hosted_ci=require_hosted_ci) + validate_runtime_results() + validate_docs()
     if v32_e2e is not None:
         findings.extend(validate_v32_e2e(v32_e2e))
     if competition_e2e is not None:

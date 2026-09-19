@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "release_line": "4.1",
+  "status": "PENDING_FINAL_REVIEW",
+  "bundles": [],
+  "reason": "No source-hash-bound, independently checked behavior comparison artifact exists for a V4.1 external provider."
+}

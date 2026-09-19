@@ -1,0 +1,35 @@
+{
+  "operation": "falsification-obligation",
+  "status": "OBLIGATION_REQUIRED",
+  "required": true,
+  "claim_id": "CLAIM-ID",
+  "confirmation_test": {
+    "check_id": "PROFILE-CONFIRMATION",
+    "description": "Seek independent confirming evidence under the resolved profile."
+  },
+  "falsification_attempt": {
+    "check_id": "PROFILE-FALSIFICATION",
+    "description": "Attempt the strongest profile-appropriate disconfirmation."
+  },
+  "boundary_condition_test": {
+    "check_id": "PROFILE-BOUNDARY",
+    "description": "Test the claim at its declared scope boundary."
+  },
+  "strongest_surviving_alternative": {
+    "check_id": "PROFILE-ALTERNATIVE",
+    "description": "Record the strongest rival explanation that survives testing."
+  },
+  "residual_confidence": {
+    "check_id": "PROFILE-RESIDUAL",
+    "description": "Record bounded residual confidence without upgrading claim status."
+  },
+  "claim_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "profile_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "authority_snapshot_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "obligation_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "producer_id": "PUBLIC_CORE:falsification",
+  "claim_status_change_authorized": false,
+  "evidence_upgrade_authorized": false,
+  "graph_transition_authorized": false,
+  "publication_pass": false
+}

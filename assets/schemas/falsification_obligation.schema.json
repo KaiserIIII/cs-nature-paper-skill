@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "operation",
+    "status",
+    "required",
+    "claim_status_change_authorized",
+    "evidence_upgrade_authorized",
+    "graph_transition_authorized",
+    "publication_pass"
+  ],
+  "properties": {
+    "operation": {"const": "falsification-obligation"},
+    "status": {
+      "enum": [
+        "OBLIGATION_REQUIRED",
+        "NOT_REQUIRED",
+        "OBLIGATION_REJECTED"
+      ]
+    },
+    "required": {"type": "boolean"},
+    "claim_id": {"type": "string", "minLength": 1},
+    "confirmation_test": {
+      "type": "object",
+      "required": ["check_id", "description"],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "falsification_attempt": {
+      "type": "object",
+      "required": ["check_id", "description"],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "boundary_condition_test": {
+      "type": "object",
+      "required": ["check_id", "description"],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "strongest_surviving_alternative": {
+      "type": "object",
+      "required": ["check_id", "description"],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "residual_confidence": {
+      "type": "object",
+      "required": ["check_id", "description"],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "claim_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "profile_hash": {
+      "type": "string",
+      "pattern": "^(sha256:)?[0-9a-f]{64}$"
+    },
+    "authority_snapshot_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "obligation_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "producer_id": {"type": "string", "minLength": 1},
+    "claim_status_change_authorized": {"const": false},
+    "evidence_upgrade_authorized": {"const": false},
+    "graph_transition_authorized": {"const": false},
+    "publication_pass": {"const": false}
+  },
+  "oneOf": [
+    {
+      "required": [
+        "confirmation_test",
+        "falsification_attempt",
+        "boundary_condition_test",
+        "strongest_surviving_alternative",
+        "residual_confidence",
+        "claim_id",
+        "claim_hash",
+        "profile_hash",
+        "obligation_hash",
+        "producer_id"
+      ],
+      "properties": {
+        "status": {"const": "OBLIGATION_REQUIRED"},
+        "required": {"const": true}
+      }
+    },
+    {
+      "properties": {
+        "status": {"const": "NOT_REQUIRED"},
+        "required": {"const": false}
+      }
+    },
+    {
+      "properties": {
+        "status": {"const": "OBLIGATION_REJECTED"},
+        "required": {"const": false}
+      }
+    }
+  ],
+  "additionalProperties": true
+}

@@ -1,5 +1,7 @@
 import copy
+import hashlib
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -14,6 +16,23 @@ def load_module():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def load_checker():
+    spec = importlib.util.spec_from_file_location(
+        "review_synthesis_checker", ROOT / "scripts" / "review_synthesis_checker.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def rehash(artifact):
+    unsigned = {key: value for key, value in artifact.items() if key != "synthesis_hash"}
+    payload = json.dumps(
+        unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    artifact["synthesis_hash"] = "sha256:" + hashlib.sha256(payload).hexdigest()
 
 
 def reports():
@@ -68,6 +87,10 @@ class V41ReviewSynthesisTests(unittest.TestCase):
             artifact["source_report_hashes"],
             ["sha256:" + "1" * 64, "sha256:" + "2" * 64],
         )
+        self.assertEqual(
+            artifact["reviewer_producer_ids"],
+            ["reviewer:domain", "reviewer:methods"],
+        )
         self.assertTrue(artifact["synthesis_hash"].startswith("sha256:"))
 
     def test_same_producer_and_checker_is_rejected(self):
@@ -78,6 +101,86 @@ class V41ReviewSynthesisTests(unittest.TestCase):
             packet_check(),
             synthesis_provider_id="same:id",
             checker_id="same:id",
+        )
+        self.assertEqual(artifact["status"], "SYNTHESIS_REJECTED")
+
+    def test_empty_reviewer_set_is_rejected(self):
+        runtime = load_module()
+        artifact = runtime.produce_synthesis(
+            "packet-1",
+            [],
+            packet_check(report_hashes=[]),
+            synthesis_provider_id="synthesis:publication-review",
+            checker_id="checker:publication-review",
+        )
+        self.assertEqual(artifact["status"], "SYNTHESIS_REJECTED")
+
+    def test_public_entries_reject_non_list_reports_without_raising(self):
+        producer = load_module()
+        checker = load_checker()
+        valid_artifact = producer.produce_synthesis(
+            "packet-1",
+            reports(),
+            packet_check(),
+            synthesis_provider_id="synthesis:publication-review",
+            checker_id="checker:publication-review",
+        )
+        for malformed in (None, {}, "reports", 7):
+            with self.subTest(entry="producer", malformed=malformed):
+                produced = producer.produce_synthesis(
+                    "packet-1",
+                    malformed,
+                    packet_check(),
+                    synthesis_provider_id="synthesis:publication-review",
+                    checker_id="checker:publication-review",
+                )
+                self.assertEqual(produced["status"], "SYNTHESIS_REJECTED")
+            with self.subTest(entry="checker", malformed=malformed):
+                checked = checker.check_synthesis(
+                    valid_artifact,
+                    malformed,
+                    packet_check(),
+                    checker_id="checker:publication-review",
+                )
+                self.assertEqual(checked["status"], "SYNTHESIS_REJECTED")
+
+    def test_public_entries_reject_non_object_packet_checks_without_raising(self):
+        producer = load_module()
+        checker = load_checker()
+        valid_artifact = producer.produce_synthesis(
+            "packet-1",
+            reports(),
+            packet_check(),
+            synthesis_provider_id="synthesis:publication-review",
+            checker_id="checker:publication-review",
+        )
+        for malformed in (None, [], "packet-check", 7):
+            with self.subTest(entry="producer", malformed=malformed):
+                produced = producer.produce_synthesis(
+                    "packet-1",
+                    reports(),
+                    malformed,
+                    synthesis_provider_id="synthesis:publication-review",
+                    checker_id="checker:publication-review",
+                )
+                self.assertEqual(produced["status"], "SYNTHESIS_REJECTED")
+            with self.subTest(entry="checker", malformed=malformed):
+                checked = checker.check_synthesis(
+                    valid_artifact,
+                    reports(),
+                    malformed,
+                    checker_id="checker:publication-review",
+                )
+                self.assertEqual(checked["status"], "SYNTHESIS_REJECTED")
+
+    def test_synthesis_producer_cannot_be_a_reviewer(self):
+        runtime = load_module()
+        artifact = runtime.produce_synthesis(
+            "packet-1",
+            reports(),
+            packet_check(),
+            synthesis_provider_id="reviewer:methods",
+            checker_id="checker:publication-review",
         )
         self.assertEqual(artifact["status"], "SYNTHESIS_REJECTED")
 
@@ -157,6 +260,52 @@ class V41ReviewSynthesisTests(unittest.TestCase):
         self.assertEqual(result["status"], "SYNTHESIS_REJECTED")
         self.assertEqual(artifact, before)
 
+    def test_independent_checker_rejects_dropped_group_after_self_rehash(self):
+        producer = load_module()
+        checker = load_checker()
+        artifact = producer.produce_synthesis(
+            "packet-1",
+            reports(),
+            packet_check(),
+            synthesis_provider_id="synthesis:publication-review",
+            checker_id="checker:publication-review",
+        )
+        artifact["findings"] = artifact["findings"][:-1]
+        rehash(artifact)
+        before = copy.deepcopy(artifact)
+
+        result = checker.check_synthesis(
+            artifact,
+            reports(),
+            packet_check(),
+            checker_id="checker:publication-review",
+        )
+
+        self.assertEqual(result["status"], "SYNTHESIS_REJECTED")
+        self.assertTrue(any("finding" in item.lower() for item in result["findings"]))
+        self.assertEqual(artifact, before)
+
+    def test_independent_checker_cannot_be_a_reviewer(self):
+        producer = load_module()
+        checker = load_checker()
+        artifact = producer.produce_synthesis(
+            "packet-1",
+            reports(),
+            packet_check(),
+            synthesis_provider_id="synthesis:publication-review",
+            checker_id="reviewer:domain",
+        )
+
+        result = checker.check_synthesis(
+            artifact,
+            reports(),
+            packet_check(),
+            checker_id="reviewer:domain",
+        )
+
+        self.assertEqual(result["status"], "SYNTHESIS_REJECTED")
+        self.assertTrue(any("reviewer" in item.lower() for item in result["findings"]))
+
     def test_unavailable_isolation_is_conditional_not_accepted(self):
         runtime = load_module()
         artifact = runtime.produce_synthesis(
@@ -184,6 +333,7 @@ class V41ReviewSynthesisTests(unittest.TestCase):
         )
         self.assertIn("producer_id", schema["required"])
         self.assertIn("checker_id", schema["required"])
+        self.assertIn("reviewer_producer_ids", schema["required"])
         self.assertIn("source_report_hashes", schema["required"])
 
 

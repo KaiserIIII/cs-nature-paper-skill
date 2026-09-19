@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
+from copy import deepcopy
+from pathlib import Path
 from typing import Any
 
 
@@ -29,15 +32,27 @@ def _validate_inputs(
     packet_id: str, reports: list[dict[str, Any]], packet_check: dict[str, Any]
 ) -> list[str]:
     findings: list[str] = []
+    if not isinstance(reports, list) or not reports:
+        return ["reports must be a non-empty list"]
+    if not isinstance(packet_check, dict):
+        return ["packet check must be an object"]
     if packet_check.get("status") != "PASS":
         findings.append("packet check is not PASS")
     if packet_check.get("packet_id") != packet_id:
         findings.append("packet id mismatch")
+    if any(not isinstance(report, dict) for report in reports):
+        return ["every report must be an object"]
     report_hashes = [str(report.get("report_hash", "")) for report in reports]
     if len(set(report_hashes)) != len(report_hashes) or any(not item for item in report_hashes):
         findings.append("reports must have unique non-empty hashes")
-    if sorted(report_hashes) != sorted(str(item) for item in packet_check.get("report_hashes", [])):
+    packet_hashes = packet_check.get("report_hashes")
+    if not isinstance(packet_hashes, list) or sorted(report_hashes) != sorted(
+        str(item) for item in packet_hashes
+    ):
         findings.append("packet report hashes do not match reports")
+    reviewer_ids = [str(report.get("producer_id", "")) for report in reports]
+    if len(set(reviewer_ids)) != len(reviewer_ids) or any(not item for item in reviewer_ids):
+        findings.append("reviewers must have unique non-empty producer ids")
     for report in reports:
         if report.get("packet_id") != packet_id:
             findings.append("report packet mismatch")
@@ -60,11 +75,22 @@ def produce_synthesis(
     checker_id: str,
 ) -> dict[str, Any]:
     """Create a synthesis artifact; this is the only function that produces it."""
-    if synthesis_provider_id == checker_id:
-        return _reject("synthesis producer and checker must be distinct")
     findings = _validate_inputs(packet_id, reports, packet_check)
     if findings:
         return _reject(*findings)
+    reviewer_ids = {
+        str(report.get("producer_id", ""))
+        for report in reports
+        if isinstance(report, dict)
+    }
+    if not synthesis_provider_id or not checker_id:
+        return _reject("synthesis producer and checker ids must be non-empty")
+    if synthesis_provider_id == checker_id:
+        return _reject("synthesis producer and checker must be distinct")
+    if synthesis_provider_id in reviewer_ids:
+        return _reject("synthesis producer cannot be a reviewer")
+    if checker_id in reviewer_ids:
+        return _reject("synthesis checker cannot be a reviewer")
 
     groups: dict[str, dict[str, Any]] = {}
     for report in reports:
@@ -81,7 +107,7 @@ def produce_synthesis(
             )
             group["source_report_ids"].append(report["report_id"])
             group["source_report_hashes"].append(report["report_hash"])
-            group["source_findings"].append(source_finding)
+            group["source_findings"].append(deepcopy(source_finding))
     grouped = []
     for finding_id in sorted(groups):
         group = groups[finding_id]
@@ -95,6 +121,9 @@ def produce_synthesis(
         "packet_id": packet_id,
         "producer_id": synthesis_provider_id,
         "checker_id": checker_id,
+        "reviewer_producer_ids": sorted(
+            str(report["producer_id"]) for report in reports
+        ),
         "source_report_hashes": sorted(str(report["report_hash"]) for report in reports),
         "source_finding_ids": sorted(groups),
         "findings": grouped,
@@ -113,52 +142,16 @@ def check_synthesis(
     *,
     checker_id: str,
 ) -> dict[str, Any]:
-    """Validate an existing artifact without mutating or generating it."""
-    findings: list[str] = []
-    if not isinstance(artifact, dict):
-        return _reject("synthesis artifact must be an object")
-    if artifact.get("status") != "SYNTHESIS_PRODUCED":
-        findings.append("artifact was not produced by the synthesis provider")
-    if artifact.get("producer_id") == checker_id:
-        findings.append("checker cannot be the synthesis producer")
-    if artifact.get("checker_id") != checker_id:
-        findings.append("artifact checker id does not match checker invocation")
-    packet_id = str(artifact.get("packet_id", ""))
-    findings.extend(_validate_inputs(packet_id, reports, packet_check))
-    expected_report_hashes = sorted(str(report["report_hash"]) for report in reports)
-    if sorted(str(item) for item in artifact.get("source_report_hashes", [])) != expected_report_hashes:
-        findings.append("artifact source report hashes do not match reports")
-    expected_finding_ids = sorted(
-        str(source_finding["id"])
-        for report in reports
-        for source_finding in report.get("findings", [])
-        if isinstance(source_finding, dict) and source_finding.get("id")
+    """Compatibility entry that delegates to the independent checker module."""
+    path = Path(__file__).with_name("review_synthesis_checker.py")
+    spec = importlib.util.spec_from_file_location("review_synthesis_checker", path)
+    if spec is None or spec.loader is None:
+        return _reject("independent synthesis checker is unavailable")
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+    return checker.check_synthesis(
+        artifact,
+        reports,
+        packet_check,
+        checker_id=checker_id,
     )
-    expected_unique_ids = sorted(set(expected_finding_ids))
-    if sorted(str(item) for item in artifact.get("source_finding_ids", [])) != expected_unique_ids:
-        findings.append("artifact dropped or added a source finding")
-    if artifact.get("graph_transition_authorized") is not False:
-        findings.append("synthesis cannot authorize a graph transition")
-    if artifact.get("publication_pass") is not False:
-        findings.append("synthesis cannot mark publication PASS")
-    unsigned = dict(artifact)
-    unsigned.pop("synthesis_hash", None)
-    if artifact.get("synthesis_hash") != _hash(unsigned):
-        findings.append("synthesis hash mismatch")
-    if findings:
-        return _reject(*findings)
-    status = (
-        "SYNTHESIS_ACCEPTED"
-        if packet_check.get("isolation_status") == "AVAILABLE"
-        else "SYNTHESIS_CONDITIONAL"
-    )
-    return {
-        "status": status,
-        "checker_id": checker_id,
-        "artifact_hash": artifact["synthesis_hash"],
-        "source_report_hashes": expected_report_hashes,
-        "source_finding_ids": expected_unique_ids,
-        "findings": [],
-        "graph_transition_authorized": False,
-        "publication_pass": False,
-    }

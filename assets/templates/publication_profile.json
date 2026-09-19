@@ -1,0 +1,22 @@
+{
+  "profile_id": "project:publication-profile",
+  "layer": "design",
+  "version": "1.0.0",
+  "status": "PROFILE_ACTIVE",
+  "source_hash": "32e286325118882edebfead99dfbef42d44509b71535418ba689c832570b18c1",
+  "source_payload": {
+    "required": [],
+    "recommended": [],
+    "not_applicable": [],
+    "overrides": []
+  },
+  "provenance": {
+    "source_id": "project:publication-profile",
+    "source_hash": "32e286325118882edebfead99dfbef42d44509b71535418ba689c832570b18c1",
+    "profile_version": "1.0.0"
+  },
+  "required": [],
+  "recommended": [],
+  "not_applicable": [],
+  "overrides": []
+}

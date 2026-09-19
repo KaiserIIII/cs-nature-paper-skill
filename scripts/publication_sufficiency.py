@@ -5,6 +5,9 @@ from __future__ import annotations
 
 import json
 import re
+import hashlib
+import importlib.util
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +40,153 @@ def _integer(profile: dict[str, Any], key: str) -> int:
         return max(0, int(profile.get(key, 0)))
     except (TypeError, ValueError):
         return 0
+
+
+def _canonical_hash(value: Any) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _profile_conflict(code: str, **details: Any) -> dict[str, Any]:
+    return {"status": "PROFILE_CONFLICT", "conflicts": [{"code": code, **details}]}
+
+
+def _publication_profile_runtime():
+    path = Path(__file__).with_name("publication_profiles.py")
+    spec = importlib.util.spec_from_file_location("publication_profiles_replay", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("publication profile resolver is unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _release_trust_runtime():
+    path = Path(__file__).with_name("release_trust.py")
+    spec = importlib.util.spec_from_file_location("publication_release_trust", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("release trust verifier is unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _trusted_profile_signatures(runtime: Any) -> set[str]:
+    trust = _release_trust_runtime()
+    registry = trust.load_trusted_json(
+        "assets/registry/publication_profiles.json"
+    )
+    if not isinstance(registry, dict):
+        raise ValueError("trusted publication profile registry is unavailable")
+    profiles = registry.get("profiles", [])
+    if not isinstance(profiles, list):
+        raise ValueError("trusted publication profile registry is invalid")
+    return {
+        runtime.canonical_hash(runtime._normalize_profile(profile))
+        for profile in profiles
+        if isinstance(profile, dict) and profile.get("status") == "PROFILE_ACTIVE"
+    }
+
+
+def _applied_profile_records(
+    runtime: Any,
+    request: dict[str, Any],
+    profiles: list[dict[str, Any]],
+    applied_profile_ids: list[str],
+) -> list[dict[str, Any]]:
+    remaining = Counter(str(item) for item in applied_profile_ids)
+    applied = []
+    for profile in profiles:
+        if not isinstance(profile, dict):
+            continue
+        profile_id = str(profile.get("profile_id", ""))
+        scope = profile.get("scope")
+        if remaining[profile_id] <= 0:
+            continue
+        if scope is not None and not runtime._scope_matches(scope, request):
+            continue
+        applied.append(profile)
+        remaining[profile_id] -= 1
+    if any(remaining.values()):
+        raise ValueError("applied profile provenance is incomplete")
+    return applied
+
+
+def _replay_publication_profile(artifact: dict[str, Any]) -> dict[str, Any] | None:
+    canonical_input = artifact.get("canonical_input")
+    if not isinstance(canonical_input, dict):
+        return _profile_conflict("UNREPLAYABLE_PROFILE_PROVENANCE")
+    request = canonical_input.get("request")
+    replay_profiles = canonical_input.get("profiles")
+    if not isinstance(request, dict) or not isinstance(replay_profiles, list):
+        return _profile_conflict("UNREPLAYABLE_PROFILE_PROVENANCE")
+    try:
+        runtime = _publication_profile_runtime()
+        expected_input_hash = runtime.canonical_hash(canonical_input)
+        if artifact.get("canonical_input_hash") != expected_input_hash:
+            return _profile_conflict("STALE_PROFILE_INPUT_HASH")
+        trusted = _trusted_profile_signatures(runtime)
+    except (OSError, ValueError, RuntimeError, json.JSONDecodeError):
+        return _profile_conflict("TRUSTED_FALLBACK_UNAVAILABLE")
+    replayed = runtime.resolve_profile(request, replay_profiles)
+    if replayed.get("status") != "PROFILE_RESOLVED":
+        return _profile_conflict(
+            "PROFILE_REPLAY_CONFLICT", replay_conflicts=replayed.get("conflicts", [])
+        )
+    try:
+        applied = _applied_profile_records(
+            runtime,
+            request,
+            replay_profiles,
+            replayed.get("applied_profile_ids", []),
+        )
+    except ValueError:
+        return _profile_conflict("UNREPLAYABLE_PROFILE_PROVENANCE")
+    untrusted = [
+        profile
+        for profile in applied
+        if runtime.canonical_hash(runtime._normalize_profile(profile)) not in trusted
+    ]
+    if untrusted:
+        profile_ids = sorted(str(profile.get("profile_id", "")) for profile in untrusted)
+        if any(profile.get("layer") == "fallback" for profile in untrusted):
+            return _profile_conflict("UNTRUSTED_FALLBACK", profile_ids=profile_ids)
+        return _profile_conflict("UNTRUSTED_APPLIED_PROFILE", profile_ids=profile_ids)
+    if replayed != artifact:
+        return _profile_conflict("PROFILE_REPLAY_MISMATCH")
+    return None
+
+
+def _apply_publication_profile(checks: dict[str, Any], artifact: Any) -> dict[str, Any]:
+    if artifact is None:
+        return {"status": "FALLBACK_DEFAULTS", "source": "fixed V4 dimensions"}
+    if not isinstance(artifact, dict) or artifact.get("status") != "PROFILE_RESOLVED":
+        return {"status": "PROFILE_CONFLICT", "conflicts": artifact.get("conflicts", []) if isinstance(artifact, dict) else [{"code": "INVALID_PROFILE"}]}
+    stored_hash = artifact.get("canonical_output_hash")
+    body = {key: value for key, value in artifact.items() if key != "canonical_output_hash"}
+    normalized_hash = stored_hash.removeprefix("sha256:") if isinstance(stored_hash, str) else ""
+    if not normalized_hash or normalized_hash != _canonical_hash(body):
+        return {"status": "PROFILE_CONFLICT", "conflicts": [{"code": "STALE_PROFILE_HASH"}]}
+    replay_conflict = _replay_publication_profile(artifact)
+    if replay_conflict is not None:
+        return replay_conflict
+    if any(not isinstance(artifact.get(name, []), list) for name in ("required", "recommended", "not_applicable")):
+        return {"status": "PROFILE_CONFLICT", "conflicts": [{"code": "INVALID_PROFILE_CATEGORY"}]}
+    categories = {name: set(artifact.get(name, [])) for name in ("required", "recommended", "not_applicable")}
+    overlap = (categories["required"] & categories["recommended"]) | (categories["required"] & categories["not_applicable"]) | (categories["recommended"] & categories["not_applicable"])
+    if overlap:
+        return {"status": "PROFILE_CONFLICT", "conflicts": [{"code": "CROSS_CATEGORY_ASSIGNMENT", "dimensions": sorted(overlap)}]}
+    justifications = artifact.get("na_justifications", {})
+    invalid_na = sorted(item for item in categories["not_applicable"] if not isinstance(justifications, dict) or not str(justifications.get(item, "")).strip())
+    if invalid_na:
+        return {"status": "PROFILE_CONFLICT", "conflicts": [{"code": "UNJUSTIFIED_NOT_APPLICABLE", "dimensions": invalid_na}]}
+    for dimension in categories["not_applicable"]:
+        if dimension in checks:
+            checks[dimension] = {"status": "NOT_APPLICABLE", "justification": justifications[dimension]}
+    unsupported = sorted(categories["required"] - set(checks))
+    for dimension in unsupported:
+        checks[dimension] = {"status": "FAIL", "observed": "UNASSESSED", "minimum": "profile-defined requirement"}
+    return {"status": "PROFILE_RESOLVED", "canonical_output_hash": stored_hash, "required": sorted(categories["required"]), "recommended": sorted(categories["recommended"]), "not_applicable": sorted(categories["not_applicable"])}
 
 
 def research_depth_profile(profile: dict[str, Any]) -> dict[str, Any]:
@@ -82,7 +232,11 @@ def research_depth_profile(profile: dict[str, Any]) -> dict[str, Any]:
             "minimum": 10,
         },
     }
-    failed = [key for key, value in checks.items() if value["status"] != "PASS"]
+    resolution = _apply_publication_profile(checks, profile.get("publication_profile"))
+    active_required = set(DEPTH_DIMENSIONS) if resolution["status"] == "FALLBACK_DEFAULTS" else set(resolution.get("required", []))
+    failed = [key for key, value in checks.items() if key in active_required and value["status"] != "PASS"]
+    if resolution["status"] == "PROFILE_CONFLICT":
+        failed = sorted(set(failed) | {"publication_profile"})
     return {
         "operation": "research-depth-profile",
         "status": "PASS" if not failed else "FAIL",
@@ -90,6 +244,7 @@ def research_depth_profile(profile: dict[str, Any]) -> dict[str, Any]:
         "breadth_dimensions": list(DEPTH_DIMENSIONS),
         "dimensions": checks,
         "failed_dimensions": failed,
+        "profile_resolution": resolution,
         "formal_run_count": _integer(profile, "formal_run_count"),
         "note": "formal repetition count is reproducibility evidence, not a breadth dimension",
     }
@@ -97,6 +252,7 @@ def research_depth_profile(profile: dict[str, Any]) -> dict[str, Any]:
 
 def _publication_findings(depth: dict[str, Any]) -> list[dict[str, str]]:
     mapping = {
+        "publication_profile": ("PUBLICATION_PROFILE_CONFLICT", "Resolve the publication-profile conflict or stale hash before reassessing sufficiency."),
         "dataset_coverage": ("DATASET_COVERAGE_INSUFFICIENT", "Add a distinct non-toy dataset and test cross-dataset scope."),
         "model_coverage": ("MODEL_COVERAGE_INSUFFICIENT", "Test at least one materially different model family or architecture."),
         "modern_baselines": ("MODERN_BASELINES_INCOMPLETE", "Compare against at least three current, mechanism-relevant baselines."),
@@ -106,14 +262,16 @@ def _publication_findings(depth: dict[str, Any]) -> list[dict[str, str]]:
         "related_work": ("RELATED_WORK_THIN", "Expand Related Work around seminal, closest, contradictory, and current methods."),
         "manuscript_depth": ("MANUSCRIPT_TOO_THIN", "Expand scientific content after the missing research is complete."),
     }
-    return [
-        {"id": mapping[key][0], "dimension": key, "action": mapping[key][1]}
-        for key in depth["failed_dimensions"]
-    ]
+    findings = []
+    for key in depth["failed_dimensions"]:
+        finding_id, action = mapping.get(key, (f"PROFILE_DIMENSION_INSUFFICIENT:{key}", f"Satisfy the resolved publication-profile requirement '{key}' with checked evidence."))
+        findings.append({"id": finding_id, "dimension": key, "action": action})
+    return findings
 
 
 def research_expansion_plan(depth: dict[str, Any]) -> list[dict[str, str]]:
     priority = {
+        "publication_profile": "CRITICAL",
         "dataset_coverage": "CRITICAL",
         "modern_baselines": "CRITICAL",
         "mechanism_tests": "CRITICAL",
@@ -124,7 +282,7 @@ def research_expansion_plan(depth: dict[str, Any]) -> list[dict[str, str]]:
         "manuscript_depth": "AFTER_RESEARCH",
     }
     return [
-        {"finding_id": item["id"], "dimension": item["dimension"], "priority": priority[item["dimension"]], "action": item["action"]}
+        {"finding_id": item["id"], "dimension": item["dimension"], "priority": priority.get(item["dimension"], "MAJOR"), "action": item["action"]}
         for item in _publication_findings(depth)
     ]
 
@@ -160,6 +318,7 @@ def assess(profile: dict[str, Any]) -> dict[str, Any]:
         },
         "submission_readiness": {"status": "PASS" if all_pass else "FAIL"},
         "research_depth_profile": depth,
+        "profile_resolution": depth["profile_resolution"],
         "research_expansion_plan": research_expansion_plan(depth),
         "disposition": "READY_FOR_SUBMISSION" if all_pass else "EXPAND_RESEARCH",
     }

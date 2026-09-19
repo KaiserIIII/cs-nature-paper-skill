@@ -1,7 +1,7 @@
 # V4.1 Specialist Integration Design
 
 **Date:** 2026-09-19  
-**Status:** Final expansion audit complete; Phase-1 contracts implemented; adapters pending
+**Status:** Final expansion audit complete; Phase-1 and profile/falsification contracts implemented; adapters pending
 **Baseline:** V4.0.0 at `b71b892b5277c0d2cd7dbdf7cd7c4da732c03796`  
 **Branch:** `feat/v4.1-specialist-integration`
 
@@ -255,10 +255,16 @@ router. Every candidate provider record contains:
 - local file hashes and license/notice decision;
 - permissions, network, credentials, subprocess, and write scope;
 - output contract and required checker;
-  - independent `qualification_status`, `comparison_decision`, and derived
-  `eligibility` fields;
+- a validation-bundle identity, fallback provider, and discovery-only policy;
 - behavior-trial and checker references;
 - rollback/fallback provider.
+
+The trusted registry contains immutable provider metadata only. It does not
+accept authored `qualification_status`, `comparison_decision`, utility/security
+status, or `eligibility`. Those values are derived from source-bound validation
+artifacts and a distinct checker artifact; only the fixed-path, trust-root-loaded
+result can influence formal routing. Calling the pure derivation function does
+not grant routing authority.
 
 The three states are intentionally independent:
 
@@ -344,6 +350,11 @@ count, fabricated disagreement, or acceptance prediction is allowed. If
 isolation is unavailable, synthesis may still be generated for advisory use,
 but it is explicitly `SYNTHESIS_CONDITIONAL` and cannot satisfy the formal
 independence requirement.
+The producer and checker are implemented in separate modules. The checker
+independently reconstructs the complete canonical grouping from frozen reports,
+including source finding payloads, so deleting findings and recomputing the
+candidate's self-hash is rejected. Reviewer producer IDs, the synthesis producer,
+and the synthesis checker must be mutually disjoint.
 
 ### 5. Nature Figure workflow
 
@@ -437,6 +448,20 @@ counterexample and proof-dependency audits for theory; and measurement,
 alternative-explanation, subgroup, or sensitivity analysis for human studies.
 The obligation is a V4-native graph/evidence requirement, not a POPPER runtime
 or a universal demand for experimental falsification.
+The formal project checker loads claim/profile inputs inside the V4 project
+control-plane boundary, binds the selected state files to an authority snapshot,
+and re-derives the expected obligation. The public low-level checker never
+accepts caller-named trusted dictionaries or caller-constructed context.
+Missing control-plane context, stale state, a registry digest mismatch against
+`SHA256SUMS.txt`, a release-trust mismatch, or artifact rebinding is rejected.
+`assets/trust/v41_release_trust.json` binds the publication profile registry,
+the provider registry, and the provider qualification bundle. Its canonical
+digest is pinned in `scripts/release_trust.py`; callers cannot select another
+root or path. The release validator also enforces conservative RC constraints.
+This closes the registry-plus-manifest joint-rewrite attack: changing both files
+still disagrees with the pinned release trust record. An attacker able to replace
+the verifier code and its reviewed anchor is outside this local trust boundary;
+no claim of resistance to arbitrary repository-code compromise is made.
 
 ## Duplicate Skill routing
 
