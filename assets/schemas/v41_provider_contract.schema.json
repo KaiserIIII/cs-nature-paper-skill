@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cs-nature-paper/v41_provider_contract.schema.json",
+  "type": "object",
+  "required": [
+    "provider_id",
+    "capabilities",
+    "exact_commit",
+    "source_hash",
+    "license_decision",
+    "qualification_status",
+    "comparison_decision",
+    "utility_status",
+    "security_status"
+  ],
+  "properties": {
+    "provider_id": {"type": "string", "minLength": 1},
+    "type": {"type": "string"},
+    "capabilities": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "exact_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "source_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "license_decision": {"type": "string", "minLength": 1},
+    "qualification_status": {"enum": ["UNAUDITED", "AUDITED", "PROVISIONAL", "QUALIFIED", "REJECTED"]},
+    "comparison_decision": {"enum": ["NOT_RUN", "INTERNAL_BETTER", "EXTERNAL_BETTER", "COMPLEMENTARY", "EQUIVALENT", "INCONCLUSIVE"]},
+    "eligibility": {"enum": ["DISCOVERY_ONLY", "ADVISORY_ONLY", "NON_LOAD_BEARING", "FORMAL_ELIGIBLE", "DISABLED"]},
+    "utility_status": {"enum": ["PASS", "FAIL", "NOT_RUN"]},
+    "security_status": {"enum": ["PASS", "FAIL", "NOT_RUN"]},
+    "behavior_trial": {"type": "object"},
+    "checker_id": {"type": "string"}
+  },
+  "additionalProperties": true
+}

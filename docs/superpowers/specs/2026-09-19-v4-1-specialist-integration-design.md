@@ -1,7 +1,7 @@
 # V4.1 Specialist Integration Design
 
 **Date:** 2026-09-19  
-**Status:** Final expansion audit complete; implementation pending
+**Status:** Final expansion audit complete; Phase-1 contracts implemented; adapters pending
 **Baseline:** V4.0.0 at `b71b892b5277c0d2cd7dbdf7cd7c4da732c03796`  
 **Branch:** `feat/v4.1-specialist-integration`
 
