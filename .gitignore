@@ -19,5 +19,7 @@ Thumbs.db
 .generic-host-competition-e2e.json
 .director-orchestration-e2e.json
 .full-paper-e2e.json
+.v41-public-core-e2e.json
+.v41-private-ultra-e2e.json
 resolved_release_manifest.json
 benchmarks/smoke-run-result.json

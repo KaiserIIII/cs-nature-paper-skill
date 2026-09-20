@@ -101,6 +101,12 @@ class V41ReleaseSchemaValidationTests(unittest.TestCase):
         self.assertIn("assets/templates/publication_profile.json", paths)
         self.assertIn("assets/templates/falsification_obligation.json", paths)
 
+    def test_v41_runtime_e2e_outputs_are_not_release_controlled_sources(self):
+        for name in (".v41-public-core-e2e.json", ".v41-private-ultra-e2e.json"):
+            with self.subTest(name=name):
+                self.assertIn(name, build_manifest.EXCLUDED_FILES)
+                self.assertFalse(build_manifest.is_release_controlled(ROOT / name))
+
     def test_explicit_schema_candidate_cannot_be_silently_skipped(self):
         schema = load_json(
             ROOT / "assets" / "schemas" / "publication_profile.schema.json"
