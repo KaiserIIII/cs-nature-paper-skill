@@ -3,16 +3,16 @@
   "trust_root_id": "v4.1-release-root-2026-09-19",
   "release_line": "4.1",
   "trusted_files": {
-    "assets/registry/publication_profiles.json": "sha256:06705fb3c39fffe0280c5b0006dc1ae87cf962ebbe2ce6e2dcc80d3f7c33181c",
+    "assets/registry/publication_profiles.json": "sha256:0bbba241aed62957e8f7e9f2c54c8da62906a40b3ec463481d466444f2b9a8d5",
     "assets/registry/v41_provider_qualification.json": "sha256:cd990122ad129ba838adc227a8f1e64aa7469e260b0fd445db89dbba65245edd",
-    "assets/registry/v41_provider_registry.json": "sha256:9f778b894c04a88cecea8ef8cb97acde0fc4b5b01f3e1757bddd0ef94ca58492"
+    "assets/registry/v41_provider_registry.json": "sha256:e20d53e6412e8dc64f5c0dddc934a22ef922c8b495f64ec57518695d85aaf6b5"
   },
   "release_constraints": {
     "release_status": [
-      "RC_NOT_RELEASED"
+      "RELEASED"
     ],
     "recommended_merge": [
-      "NO"
+      "YES"
     ],
     "model_behavior_eval": [
       "NOT_RUN",

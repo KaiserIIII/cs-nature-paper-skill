@@ -242,6 +242,33 @@ class V41ProviderContractTests(unittest.TestCase):
         self.assertEqual(result["route"], "FALLBACK_BUILT_IN")
         self.assertNotEqual(result.get("candidate_eligibility"), "FORMAL_ELIGIBLE")
 
+    def test_shipped_paperspine_routes_for_advisory_use_only(self):
+        runtime = load_module()
+        result = runtime.resolve_provider(
+            "paperspine:contribution",
+            public_core(),
+            formal=False,
+            capability="publication-argument",
+        )
+        self.assertEqual(result["route"], "EXTERNAL_PROVIDER_ADVISORY", result)
+        self.assertEqual(result["eligibility"], "ADVISORY_ONLY")
+        self.assertEqual(
+            result["provider"]["entrypoint"],
+            "v41_provider_adapters:paperspine_contribution",
+        )
+
+    def test_shipped_paperspine_still_falls_back_for_formal_use(self):
+        runtime = load_module()
+        result = runtime.resolve_provider(
+            "paperspine:contribution",
+            public_core(),
+            formal=True,
+            capability="publication-argument",
+        )
+        self.assertEqual(result["route"], "FALLBACK_BUILT_IN")
+        self.assertEqual(result["reason"], "FORMAL_EVIDENCE_INCOMPLETE")
+        self.assertNotEqual(result.get("candidate_eligibility"), "FORMAL_ELIGIBLE")
+
     def test_unqualified_candidate_falls_back_to_public_core(self):
         runtime = load_module()
         result = runtime.resolve_provider(
@@ -289,7 +316,18 @@ class V41ProviderContractTests(unittest.TestCase):
                 "capabilities",
                 "exact_commit",
                 "source_hash",
+                "source_id",
                 "license_decision",
+                "license_path",
+                "local_resource_manifest",
+                "entrypoint",
+                "modes",
+                "execution_class",
+                "input_contract",
+                "output_contract",
+                "permissions",
+                "network",
+                "credentials_required",
                 "validation_bundle_id",
                 "fallback_provider_id",
                 "discovery_only",

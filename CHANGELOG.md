@@ -1,5 +1,27 @@
 # Changelog
 
+## 4.1.0 - 2026-09-20
+
+### Added
+
+- Added six source-hash-bound, offline advisory providers: PaperSpine contribution,
+  results validation, target exemplar, and publication production, plus Nature
+  Figure and Nature Reviewer.
+- Added selected upstream resources pinned to exact MIT and Apache-2.0 commits,
+  local adapters, typed invocation contracts, installation integrity checks,
+  and PUBLIC_CORE/PRIVATE_ULTRA end-to-end execution receipts.
+- Added a real PaperSpine publication-cycle bridge that can validate target
+  profiles and produce immutable upload bundles, ZIP archives, SHA-256 receipts,
+  rebuttal artifacts, and journal-transfer plans without submitting externally.
+
+### Changed
+
+- Promoted V4.1.0 to the primary software release while keeping external-provider
+  scientific qualification independent and fail-closed. No selected provider is
+  labeled `QUALIFIED`, `EXTERNAL_BETTER`, or `FORMAL_ELIGIBLE`.
+- Updated active runtime, schemas, templates, provider metadata, and user-facing
+  Skill metadata from 4.0.0 to 4.1.0.
+
 ## 4.0.0 - 2026-09-07
 
 ### Added

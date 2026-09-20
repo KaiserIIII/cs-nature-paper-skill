@@ -9,9 +9,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 REGISTRY_VERSION = "3.1.1"
-HOTFIX_VERSION = "4.0.0"
+HOTFIX_VERSION = "4.1.0"
 FLOATING_REFS = {"", "head", "latest", "main", "master", "trunk"}
 ACTIVE = {"APPROVED", "SPECIALIST", "PROVISIONAL"}
 COST_ORDER = {"low": 0, "medium": 1, "high": 2, "unknown": 3}

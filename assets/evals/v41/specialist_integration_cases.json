@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "suite_id": "v41-selected-specialist-runtime-e2e",
+  "mode": "PUBLIC_CORE",
+  "cases": [
+    {"id": "paperspine-contribution-real-check", "provider_id": "paperspine:contribution", "assertion": {"path": "result.ok", "equals": true}},
+    {"id": "paperspine-results-real-check", "provider_id": "paperspine:results-validation", "assertion": {"path": "result.mapped_rows", "equals": 1}},
+    {"id": "paperspine-exemplar-real-check", "provider_id": "paperspine:target-exemplar", "assertion": {"path": "result.verified_count", "equals": 1}},
+    {"id": "paperspine-publication-real-check", "provider_id": "paperspine:publication-production", "assertion": {"path": "result.outcome", "equals": "BUNDLE_READY"}},
+    {"id": "nature-figure-real-check", "provider_id": "nature:figure", "assertion": {"path": "result.scientific_truth_validated", "equals": false}},
+    {"id": "nature-reviewer-real-check", "provider_id": "nature:reviewer", "assertion": {"path": "result.review_basis", "equals": "LOCAL_MANUSCRIPT"}}
+  ]
+}

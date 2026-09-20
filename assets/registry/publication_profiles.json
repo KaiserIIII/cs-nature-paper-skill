@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "skill_version": "4.0.0",
+  "skill_version": "4.1.0",
   "merge_order": ["fallback", "domain", "study_type", "claim_type", "venue", "article_type", "design"],
   "profiles": [
     {

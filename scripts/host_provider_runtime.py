@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 STATES = {
     "REQUEST_CREATED",
     "HOST_EXECUTION_REQUIRED",

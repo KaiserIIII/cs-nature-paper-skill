@@ -395,6 +395,23 @@ def resolve_provider(
     state = authority.state
     if capability is not None and capability not in record.get("capabilities", []):
         reason = "CAPABILITY_MISMATCH"
+    elif not formal and record.get("execution_class") == "ADVISORY_ONLY":
+        try:
+            adapters = _runtime("v41_provider_adapters_runtime", "v41_provider_adapters.py")
+            installation = adapters.audit_installation()
+            provider_installation = installation.get("providers", {}).get(provider_id, {})
+        except (OSError, ImportError, AttributeError, RuntimeError, TypeError, ValueError):
+            provider_installation = {"integrity": "FAIL", "findings": ["adapter runtime unavailable"]}
+        if provider_installation.get("integrity") == "PASS":
+            return {
+                "route": "EXTERNAL_PROVIDER_ADVISORY",
+                "provider": record,
+                "eligibility": "ADVISORY_ONLY",
+                "qualification": state,
+                "entrypoint": record.get("entrypoint"),
+                "truth_authority": "V4_CONTROL_PLANE",
+            }
+        reason = "ADVISORY_RUNTIME_UNAVAILABLE"
     elif state.get("eligibility") != "FORMAL_ELIGIBLE":
         reason = "FORMAL_EVIDENCE_INCOMPLETE"
     else:
@@ -421,3 +438,42 @@ def resolve_provider(
         "reason": reason,
         "truth_authority": "V4_CONTROL_PLANE",
     }
+
+
+def invoke_advisory_provider(
+    provider_id: str,
+    request: dict[str, Any],
+    public_core: dict[str, Any],
+    *,
+    capability: str,
+    mode: str = "PUBLIC_CORE",
+) -> dict[str, Any]:
+    """Resolve through the trust root, then execute the bounded local adapter."""
+    route = resolve_provider(
+        provider_id,
+        public_core,
+        formal=False,
+        capability=capability,
+    )
+    if route.get("route") != "EXTERNAL_PROVIDER_ADVISORY":
+        return {
+            "operation": "invoke-v41-advisory-provider",
+            "status": "BLOCKED",
+            "provider_id": provider_id,
+            "reason": route.get("reason", "ADVISORY_ROUTE_UNAVAILABLE"),
+            "route": route,
+            "formal_eligible": False,
+            "truth_authority": "V4_CONTROL_PLANE",
+        }
+    try:
+        adapters = _runtime("v41_provider_adapters_invocation", "v41_provider_adapters.py")
+        return adapters.invoke_provider(provider_id, request, mode=mode, formal=False)
+    except (OSError, ImportError, AttributeError, RuntimeError, TypeError, ValueError) as error:
+        return {
+            "operation": "invoke-v41-advisory-provider",
+            "status": "FAIL",
+            "provider_id": provider_id,
+            "reason": f"adapter invocation failed: {error}",
+            "formal_eligible": False,
+            "truth_authority": "V4_CONTROL_PLANE",
+        }

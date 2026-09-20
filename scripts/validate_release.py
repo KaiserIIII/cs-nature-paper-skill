@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 LEGACY_SKILL_VERSION = "3.1.1"
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_CI_MATRIX = (
@@ -451,6 +451,7 @@ def validate_release_manifest_value(
         "source_version", "base_commit", "source_commit", "source_commit_mode",
         "source_branch", "generated_at", "release_status", "deterministic_tests",
         "hosted_ci", "model_behavior_eval", "benchmark_suite",
+        "software_release", "formal_provider_qualification",
         "tta_field_regression", "e2e_status", "known_limitations",
         "recommended_merge", "release_disposition",
     )
@@ -469,15 +470,21 @@ def validate_release_manifest_value(
         hosted = value.get("hosted_ci")
         if not isinstance(hosted, dict) or any(hosted.get(field) is not None for field in ("run_id", "workflow", "branch", "head_sha", "conclusion")) or hosted.get("matrix") != {}:
             findings.append("STALE_RELEASE_MANIFEST: unresolved repository manifest must not contain Hosted CI success evidence")
-        if value.get("source_branch") not in {"feat/v4-vendored-research-team", "main"}:
+        if value.get("source_branch") != "main":
             findings.append("SOURCE_BRANCH_INVALID: unresolved V4 manifest has an unexpected branch")
-        if value.get("release_status") != "RC_NOT_RELEASED" or value.get("tag") is not None:
-            findings.append("RELEASE_STATUS_INVALID: unresolved V4 manifest must be an untagged RC")
+        if value.get("release_status") != "RELEASED" or value.get("tag") != "v4.1.0":
+            findings.append("RELEASE_STATUS_INVALID: V4.1 software release intent must bind tag v4.1.0")
         benchmark = value.get("benchmark_suite")
         if not isinstance(benchmark, dict) or benchmark.get("recommended_merge") != "NO":
-            findings.append("BENCHMARK_GATE_INVALID: incomplete V4 benchmark must recommend NO")
-        if value.get("recommended_merge") != "NO" or "V4.0.0 RC FAIL" not in str(value.get("release_disposition", "")):
-            findings.append("RELEASE_DISPOSITION_INVALID: unresolved V4 manifest must fail closed")
+            findings.append("BENCHMARK_GATE_INVALID: formal provider benchmark must remain fail closed")
+        software = value.get("software_release")
+        formal = value.get("formal_provider_qualification")
+        if not isinstance(software, dict) or software.get("status") != "RELEASED" or software.get("formal_scientific_qualification_claimed") is not False:
+            findings.append("SOFTWARE_RELEASE_SCOPE_INVALID")
+        if not isinstance(formal, dict) or formal.get("status") != "BLOCKED" or formal.get("eligibility") != "ADVISORY_ONLY":
+            findings.append("FORMAL_PROVIDER_QUALIFICATION_INVALID")
+        if value.get("recommended_merge") != "YES" or value.get("release_disposition") != "V4.1.0 SOFTWARE RELEASE READY":
+            findings.append("RELEASE_DISPOSITION_INVALID: V4.1 software release must be independently scoped from formal qualification")
         if require_hosted_ci:
             findings.append("HOSTED_CI_NOT_RUN: unresolved V4 manifest has no exact-SHA CI evidence")
         return findings
@@ -492,8 +499,8 @@ def validate_release_manifest_value(
     if generated is not None and commit_time is not None and generated < commit_time:
         findings.append("STALE_RELEASE_MANIFEST: generated_at predates source commit")
     tag = value.get("tag")
-    if tag not in {None, "v4.0.0"}:
-        findings.append("TAG_INCONSISTENT: release tag must be absent or v4.0.0")
+    if tag != "v4.1.0" or value.get("release_status") != "RELEASED":
+        findings.append("TAG_INCONSISTENT: released V4.1 software must use tag v4.1.0")
     hosted = value.get("hosted_ci")
     if not isinstance(hosted, dict):
         findings.append("HOSTED_CI_NOT_RUN: hosted_ci must be an object")
@@ -502,7 +509,7 @@ def validate_release_manifest_value(
         findings.append(f"HOSTED_CI_WRONG_SHA: expected {source_commit}, got {hosted.get('head_sha')}")
     branch = hosted.get("branch")
     allowed_branch = expected_branch or value.get("source_branch")
-    if branch != allowed_branch or branch not in {"feat/v4-vendored-research-team", "main"}:
+    if branch != allowed_branch or branch != "main":
         findings.append(f"HOSTED_CI_WRONG_BRANCH: expected {allowed_branch}, got {branch}")
     if hosted.get("workflow") != expected_workflow:
         findings.append(f"HOSTED_CI_WRONG_WORKFLOW: expected {expected_workflow}, got {hosted.get('workflow')}")
@@ -515,18 +522,14 @@ def validate_release_manifest_value(
     if missing or (isinstance(matrix, dict) and set(matrix) != set(REQUIRED_CI_MATRIX)):
         findings.append("HOSTED_CI_MATRIX_INCOMPLETE: " + ", ".join(missing or sorted(set(matrix) ^ set(REQUIRED_CI_MATRIX))))
     benchmark = value.get("benchmark_suite", {})
-    research_gate_findings: list[str] = []
-    if value.get("model_behavior_eval") != "PASS" or not isinstance(benchmark, dict) or benchmark.get("status") != "PASS" or benchmark.get("multi_system_parity_gate") != "PASS" or benchmark.get("v4_superiority_gate") != "PASS":
-        research_gate_findings.append("MODEL_BEHAVIOR_GATE_INCOMPLETE: all multi-system behavior gates must pass")
-    tta = value.get("tta_field_regression", {})
-    if not isinstance(tta, dict) or tta.get("formal_campaign") != "COMPLETED" or tta.get("publication_sufficiency") != "PASS" or tta.get("reviewer_completeness") != "PASS":
-        research_gate_findings.append("TTA_FIELD_GATE_INCOMPLETE: formal expansion and publication gates must pass")
-    ready_disposition = "V4.0.0 RELEASE READY"
-    if research_gate_findings:
-        if value.get("recommended_merge") != "NO" or "V4.0.0 RC FAIL" not in str(value.get("release_disposition", "")):
-            findings.append("RELEASE_DISPOSITION_INVALID: incomplete research gates must fail closed")
-    elif require_hosted_ci and (value.get("release_disposition") != ready_disposition or value.get("recommended_merge") != "YES"):
-        findings.append("RELEASE_DISPOSITION_INVALID: complete exact-SHA manifest must be RELEASE READY")
+    formal = value.get("formal_provider_qualification")
+    if not isinstance(benchmark, dict) or benchmark.get("recommended_merge") != "NO":
+        findings.append("BENCHMARK_GATE_INVALID: formal provider benchmark must remain fail closed")
+    if not isinstance(formal, dict) or formal.get("status") != "BLOCKED" or formal.get("qualification_status") != "UNAUDITED" or formal.get("comparison_decision") != "NOT_RUN" or formal.get("eligibility") != "ADVISORY_ONLY":
+        findings.append("FORMAL_PROVIDER_QUALIFICATION_INVALID")
+    ready_disposition = "V4.1.0 SOFTWARE RELEASE READY"
+    if require_hosted_ci and (value.get("release_disposition") != ready_disposition or value.get("recommended_merge") != "YES"):
+        findings.append("RELEASE_DISPOSITION_INVALID: successful exact-SHA CI must release software without promoting formal providers")
     return findings
 
 
@@ -612,6 +615,16 @@ def validate_docs() -> list[str]:
     findings: list[str] = []
     for path in ROOT.rglob("*.md"):
         if ".git" in path.parts: continue
+        # V4.1 selected upstream resources are intentionally partial, not
+        # standalone Skill installations. Their exact contents are checked by
+        # source_manifest.json and the adapter integrity audit; importing every
+        # link target would violate the minimum-resource selection policy.
+        try:
+            path.relative_to(ROOT / "vendor" / "selected")
+        except ValueError:
+            pass
+        else:
+            continue
         text = path.read_text(encoding="utf-8", errors="replace")
         # Ignore Markdown-looking tokens inside fenced source examples. Vendored
         # scientific Skills legitimately contain calls such as ``foo['bar'](...)``

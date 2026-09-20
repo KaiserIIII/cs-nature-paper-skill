@@ -1,12 +1,12 @@
 {
-  "source_version": "4.0.0",
-  "base_commit": "6f13161601854763b500cdb596dbe52df3a0fd19",
+  "source_version": "4.1.0",
+  "base_commit": "c82a4732fc34d9cab49847574931995ff555ddf3",
   "source_commit": "release-process-injected",
   "source_commit_mode": "publisher-injected",
-  "source_branch": "feat/v4-vendored-research-team",
-  "generated_at": "2026-09-08T06:10:30Z",
-  "release_status": "RC_NOT_RELEASED",
-  "tag": null,
+  "source_branch": "main",
+  "generated_at": "2026-09-20T00:00:00Z",
+  "release_status": "RELEASED",
+  "tag": "v4.1.0",
   "e2e_commit": null,
   "deterministic_tests": {
     "v4_internal_specialists": "PASS",
@@ -14,6 +14,9 @@
     "publication_sufficiency": "PASS",
     "research_expansion": "PASS",
     "private_ultra_registry_and_routing": "PASS",
+    "v41_selected_specialist_installation": "PASS",
+    "v41_public_core_specialist_e2e": "PASS",
+    "v41_private_ultra_specialist_e2e": "PASS",
     "multi_system_benchmark_gate": "NOT_RUN",
     "full_regression": "PASS"
   },
@@ -26,6 +29,19 @@
     "matrix": {}
   },
   "model_behavior_eval": "NOT_RUN",
+  "software_release": {
+    "status": "RELEASED",
+    "scope": "SOFTWARE_INTEGRITY_AND_ADVISORY_CALLABILITY",
+    "selected_specialist_count": 6,
+    "formal_scientific_qualification_claimed": false
+  },
+  "formal_provider_qualification": {
+    "status": "BLOCKED",
+    "qualification_status": "UNAUDITED",
+    "comparison_decision": "NOT_RUN",
+    "eligibility": "ADVISORY_ONLY",
+    "reason": "No independently checked behavior comparison supports QUALIFIED, EXTERNAL_BETTER, or FORMAL_ELIGIBLE."
+  },
   "benchmark_suite": {
     "status": "NOT_RUN",
     "run_root": "benchmarks/v4/runs",
@@ -93,11 +109,11 @@
     "The 17-target multi-system behavior comparison has not yet run; parity and superiority remain failed.",
     "PRIVATE_ULTRA has no behavior-qualified external provider yet, so PUBLIC_CORE remains selected.",
     "The TTA field project remains publication-insufficient until cross-dataset formal runs, published modern baselines, ablations, statistics, adversarial review, and revision complete.",
-    "Hosted CI has not run against an exact committed V4 SHA.",
+    "The committed manifest carries no Hosted CI identity; publication resolves it against the exact GitHub run and release commit.",
     "The completed formal_v2 analysis records a single explicit frozen-runner metadata alias; raw shards remain unchanged.",
     "The formal_v2 mechanism screen is NOT_SUPPORTED; fresh held seeds 5-9 and a preregistered prospective analysis are required.",
     "System-level comparators require adapters and are not treated as ordinary Skills."
   ],
-  "recommended_merge": "NO",
-  "release_disposition": "V4.0.0 RC FAIL; required behavior comparisons, formal field expansion, and exact-SHA Hosted CI are incomplete"
+  "recommended_merge": "YES",
+  "release_disposition": "V4.1.0 SOFTWARE RELEASE READY"
 }

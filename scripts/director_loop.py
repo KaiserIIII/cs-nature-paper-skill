@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 GLOBAL_RECOVERY_BUDGET = 20
 NODE_RECOVERY_BUDGETS = {"implementation": 5, "formal_experiment": 4, "analysis": 3}
 IDENTICAL_FAILURE_LIMIT = 3

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 REQUIRED_METHOD_CLASSES = {"SOURCE", "ADAPTIVE", "RECOVERY"}
 REQUIRED_TRAJECTORIES = {"A-B-A", "A-B-C-A"}
 REQUIRED_IDENTITIES = {"runner", "manifest", "dataset", "checkpoints", "environment", "protocol"}

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 ROOT = Path(__file__).resolve().parents[1]
 CANDIDATES_PATH = ROOT / "assets" / "registry" / "private_ultra_candidates.json"
 TEAM_PATH = ROOT / "references" / "private-ultra" / "team.json"

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TRUST_RECORD_RELATIVE_PATH = "assets/trust/v41_release_trust.json"
 TRUST_RECORD_PATH = ROOT / TRUST_RECORD_RELATIVE_PATH
 RELEASE_MANIFEST_PATH = ROOT / "release_manifest.json"
-TRUST_RECORD_SHA256 = "sha256:d61f6d55c8dc60db73e7af74521b950ddb2a81b4616353a55468fa428aa1853d"
+TRUST_RECORD_SHA256 = "sha256:4028d1ac29c0fac3969fdd2faa54d779d02523a699d73b62436ab78f8068c529"
 HASH_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 EXPECTED_TRUSTED_PATHS = {
     "assets/registry/publication_profiles.json",

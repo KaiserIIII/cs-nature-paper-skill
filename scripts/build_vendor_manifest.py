@@ -13,7 +13,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDOR_ROOT = ROOT / "vendor" / "research-skills"
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 
 SOURCES = {
     "K-Dense-AI/scientific-agent-skills": ("1e5eeffbdad3749125afe7ab48a39694e27f181c", "MIT", "k-dense/LICENSE.md"),

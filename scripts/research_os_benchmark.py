@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUITE = ROOT / "assets" / "evals" / "v4" / "research_os_benchmarks.json"
 MANDATORY_SYSTEM_IDS = {

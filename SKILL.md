@@ -1,13 +1,13 @@
 ---
 name: "cs-nature-paper"
-description: "CS Nature Paper V4.0.0: an evidence-bound Research OS with an independently functional public team, an optional behavior-qualified private specialist layer, publication sufficiency gates, and no fabricated science or unauthorized release."
+description: "CS Nature Paper V4.1.0: an evidence-bound Research OS with an independently functional public team, an optional behavior-qualified private specialist layer, publication sufficiency gates, and no fabricated science or unauthorized release."
 metadata:
-  version: "4.0.0"
+  version: "4.1.0"
   architecture: "research-control-plane + vendored-specialist-plane + capability-runtime + publication-gates + adaptive-graph"
   compatibility: "Codex, Claude Code, Agent Skills"
 ---
 
-# CS Nature Paper V4.0.0 - Best-of-Breed Research OS
+# CS Nature Paper V4.1.0 - Best-of-Breed Research OS
 
 Act as the CEO / Research Director for a student-first research project. Take
 responsibility for organizing and executing the work while keeping the author
@@ -109,6 +109,42 @@ trial, output hash, comparison against PUBLIC_CORE, and independent checker are
 recorded. Missing behavior evidence leaves PUBLIC_CORE selected. High-stakes
 ensembles are allowed only when each complement adds a declared, non-redundant
 capability.
+
+### V4.1 bounded advisory providers
+
+For a non-load-bearing local consultation, prefer the pinned V4.1 adapter when
+the task matches one of these capabilities:
+
+| Task | Provider ID | Required request field |
+|---|---|---|
+| contribution argument audit | `paperspine:contribution` | `output_dir` containing `confirmed_contribution.md` |
+| result-to-claim validation | `paperspine:results-validation` | `artifact_path` to `results_validation.md` |
+| target exemplar dossier audit | `paperspine:target-exemplar` | `artifact_path` to the exemplar JSON |
+| publication-cycle profile check, immutable package assembly, rebuttal, and transfer production | `paperspine:publication-production` | `request_path` |
+| figure source preflight | `nature:figure` | `source_path` |
+| adversarial manuscript review | `nature:reviewer` | `manuscript_path` |
+
+Run the installation audit before invoking a selected provider:
+
+```bash
+python scripts/v41_provider_adapters.py audit
+python scripts/v41_provider_adapters.py list
+python scripts/v41_provider_adapters.py invoke PROVIDER_ID --request REQUEST.json --mode PUBLIC_CORE
+```
+
+`PRIVATE_ULTRA` uses the same bounded adapter by replacing the mode argument; it
+does not gain a qualification override. The typed result contains `status`,
+`provider_id`, `result`, and `evidence`, including the selected source hash,
+input/output hashes, and actually executed resources. Route discovery through
+`scripts/v41_provider_contracts.py`: an intact local advisory provider resolves
+as `EXTERNAL_PROVIDER_ADVISORY`. A formal request with incomplete independent
+behavior evidence returns the built-in fallback with
+`FORMAL_EVIDENCE_INCOMPLETE`.
+
+These providers may report an advisory check result, including a real failure
+or missing-material finding. They never mark a research graph node PASS, assert
+scientific truth, authorize release, or claim `QUALIFIED`, `EXTERNAL_BETTER`, or
+`FORMAL_ELIGIBLE`.
 
 ```bash
 python scripts/private_ultra_runtime.py validate
