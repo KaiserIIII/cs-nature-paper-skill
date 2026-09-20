@@ -184,10 +184,10 @@ def _control_plane_context(
     claims_doc = documents["claims"]
     if (
         project_doc.get("schema_version") != 3
-        or project_doc.get("skill_version") != "4.0.0"
+        or project_doc.get("skill_version") != "4.1.0"
         or Path(str(project_doc.get("project_dir", ""))).resolve() != project
         or claims_doc.get("schema_version") != 1
-        or claims_doc.get("skill_version") != "4.0.0"
+        or claims_doc.get("skill_version") != "4.1.0"
     ):
         raise ValueError("unsupported or mismatched authoritative state identity")
     domain = project_doc.get("domain")

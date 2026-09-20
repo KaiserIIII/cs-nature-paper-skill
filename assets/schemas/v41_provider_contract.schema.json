@@ -3,31 +3,43 @@
   "$id": "https://example.invalid/cs-nature-paper/v41_provider_contract.schema.json",
   "type": "object",
   "required": [
-    "provider_id",
-    "type",
-    "capabilities",
-    "exact_commit",
-    "source_hash",
-    "license_decision",
-    "validation_bundle_id",
-    "fallback_provider_id",
-    "discovery_only"
+    "provider_id", "type", "capabilities", "exact_commit", "source_hash",
+    "source_id", "license_decision", "license_path", "local_resource_manifest",
+    "entrypoint", "modes", "execution_class", "input_contract", "output_contract",
+    "permissions", "network", "credentials_required", "validation_bundle_id",
+    "fallback_provider_id", "discovery_only"
   ],
   "properties": {
     "provider_id": {"type": "string", "minLength": 1},
-    "type": {"type": "string", "minLength": 1},
-    "capabilities": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "type": {"const": "EXTERNAL_SKILL"},
+    "capabilities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
     "exact_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-    "source_hash": {
-      "oneOf": [
-        {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
-        {"type": "null"}
-      ]
+    "source_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "source_id": {"enum": ["paperspine", "nature-skills"]},
+    "license_decision": {"const": "CLEAR_FOR_BOUNDED_ADAPTER"},
+    "license_path": {"type": "string", "pattern": "^vendor/selected/v41/.+$"},
+    "local_resource_manifest": {"const": "vendor/selected/v41/source_manifest.json"},
+    "entrypoint": {"type": "string", "pattern": "^v41_provider_adapters:[a-z0-9_]+$"},
+    "modes": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"enum": ["PUBLIC_CORE", "PRIVATE_ULTRA"]}},
+    "execution_class": {"const": "ADVISORY_ONLY"},
+    "input_contract": {
+      "type": "object",
+      "required": ["type", "required"],
+      "properties": {"type": {"const": "object"}, "required": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}},
+      "additionalProperties": false
     },
-    "license_decision": {"type": "string", "minLength": 1},
+    "output_contract": {
+      "type": "object",
+      "required": ["type", "required", "typed_artifact"],
+      "properties": {"type": {"const": "object"}, "required": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "typed_artifact": {"const": true}},
+      "additionalProperties": false
+    },
+    "permissions": {"type": "array", "uniqueItems": true, "items": {"enum": ["local_read", "local_write"]}},
+    "network": {"const": false},
+    "credentials_required": {"const": false},
     "validation_bundle_id": {"type": "string", "minLength": 1},
-    "fallback_provider_id": {"type": "string", "minLength": 1},
-    "discovery_only": {"type": "boolean"}
+    "fallback_provider_id": {"type": "string", "pattern": "^internal-specialist:.+$"},
+    "discovery_only": {"const": false}
   },
   "additionalProperties": false
 }

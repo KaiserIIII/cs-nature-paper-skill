@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "selection_policy": "PINNED_MINIMUM_RESOURCES",
+  "sources": [
+    {
+      "source_id": "paperspine",
+      "repository": "https://github.com/WUBING2023/PaperSpine",
+      "exact_commit": "99a84fe452ab7681e30cd81387fcb6263a676125",
+      "license": "MIT",
+      "license_path": "vendor/selected/v41/paperspine/LICENSE"
+    },
+    {
+      "source_id": "nature-skills",
+      "repository": "https://github.com/Yuan1z0825/nature-skills",
+      "exact_commit": "9cecfef6ac683fa59d7d15d2e22f98fa71dacaf5",
+      "license": "Apache-2.0",
+      "license_path": "vendor/selected/v41/nature-skills/LICENSE"
+    }
+  ],
+  "bundles": [
+    {
+      "provider_id": "paperspine:contribution",
+      "source_hash": "sha256:9f6fcafb103804f869bd9ed8da9cc6cd15ddd50254720e5a4e2073331585c850",
+      "files": [
+        {
+          "path": "vendor/selected/v41/paperspine/LICENSE",
+          "sha256": "sha256:e89308aa6fe435bd6c8967ed865c613732888329176cc4c6fb020825812bec2d"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/scripts/_paper_spine_utils.py",
+          "sha256": "sha256:5a1613db29221e6dcf4a954191f4e887b8ea836086118265cb65b18e9a09d722"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/scripts/contribution_check.py",
+          "sha256": "sha256:38190989d1f79f6eadf12cdc7dd28561c2eaf0f178b1630cb6f0fd2bf1492d92"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/SKILL.md",
+          "sha256": "sha256:84a333c51e42667c824576bb3db685a092c764e07ffa6942857e1982425b14b9"
+        }
+      ]
+    },
+    {
+      "provider_id": "paperspine:results-validation",
+      "source_hash": "sha256:98ab4b8e336aa6ad6c5c97d0b8b9fc1899e4699d68551aa92055441fa75bb5df",
+      "files": [
+        {
+          "path": "vendor/selected/v41/paperspine/LICENSE",
+          "sha256": "sha256:e89308aa6fe435bd6c8967ed865c613732888329176cc4c6fb020825812bec2d"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/scripts/_paper_spine_utils.py",
+          "sha256": "sha256:5a1613db29221e6dcf4a954191f4e887b8ea836086118265cb65b18e9a09d722"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/scripts/results_validation_check.py",
+          "sha256": "sha256:f977562f3edfc990a6a9bd95cb11c7278cf4bb194668a2b139db7d70ffe23195"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/SKILL.md",
+          "sha256": "sha256:84a333c51e42667c824576bb3db685a092c764e07ffa6942857e1982425b14b9"
+        }
+      ]
+    },
+    {
+      "provider_id": "paperspine:target-exemplar",
+      "source_hash": "sha256:90a0e16db4f49eebe2720c4cec77d178d15daf96edd604811b392f0822d51df3",
+      "files": [
+        {
+          "path": "vendor/selected/v41/paperspine/LICENSE",
+          "sha256": "sha256:e89308aa6fe435bd6c8967ed865c613732888329176cc4c6fb020825812bec2d"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/scripts/reference_inventory.py",
+          "sha256": "sha256:99e7578869a1a3fab72dc249d5c9806465fd7d020946d86596496a01f8ae4ee6"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/references/exemplar-learning-dossier.md",
+          "sha256": "sha256:1110f5fb6a2c0e3a8605d736f0a9d25160a2926c437ec21c92d1f6b867e29ed2"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/SKILL.md",
+          "sha256": "sha256:84a333c51e42667c824576bb3db685a092c764e07ffa6942857e1982425b14b9"
+        }
+      ]
+    },
+    {
+      "provider_id": "paperspine:publication-production",
+      "source_hash": "sha256:39ac3fda462ec7bd86a589eee7656f85ea9242ac284fff2d53bb566ed53940de",
+      "files": [
+        {
+          "path": "vendor/selected/v41/paperspine/LICENSE",
+          "sha256": "sha256:e89308aa6fe435bd6c8967ed865c613732888329176cc4c6fb020825812bec2d"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/scripts/publication_cycle.py",
+          "sha256": "sha256:1d3266156438572c70e81aef5864e7d313f920ede5d0c74fa472c36f4959e514"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/references/contracts/publication-cycle-invocation.schema.json",
+          "sha256": "sha256:0831888460f3b511d9b9774eabf91ceb71c4840d4d537e468267630801ae2da7"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/references/contracts/publication-cycle-result.schema.json",
+          "sha256": "sha256:4a4d0afe0bc4b23a4a3cf55c96dcd3976a5f3389176935bae070a4bb372651fd"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/references/publication-cycle-contracts.md",
+          "sha256": "sha256:a7e45621903da072d67a0bb3f7e4983a26383fb59716ff99beadf18703a5c45d"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/references/publication-cycle-interface.md",
+          "sha256": "sha256:b50cd7904a1be4bf55ebc6cb7fad4054e0203640657d6b26f68e9608d8f75932"
+        },
+        {
+          "path": "vendor/selected/v41/paperspine/src/skill/SKILL.md",
+          "sha256": "sha256:84a333c51e42667c824576bb3db685a092c764e07ffa6942857e1982425b14b9"
+        }
+      ]
+    },
+    {
+      "provider_id": "nature:figure",
+      "source_hash": "sha256:991faa601bd76db6fcc112a89ed83bd8c5d8b5ff995ee181c1ec68db1cc6441f",
+      "files": [
+        {
+          "path": "vendor/selected/v41/nature-skills/LICENSE",
+          "sha256": "sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-figure/references/figure-contract.md",
+          "sha256": "sha256:db08b51fb080c5fe37f61140a1b7fd31247f90810f3a80cdcf58429a699879df"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-figure/scripts/validate_figure.py",
+          "sha256": "sha256:c548e180d31fc1557cbfcd452ab78c7a969273a80b311068aa80acfe86ecfd90"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-figure/SKILL.md",
+          "sha256": "sha256:46f2cf74d473604ff9ad884893bbe2360b3431fec631009fce5c487945acf652"
+        }
+      ]
+    },
+    {
+      "provider_id": "nature:reviewer",
+      "source_hash": "sha256:8c9e5ffaedbf5bd23103c8f021a459dd65c90e51067e3060438f04a21227cd1b",
+      "files": [
+        {
+          "path": "vendor/selected/v41/nature-skills/LICENSE",
+          "sha256": "sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-reviewer/references/qa-checklist.md",
+          "sha256": "sha256:9d2c2be74ded791f299ddf469ba7afcd5aeb408692be0b48b1175ab3657849dd"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-reviewer/references/report-structure.md",
+          "sha256": "sha256:3cb1107fe1e7adb49dbadfd00e57576f5804082e182a6a6b27c48017b7a2c65f"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-reviewer/references/review-axes.md",
+          "sha256": "sha256:88eb4fec5afe162238dd380bedcba052e6f5fce2b9a67afd94b3fd483efc941f"
+        },
+        {
+          "path": "vendor/selected/v41/nature-skills/skills/nature-reviewer/SKILL.md",
+          "sha256": "sha256:977d5b3e452865e9903f2ae434907f805c64e2600665a993bc95a19e02820466"
+        }
+      ]
+    }
+  ]
+}

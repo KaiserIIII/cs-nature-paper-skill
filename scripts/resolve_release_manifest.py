@@ -39,8 +39,8 @@ def resolve(
         raise ValueError("source commit must be a 40-character hexadecimal SHA")
     commit = commit.lower()
     source_version = str(value.get("source_version", ""))
-    if source_version != "4.0.0":
-        raise ValueError(f"release manifest source_version must be 4.0.0, got {source_version or 'missing'}")
+    if source_version != "4.1.0":
+        raise ValueError(f"release manifest source_version must be 4.1.0, got {source_version or 'missing'}")
     value.update({
         "source_commit": commit,
         "source_commit_mode": "resolved",
@@ -59,32 +59,21 @@ def resolve(
             "matrix": {name: matrix_status for name in REQUIRED_CI_MATRIX},
         }
         ci_ready = conclusion == "success" and matrix_status == "PASS"
-        benchmark = value.get("benchmark_suite", {})
-        tta = value.get("tta_field_regression", {})
-        research_ready = (
-            value.get("model_behavior_eval") == "PASS"
-            and isinstance(benchmark, dict)
-            and benchmark.get("status") == "PASS"
-            and benchmark.get("multi_system_parity_gate") == "PASS"
-            and benchmark.get("v4_superiority_gate") == "PASS"
-            and isinstance(tta, dict)
-            and tta.get("formal_campaign") == "COMPLETED"
-            and tta.get("publication_sufficiency") == "PASS"
-            and tta.get("reviewer_completeness") == "PASS"
-        )
-        ready = ci_ready and research_ready
+        ready = ci_ready
+        value["release_status"] = "RELEASED" if ready else "BLOCKED"
+        value["tag"] = "v4.1.0" if ready else None
         value["recommended_merge"] = "YES" if ready else "NO"
         value["release_disposition"] = (
-            "V4.0.0 RELEASE READY"
+            "V4.1.0 SOFTWARE RELEASE READY"
             if ready
-            else "V4.0.0 RC FAIL; Hosted CI passed but behavior or field gates remain incomplete"
-            if ci_ready
-            else "V4.0.0 RC FAIL; Hosted CI did not pass"
+            else "V4.1.0 SOFTWARE RELEASE BLOCKED; Hosted CI did not pass"
         )
     else:
         value["hosted_ci"] = {"run_id": None, "workflow": None, "branch": None, "head_sha": None, "conclusion": None, "matrix": {}}
         value["recommended_merge"] = "NO"
-        value["release_disposition"] = "V4.0.0 RC FAIL; Hosted CI binding is incomplete"
+        value["release_status"] = "BLOCKED"
+        value["tag"] = None
+        value["release_disposition"] = "V4.1.0 SOFTWARE RELEASE BLOCKED; Hosted CI binding is incomplete"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     return value

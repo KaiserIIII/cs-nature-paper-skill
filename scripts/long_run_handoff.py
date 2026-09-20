@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 TWO_HOURS_SECONDS = 2 * 60 * 60
 DURABLE_LAUNCH_MODES = {"WINDOWS_TASK_SCHEDULER", "SYSTEMD", "SLURM", "PUEUE", "DAGU", "DETACHED_SERVICE"}
 REQUIRED_PATHS = ("status_path", "heartbeat_path", "stdout_log", "stderr_log")

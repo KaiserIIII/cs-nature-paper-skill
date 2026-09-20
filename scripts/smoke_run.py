@@ -24,7 +24,7 @@ import skill_router  # type: ignore
 from sanitize_artifact import sanitize_value  # type: ignore
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 
 
 def _load_eval_runner():

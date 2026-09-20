@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = ROOT / "providers"
 for folder in (str(Path(__file__).resolve().parent), str(PROVIDERS)):

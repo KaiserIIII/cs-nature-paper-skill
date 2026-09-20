@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "skill_version": "4.0.0",
+  "skill_version": "4.1.0",
   "layers": ["PUBLIC_CORE", "PRIVATE_ULTRA"],
   "selection_policy": "BEST_QUALIFIED_PROVIDER_OR_BEST_COMPLEMENTARY_ENSEMBLE",
   "truth_authority": "V4_CONTROL_PLANE_AND_INDEPENDENT_CHECKERS",

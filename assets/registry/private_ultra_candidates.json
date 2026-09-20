@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "skill_version": "4.0.0",
+  "skill_version": "4.1.0",
   "audit_observed_at": "2026-09-07T08:45:00Z",
   "audit_method": [
     "GitHub repository metadata and default-branch commit lookup",

@@ -23,11 +23,11 @@ research_state = load("research_state")
 
 class SpecialistRoutingHotfixTests(unittest.TestCase):
     def test_active_runtime_metadata_is_unified_at_v4(self):
-        self.assertEqual(research_executor.SKILL_VERSION, "4.0.0")
+        self.assertEqual(research_executor.SKILL_VERSION, "4.1.0")
         provider_runtime = load("provider_runtime")
-        self.assertEqual(provider_runtime.SKILL_VERSION, "4.0.0")
+        self.assertEqual(provider_runtime.SKILL_VERSION, "4.1.0")
         manifest = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["source_version"], "4.0.0")
+        self.assertEqual(manifest["source_version"], "4.1.0")
 
     def test_active_metadata_files_are_v4(self):
         paths = (
@@ -43,7 +43,7 @@ class SpecialistRoutingHotfixTests(unittest.TestCase):
             ROOT / "assets" / "templates" / "v3" / "provider_registry.json",
         )
         for path in paths:
-            self.assertIn("4.0.0", path.read_text(encoding="utf-8"), str(path))
+            self.assertIn("4.1.0", path.read_text(encoding="utf-8"), str(path))
 
     def test_full_paper_workflow_auto_marks_core_scientific_nodes_load_bearing(self):
         with tempfile.TemporaryDirectory() as tmp:

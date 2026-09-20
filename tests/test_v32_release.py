@@ -10,10 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class V32ReleaseTests(unittest.TestCase):
-    def test_release_manifest_declares_v4_rc_and_fail_closed_disposition(self):
+    def test_release_manifest_declares_v41_software_release_and_fail_closed_formal_scope(self):
         value = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(value["source_version"], "4.0.0")
-        self.assertIn("V4.0.0 RC FAIL", value["release_disposition"])
+        self.assertEqual(value["source_version"], "4.1.0")
+        self.assertEqual(value["release_disposition"], "V4.1.0 SOFTWARE RELEASE READY")
+        self.assertEqual(value["formal_provider_qualification"]["status"], "BLOCKED")
         self.assertIsInstance(value["hosted_ci"], dict)
         self.assertIsNone(value["hosted_ci"]["run_id"])
 
@@ -46,6 +47,9 @@ class V32ReleaseTests(unittest.TestCase):
         self.assertIn("python scripts/host_provider_handoff_e2e.py --output .host-provider-handoff-e2e.json", workflow)
         self.assertIn("python scripts/generic_host_research_e2e.py --output .generic-host-research-e2e.json", workflow)
         self.assertIn("python scripts/generic_host_competition_e2e.py --output .generic-host-competition-e2e.json", workflow)
+        self.assertIn("github.ref_name == 'main'", workflow)
+        self.assertIn("python scripts/v41_specialist_e2e.py --mode PUBLIC_CORE", workflow)
+        self.assertIn("python scripts/v41_specialist_e2e.py --mode PRIVATE_ULTRA", workflow)
 
     def test_release_validator_checks_v32_e2e_result(self):
         spec = importlib.util.spec_from_file_location("validate_release", ROOT / "scripts" / "validate_release.py")

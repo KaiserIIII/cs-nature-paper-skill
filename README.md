@@ -1,9 +1,9 @@
-# CS Nature Paper V4.0.0
+# CS Nature Paper V4.1.0
 
 An executable, student-first, evidence-bound research operating system for
 computer science.
 
-[中文](README_zh.md) | [Historical release v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
+[中文](README_zh.md) | [Current release v4.1.0](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v4.1.0) | [Historical v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
 
 ## What this project is
 
@@ -30,15 +30,24 @@ team and remain usable offline. Online discovery is a quality upgrade: a
 candidate must prove it is better or complementary before it can replace or
 augment the internal baseline.
 
+V4.1 adds six genuinely callable, source-bound advisory providers rather than
+registry-only candidates: four PaperSpine workflows (contribution, results
+validation, target exemplars, and publication-cycle production) and Nature
+Figure/Reviewer. They run offline in both PUBLIC_CORE and PRIVATE_ULTRA through
+`scripts/v41_provider_adapters.py`; `scripts/v41_specialist_e2e.py` executes all
+six and records the resources and hashes actually used. These providers do not
+become formal scientific evidence until independent behavior qualification and
+comparison are complete.
+
 Submission readiness now requires five separate results: Scientific Validity,
 Evidence Sufficiency, Publication Sufficiency, Reviewer Completeness, and
 Submission Readiness. Narrow evidence and repeated runs cannot substitute for
 dataset, model, baseline, ablation, mechanism, external-validation, literature,
 or manuscript depth.
 
-The `v3.1.1` tag and V3.2.1 branch remain historical. V4 is developed from the
-accepted V3.2.1 commit `6f13161601854763b500cdb596dbe52df3a0fd19` on
-`feat/v4-vendored-research-team`.
+The `v3.1.1` tag and V3.2.1 branch remain historical. V4.1.0 is the primary
+software release on `main`; formal provider qualification remains a separate,
+fail-closed gate.
 
 ## How it works
 

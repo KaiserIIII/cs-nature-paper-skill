@@ -1,13 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "deterministic_tests", "hosted_ci", "model_behavior_eval", "benchmark_suite", "tta_field_regression", "recommended_merge", "e2e_status", "known_limitations", "release_disposition"],
+  "required": ["source_version", "source_commit", "source_commit_mode", "source_branch", "generated_at", "release_status", "tag", "deterministic_tests", "hosted_ci", "model_behavior_eval", "software_release", "formal_provider_qualification", "benchmark_suite", "tta_field_regression", "recommended_merge", "e2e_status", "known_limitations", "release_disposition"],
   "properties": {
-    "source_version": {"enum": ["4.0.0"]},
+    "source_version": {"enum": ["4.1.0"]},
     "source_commit": {"type": "string", "minLength": 1},
     "source_commit_mode": {"enum": ["publisher-injected", "resolved"]},
     "source_branch": {"enum": ["feat/v4-vendored-research-team", "main"]},
     "generated_at": {"type": "string", "minLength": 20},
+    "release_status": {"enum": ["RELEASED"]},
     "tag": {"type": ["string", "null"]},
     "e2e_commit": {"type": ["string", "null"]},
     "deterministic_tests": {"type": "object"},
@@ -25,6 +26,29 @@
       "additionalProperties": false
     },
     "model_behavior_eval": {"enum": ["PASS", "PENDING", "NOT_RUN", "FAIL"]},
+    "software_release": {
+      "type": "object",
+      "required": ["status", "scope", "selected_specialist_count", "formal_scientific_qualification_claimed"],
+      "properties": {
+        "status": {"const": "RELEASED"},
+        "scope": {"const": "SOFTWARE_INTEGRITY_AND_ADVISORY_CALLABILITY"},
+        "selected_specialist_count": {"const": 6},
+        "formal_scientific_qualification_claimed": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "formal_provider_qualification": {
+      "type": "object",
+      "required": ["status", "qualification_status", "comparison_decision", "eligibility", "reason"],
+      "properties": {
+        "status": {"const": "BLOCKED"},
+        "qualification_status": {"const": "UNAUDITED"},
+        "comparison_decision": {"const": "NOT_RUN"},
+        "eligibility": {"const": "ADVISORY_ONLY"},
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
     "benchmark_suite": {
       "type": "object",
       "required": ["status", "systems", "multi_system_parity_gate", "ars_parity_gate", "v4_superiority_gate", "recommended_merge"],

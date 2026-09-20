@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "4.0.0"
+VERSION = "4.1.0"
 
 
 def load(name):
@@ -21,14 +21,14 @@ def load(name):
 class V4ReleaseTests(unittest.TestCase):
     def test_skill_and_readmes_declare_v4(self):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn('version: "4.0.0"', skill)
-        self.assertIn("CS Nature Paper V4.0.0", skill)
+        self.assertIn('version: "4.1.0"', skill)
+        self.assertIn("CS Nature Paper V4.1.0", skill)
         self.assertIn(
             "V4 ships with audited, pinned, vendored third-party research Skills as a built-in publication-grade specialist team.",
             skill,
         )
-        self.assertTrue((ROOT / "README.md").read_text(encoding="utf-8").startswith("# CS Nature Paper V4.0.0"))
-        self.assertTrue((ROOT / "README_zh.md").read_text(encoding="utf-8").startswith("# CS Nature Paper V4.0.0"))
+        self.assertTrue((ROOT / "README.md").read_text(encoding="utf-8").startswith("# CS Nature Paper V4.1.0"))
+        self.assertTrue((ROOT / "README_zh.md").read_text(encoding="utf-8").startswith("# CS Nature Paper V4.1.0"))
 
     def test_all_active_python_runtime_versions_are_v4(self):
         stale = []
@@ -102,18 +102,19 @@ class V4ReleaseTests(unittest.TestCase):
                 stale.append(str(path.relative_to(ROOT)))
         self.assertFalse(stale, stale)
 
-    def test_release_manifest_describes_unreleased_v4_rc(self):
+    def test_release_manifest_separates_software_release_from_formal_research_qualification(self):
         value = json.loads((ROOT / "release_manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(value["source_version"], VERSION)
-        self.assertEqual(value["base_commit"], "6f13161601854763b500cdb596dbe52df3a0fd19")
-        self.assertEqual(value["source_branch"], "feat/v4-vendored-research-team")
-        self.assertEqual(value["release_status"], "RC_NOT_RELEASED")
-        self.assertIsNone(value["tag"])
+        self.assertEqual(value["source_branch"], "main")
+        self.assertEqual(value["release_status"], "RELEASED")
+        self.assertEqual(value["tag"], "v4.1.0")
+        self.assertEqual(value["software_release"]["status"], "RELEASED")
+        self.assertEqual(value["formal_provider_qualification"]["status"], "BLOCKED")
         self.assertEqual(value["benchmark_suite"]["status"], "NOT_RUN")
         self.assertEqual(value["benchmark_suite"]["recommended_merge"], "NO")
         self.assertEqual(value["tta_field_regression"]["thin_draft_detection"], "PASS")
         self.assertEqual(value["tta_field_regression"]["publication_sufficiency"], "FAIL")
-        self.assertEqual(value["recommended_merge"], "NO")
+        self.assertEqual(value["recommended_merge"], "YES")
 
     def test_v4_runtime_never_downloads_or_clones_vendored_skills(self):
         text = "\n".join(
@@ -133,7 +134,7 @@ class V4ReleaseTests(unittest.TestCase):
         self.assertEqual(validator.validate_long_run_assets(), [])
         self.assertEqual(validator.validate_release_manifest(require_hosted_ci=False), [])
 
-    def test_hosted_ci_resolution_preserves_v4_and_incomplete_research_gates(self):
+    def test_hosted_ci_resolution_releases_software_without_promoting_formal_providers(self):
         resolver = load("resolve_release_manifest")
         validator = load("validate_release")
         commit = __import__("subprocess").run(
@@ -147,18 +148,19 @@ class V4ReleaseTests(unittest.TestCase):
                 commit,
                 run_id=42,
                 workflow="cs-nature-paper-v4",
-                branch="feat/v4-vendored-research-team",
+                branch="main",
                 conclusion="success",
                 matrix_status="PASS",
             )
             self.assertEqual(value["source_version"], VERSION)
-            self.assertEqual(value["recommended_merge"], "NO")
-            self.assertIn("V4.0.0 RC FAIL", value["release_disposition"])
+            self.assertEqual(value["recommended_merge"], "YES")
+            self.assertEqual(value["release_disposition"], "V4.1.0 SOFTWARE RELEASE READY")
+            self.assertEqual(value["formal_provider_qualification"]["status"], "BLOCKED")
             self.assertEqual(
                 validator.validate_release_manifest(
                     output,
                     expected_commit=commit,
-                    expected_branch="feat/v4-vendored-research-team",
+                    expected_branch="main",
                     require_hosted_ci=True,
                 ),
                 [],

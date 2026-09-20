@@ -1,8 +1,8 @@
-# CS Nature Paper V4.0.0
+# CS Nature Paper V4.1.0
 
 面向计算机科学研究、以学生为中心、受证据约束的可执行科研操作系统。
 
-[English](README.md) | [v3.1.1 历史正式版](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
+[English](README.md) | [当前正式版 v4.1.0](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v4.1.0) | [历史版 v3.1.1](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v3.1.1) | [MIT License](LICENSE)
 
 ## 这个项目是什么
 
@@ -25,14 +25,20 @@ V4 内置 29 个经过审计的第三方科研 Skill，来自 7 个 MIT 仓库�
 在线发现只用于质量升级；外部候选只有在证明 `EXTERNAL_BETTER` 或
 `COMPLEMENTARY` 后才能替换或补充内置基线。
 
+V4.1 新增 6 个真正可调用、与上游源码哈希绑定的咨询性 provider，而不再
+只是候选注册信息：PaperSpine 的贡献论证、结果验证、目标范文和
+publication-cycle 生产，以及 Nature Figure/Reviewer。它们通过
+`scripts/v41_provider_adapters.py` 在 PUBLIC_CORE 和 PRIVATE_ULTRA 中离线运行；
+`scripts/v41_specialist_e2e.py` 会实际执行全部 6 项并记录所用资源与哈希。
+在独立行为资格验证和对照比较完成前，这些结果不会升级为正式科研证据。
+
 面向投稿的工作流必须分别通过 Scientific Validity、Evidence Sufficiency、
 Publication Sufficiency、Reviewer Completeness 和 Submission Readiness。
 窄范围证据与大量重复运行不能替代数据集、模型、基线、消融、机制、
 外部验证、文献和论文深度。
 
-`v3.1.1` tag 与 V3.2.1 分支保留为历史版本。V4 从已验收提交
-`6f13161601854763b500cdb596dbe52df3a0fd19` 建立在
-`feat/v4-vendored-research-team` 分支。
+`v3.1.1` tag 与 V3.2.1 分支保留为历史版本。V4.1.0 是 `main` 上的
+主要软件版本；外部 provider 的正式科研资格仍由独立、失效关闭的门禁控制。
 
 ## 系统如何工作
 

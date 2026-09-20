@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "skill_version": "4.0.0",
+  "skill_version": "4.1.0",
   "suite_id": "best-of-breed-cs-research-os-v2",
   "evaluation_status": "NOT_RUN",
   "evaluation_policy": {

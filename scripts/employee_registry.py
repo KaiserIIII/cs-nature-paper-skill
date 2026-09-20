@@ -12,7 +12,7 @@ from typing import Any, Iterable
 from urllib.parse import urlparse
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 SCHEMA_VERSION = 3
 SUPPORTED_SCHEMA_VERSIONS = {1, 3}
 STATUSES = {

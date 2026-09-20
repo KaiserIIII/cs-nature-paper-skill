@@ -18,7 +18,7 @@ if str(SCRIPT_DIR) not in sys.path:
 import vendor_skill_runtime  # noqa: E402
 
 
-SKILL_VERSION = "4.0.0"
+SKILL_VERSION = "4.1.0"
 PACK_PATH = ROOT / "references" / "internal-specialists" / "team.json"
 QUALITY_TIER = "PUBLICATION_GRADE"
 

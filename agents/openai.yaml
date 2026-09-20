@@ -1,7 +1,7 @@
 interface:
-  display_name: "CS Nature Paper V4.0.0 Vendored Team"
+  display_name: "CS Nature Paper V4.1.0 Vendored Team"
   short_description: "Evidence-bound Research OS with audited built-in specialists"
   brand_color: "#2457A7"
-  default_prompt: "Use $cs-nature-paper V4 to inspect my project, invoke the audited built-in research team, expand insufficient research, and stop only after publication and reviewer sufficiency gates pass."
+  default_prompt: "Use $cs-nature-paper V4.1 to inspect my project, invoke the audited built-in team and source-bound advisory specialists, expand insufficient research, and stop only after publication and reviewer sufficiency gates pass."
 policy:
   allow_implicit_invocation: true

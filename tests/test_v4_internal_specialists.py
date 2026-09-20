@@ -25,7 +25,7 @@ class V4InternalSpecialistTests(unittest.TestCase):
     def test_builtin_pack_contains_the_complete_publication_grade_team(self):
         result = internal.validate_pack()
         self.assertEqual(result["status"], "PASS", result)
-        self.assertEqual(result["architecture_version"], "4.0.0")
+        self.assertEqual(result["architecture_version"], "4.1.0")
         self.assertEqual(
             set(result["specialist_ids"]),
             {

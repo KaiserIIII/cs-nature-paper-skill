@@ -90,7 +90,7 @@ def make_project(root, claims=None):
         json.dumps(
             {
                 "schema_version": 3,
-                "skill_version": "4.0.0",
+                "skill_version": "4.1.0",
                 "project_dir": str(project.resolve()),
                 "domain": "machine-learning",
                 "study_type": "ml-benchmark",
@@ -102,7 +102,7 @@ def make_project(root, claims=None):
         json.dumps(
             {
                 "schema_version": 3,
-                "skill_version": "4.0.0",
+                "skill_version": "4.1.0",
                 "project": {
                     "domain": "machine-learning",
                     "study_type": "ml-benchmark",
@@ -115,7 +115,7 @@ def make_project(root, claims=None):
         json.dumps(
             {
                 "schema_version": 1,
-                "skill_version": "4.0.0",
+                "skill_version": "4.1.0",
                 "claims": claims
                 or [
                     {
@@ -861,7 +861,7 @@ class FalsificationObligationTests(unittest.TestCase):
                 json.dumps(
                     {
                         "schema_version": 3,
-                        "skill_version": "4.0.0",
+                        "skill_version": "4.1.0",
                         "project_dir": str(project.resolve()),
                         "domain": "machine-learning",
                         "study_type": "ml-benchmark",
@@ -873,7 +873,7 @@ class FalsificationObligationTests(unittest.TestCase):
                 json.dumps(
                     {
                         "schema_version": 3,
-                        "skill_version": "4.0.0",
+                        "skill_version": "4.1.0",
                         "project": {
                             "domain": "machine-learning",
                             "study_type": "ml-benchmark",
@@ -884,7 +884,7 @@ class FalsificationObligationTests(unittest.TestCase):
             )
             claims = {
                 "schema_version": 1,
-                "skill_version": "4.0.0",
+                "skill_version": "4.1.0",
                 "claims": [
                     {
                         "id": "C-001",
