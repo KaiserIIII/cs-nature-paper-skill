@@ -3,6 +3,7 @@
 
 # Preserve audited upstream bytes across Linux and Windows checkouts.
 vendor/research-skills/** -text
+vendor/selected/v41/** -text
 
 # Accept the upstream line endings when this CRLF-authored file changes.
 vendor/research-skills/research-engineering-suite/agents/openai.yaml -text whitespace=cr-at-eol

@@ -278,6 +278,10 @@ def write_publication_invocation(root: Path) -> Path:
 
 
 class V41ProviderIntegrationTests(unittest.TestCase):
+    def test_selected_upstream_bytes_are_not_eol_normalized_on_windows(self):
+        attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn("vendor/selected/v41/** -text", attributes)
+
     def test_selected_resources_are_installed_and_hash_bound(self):
         runtime = load_runtime()
         audit = runtime.audit_installation()
