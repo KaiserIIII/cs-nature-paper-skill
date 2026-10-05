@@ -330,7 +330,7 @@ CLI 提供确定性的科研控制面。在 PowerShell 中：
 
 ```powershell
 $SkillRoot = "$env:USERPROFILE\.codex\skills\cs-nature-paper"
-$Project = "D:\research\llm-repair"
+$Project = "./research/llm-repair"
 
 python "$SkillRoot\scripts\research_state.py" init $Project `
   --study-type ml-benchmark --mode copilot --domain llm

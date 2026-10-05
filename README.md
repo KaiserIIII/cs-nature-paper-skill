@@ -1,4 +1,4 @@
-# CS Nature Paper
+# CS Nature Paper V4.1.0
 
 [简体中文](README_zh.md) · [v4.1.0](https://github.com/KaiserIIII/cs-nature-paper-skill/releases/tag/v4.1.0) · [MIT License](LICENSE)
 

@@ -361,7 +361,7 @@ The CLI exposes the deterministic control plane. In PowerShell:
 
 ```powershell
 $SkillRoot = "$env:USERPROFILE\.codex\skills\cs-nature-paper"
-$Project = "D:\research\llm-repair"
+$Project = "./research/llm-repair"
 
 python "$SkillRoot\scripts\research_state.py" init $Project `
   --study-type ml-benchmark --mode copilot --domain llm
