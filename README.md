@@ -4,6 +4,41 @@
 
 An Agent Skill and Python runtime for managing computer-science research workflows. It connects research questions, literature, experimental protocols, code, results, figures, manuscript claims, and review findings through explicit provenance records.
 
+## System at a glance
+
+```mermaid
+flowchart TD
+    User["Researcher + research question"] --> Director["Research Director / control plane"]
+    Director --> State["Adaptive research graph + claims / evidence / protocol"]
+    Director --> Router["Role and provider routing"]
+
+    subgraph Team["Built-in team: 13 specialists"]
+        Discovery["Discovery: literature, prior art, theory, data"]
+        Research["Research: design, compute, implementation, statistics"]
+        Publication["Publication: visualization, writing, editor"]
+        Assurance["Assurance: integrity, adversarial review"]
+    end
+    Router --> Discovery
+    Router --> Research
+    Router --> Publication
+    Router --> Assurance
+    Router --> Providers["PUBLIC_CORE + 6 V4.1 advisory adapters<br/>Optional PRIVATE_ULTRA only when qualified"]
+
+    Discovery --> Artifacts["Bounded execution via host tools + Python<br/>Typed artifacts, hashes, provenance"]
+    Research --> Artifacts
+    Publication --> Artifacts
+    Assurance --> Artifacts
+    Providers --> Artifacts
+    Artifacts --> Checker["Independent checks for load-bearing work"]
+    Checker --> State
+    State --> Gates["Scientific, evidence, publication + reviewer gates"]
+    Gates -. "reopen / amend / narrow" .-> Director
+    Gates --> Outputs["Evidence-linked results, figures, manuscript + review"]
+    Outputs --> Author["Author decides on submission and release"]
+```
+
+The specialist and provider layers produce candidate artifacts; they cannot independently approve scientific claims or authorize external release.
+
 ## Core capabilities
 
 - Route work through literature, experiment, analysis, writing, and review roles.
