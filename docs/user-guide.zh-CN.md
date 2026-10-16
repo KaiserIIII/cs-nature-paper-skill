@@ -422,6 +422,14 @@ self-test 描述为真实模型评测。
 
 开发验证命令：
 
+Smoke 来源校验要求源码目录本身是 Git 仓库或 linked worktree 根目录，具有已提交
+的 HEAD，且暂存区及已跟踪文件无未提交改动。生产器拒绝不明确的来源；检查器对
+借用父仓库身份的压缩包或脏的 tracked/index 状态返回 `UNVERIFIED`。完整测试也会
+运行生产器，因此先建立本地候选提交再执行完整验证，无需 Push。允许生成未跟踪／
+已忽略的报告和缓存。这只防止常见源码／收据漂移，不是签名证明，也不保证并发修改、
+未跟踪／已忽略文件的导入遮蔽或对抗性 Git 标记。没有 Git 身份的源码压缩包不能仅凭
+所在父目录声称验证了某个提交。
+
 ```bash
 python -m unittest discover -s tests -v
 python scripts/validate_registry.py

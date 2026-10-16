@@ -22,6 +22,7 @@ import research_graph  # type: ignore
 import research_state  # type: ignore
 import skill_router  # type: ignore
 from sanitize_artifact import sanitize_value  # type: ignore
+from check_smoke import current_commit
 
 
 SKILL_VERSION = "4.1.0"
@@ -33,7 +34,7 @@ def _load_eval_runner():
 
 
 def _commit() -> str:
-    return subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+    return current_commit(ROOT)
 
 
 def _write(path: Path, value: Any) -> None:
