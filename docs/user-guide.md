@@ -458,6 +458,17 @@ reported as a real model evaluation.
 
 For development verification:
 
+Smoke provenance requires the source directory itself to be a Git repository or
+linked-worktree root with a committed HEAD and no uncommitted tracked changes.
+The producer refuses an ambiguous source; the checker returns `UNVERIFIED` for
+an archive nested under another repository or for dirty tracked/index state.
+Because the full test suite also exercises the producer, run the full sequence
+on a local candidate commit; no push is required. Generated untracked/ignored
+reports and caches are allowed. This guards ordinary source/receipt drift, not
+signed attestation, concurrent source edits, ignored/untracked import shadowing
+or adversarial Git flags. A source archive without Git identity cannot claim a
+verified commit merely from its parent directory.
+
 ```bash
 python -m unittest discover -s tests -v
 python scripts/validate_registry.py
